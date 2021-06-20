@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'stdimage',
-    'stdimage_serializer',
     'api_v1',
     'UserProfileApp',
 ]

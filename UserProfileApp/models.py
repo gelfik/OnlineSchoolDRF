@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.db import models
-from django_resized import ResizedImageField
 from stdimage import StdImageField
 from stdimage.validators import MaxSizeValidator
 
@@ -16,8 +15,6 @@ PICTURE_VARIATIONS = {
     'large': dict(width=1024, height=1024),
 }
 
-
-# Create your models here.
 class UserAvatar(models.Model):
 
     def get_file_path_200x200(instance, filename):
@@ -40,8 +37,6 @@ class UserAvatar(models.Model):
         filename = "%s.%s" % (uuid.uuid4(), ext)
         return os.path.join('avatar', filename)
 
-    # file_link = get_file_path
-
     max_width = 5000
     max_height = 7000
 
@@ -52,8 +47,7 @@ class UserAvatar(models.Model):
         validators=[MaxSizeValidator(max_width, max_height)],
     )
 
-    name = models.CharField('Название', default=None, max_length=255,
-                            blank=False)  # name is filename without extension
+    name = models.CharField('Название', default=None, max_length=255, blank=False)
     upload_date = models.DateTimeField('Дата загрузки', auto_now=True, db_index=True)
     size = models.IntegerField('Размер', default=0)
     is_active = models.BooleanField('Статус удаления', default=True)

@@ -9,6 +9,7 @@ from .renderers import UserJSONRenderer
 from .serializers import (LoginSerializer, RegistrationSerializer, UserRetrieveUpdateSerializer, UserDataSerializer,
                           AvatarUploaderSerializer, )
 
+
 class RegistrationAPIView(APIView):
     """
     Разрешить всем пользователям (аутентифицированным и нет) доступ к данному эндпоинту.
@@ -47,6 +48,7 @@ class RegistrationAPIView(APIView):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
 class LoginAPIView(APIView):
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
@@ -65,41 +67,22 @@ class LoginAPIView(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = UserRetrieveUpdateSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        # Здесь нечего валидировать или сохранять. Мы просто хотим, чтобы
-        # сериализатор обрабатывал преобразования объекта User во что-то, что
-        # можно привести к json и вернуть клиенту.
-        serializer = self.serializer_class(request.user)
+    # def retrieve(self, request, *args, **kwargs):
+    #     serializer = self.serializer_class(request.user)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def update(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         serializer_data = {}
-        username = request.data.get('username', None)
-        if username:
-            serializer_data.update(username=username)
-        email = request.data.get('email', None)
-        if email:
-            serializer_data.update(email=email)
-        password = request.data.get('password', None)
-        if password:
-            serializer_data.update(password=password)
-
-        lastName = request.data.get('lastName', None)
-        if lastName:
-            serializer_data.update(lastName=lastName)
-        firstName = request.data.get('firstName', None)
-        if firstName:
-            serializer_data.update(firstName=firstName)
-        patronymic = request.data.get('patronymic', None)
-        if patronymic:
-            serializer_data.update(patronymic=patronymic)
-        # Паттерн сериализации, валидирования и сохранения - то, о чем говорили
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data:
+                serializer_data.update({f'{item}': data})
         serializer = self.serializer_class(request.user, data=serializer_data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -107,7 +90,7 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserDataAPIView(RetrieveUpdateAPIView):
+class UserDataAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = UserDataSerializer

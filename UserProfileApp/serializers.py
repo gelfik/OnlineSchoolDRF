@@ -2,7 +2,32 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 
 from .models import User, UserAvatar
-from stdimage_serializer.fields import StdImageField
+
+
+class StdImageField(serializers.ImageField):
+    def to_native(self, obj):
+        return self.get_variations_urls(obj)
+
+    def get_variations_urls(self, obj):
+        return_object = {}
+        field = obj.field
+        if hasattr(field, 'variations'):
+            variations = field.variations
+            for key, attr in variations.iteritems():
+                if hasattr(obj, key):
+                    fieldObj = getattr(obj, key, None)
+                    if fieldObj:
+                        url = getattr(fieldObj, 'url', None)
+                        if url:
+                            return_object[key] = url
+
+        if hasattr(obj, 'url'):
+            return_object['original'] = obj.url
+
+        return return_object
+
+    def from_native(self, data):
+        return super(serializers.ImageField, self).from_native(data)
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -10,10 +35,14 @@ class AvatarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAvatar
-        fields = ('file',)
+        fields = ('file', 'name',)
 
     def to_representation(self, instance):
-        return self.fields['file'].to_representation(instance.file)
+        # return self.fields['file'].to_representation(instance.file)
+        return {'name': instance.name,
+                'orig': instance.file.url,
+                'small': instance.file.small.url,
+                'profile': instance.file.profile.url}
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -123,9 +152,8 @@ class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
         # но это не относится к полю токена.
         read_only_fields = ('token',)
 
-    def post(self, instance, validated_data):
+    def update(self, instance, validated_data):
         """ Выполняет обновление User. """
-
         # В отличие от других полей, пароли не следует обрабатывать с помощью
         # setattr. Django предоставляет функцию, которая обрабатывает пароли
         # хешированием и 'солением'. Это означает, что нам нужно удалить поле
@@ -140,9 +168,6 @@ class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
             # 'set_password()' решает все вопросы, связанные с безопасностью
             # при обновлении пароля, потому нам не нужно беспокоиться об этом.
             instance.set_password(password)
-
-        # После того, как все было обновлено, мы должны сохранить наш экземпляр
-        # User. Стоит отметить, что set_password() не сохраняет модель.
         instance.save()
 
         return instance
@@ -167,7 +192,7 @@ class UserDataSerializer(serializers.ModelSerializer):
 
 
 class AvatarUploaderSerializer(serializers.Serializer):
-    file = serializers.FileField()
+    file = StdImageField()
     # file_50x50 = serializers.FileField(read_only=True)
     # file_200x200 = serializers.FileField(read_only=True)
     name = serializers.CharField(max_length=255, read_only=True)
