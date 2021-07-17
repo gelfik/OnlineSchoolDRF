@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 
-from .models import User, UserAvatar
+from .models import User, UserAvatar, PICTURE_VARIATIONS
 
 
 class StdImageField(serializers.ImageField):
@@ -39,10 +39,16 @@ class AvatarSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         # return self.fields['file'].to_representation(instance.file)
+        # ans = {}
+        # for i, item in enumerate(PICTURE_VARIATIONS):
+        #     print(item)
+        #     ans.update({f'{item}': instance.file[item].url})
+        print(self.context['request'].META['wsgi.url_scheme']+'://'+self.context['request'].META['HTTP_HOST'])
         return {'name': instance.name,
                 'orig': instance.file.url,
                 'small': instance.file.small.url,
-                'profile': instance.file.profile.url}
+                'profile': instance.file.profile.url,
+                'url': self.context['request'].META['wsgi.url_scheme']+'://'+self.context['request'].META['HTTP_HOST']}
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -139,10 +145,11 @@ class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
         min_length=8,
         write_only=True
     )
+    avatar = AvatarSerializer(many=False)
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'token', 'lastName', 'firstName', 'patronymic', 'vkLink',)
+        fields = ('email', 'username', 'is_active', 'password', 'lastName', 'firstName', 'vkLink', 'avatar', 'phone',)
 
         # Параметр read_only_fields является альтернативой явному указанию поля
         # с помощью read_only = True, как мы это делали для пароля выше.
@@ -175,12 +182,10 @@ class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
 
 class UserDataSerializer(serializers.ModelSerializer):
     """ Ощуществляет сериализацию и десериализацию объектов User. """
-
     avatar = AvatarSerializer(many=False)
-
     class Meta:
         model = User
-        fields = ('email', 'username', 'is_active', 'firstName', 'lastName', 'patronymic', 'vkLink', 'avatar')
+        fields = ('email', 'username', 'is_active', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone')
 
     # def get_avatar(self, User):
     #     data = {}

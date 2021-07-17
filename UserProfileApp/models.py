@@ -16,22 +16,6 @@ PICTURE_VARIATIONS = {
 }
 
 class UserAvatar(models.Model):
-
-    def get_file_path_200x200(instance, filename):
-        ext = filename.split('.')[-1]
-        filename = "%s_200x200.%s" % (uuid.uuid4(), ext)
-        return os.path.join('avatar', filename)
-
-    def get_file_path_orig(instance, filename):
-        ext = filename.split('.')[-1]
-        filename = "%s_orig.%s" % (uuid.uuid4(), ext)
-        return os.path.join('avatar', filename)
-
-    def get_file_path_50x50(instance, filename):
-        ext = filename.split('.')[-1]
-        filename = "%s_50x50.%s" % (uuid.uuid4(), ext)
-        return os.path.join('avatar', filename)
-
     def get_file_path(instance, filename):
         ext = filename.split('.')[-1]
         filename = "%s.%s" % (uuid.uuid4(), ext)
@@ -46,7 +30,6 @@ class UserAvatar(models.Model):
         variations=PICTURE_VARIATIONS,
         validators=[MaxSizeValidator(max_width, max_height)],
     )
-
     name = models.CharField('Название', default=None, max_length=255, blank=False)
     upload_date = models.DateTimeField('Дата загрузки', auto_now=True, db_index=True)
     size = models.IntegerField('Размер', default=0)
@@ -177,10 +160,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     lastName = models.CharField('Фамилия', max_length=255, default=None, null=True)
     firstName = models.CharField('Имя', max_length=255, default=None, null=True)
     patronymic = models.CharField('Отчество', max_length=255, default=None, null=True)
-
+    phone = models.CharField('Телефон', max_length=255, default=None, null=True)
     vkLink = models.CharField('Ссылка на вк', max_length=255, default=None, null=True)
 
-    avatar = models.ForeignKey(UserAvatar, on_delete=models.CASCADE, verbose_name='Аватар', default=None, null=True,
+    avatar = models.ForeignKey(UserAvatar, on_delete=models.CASCADE, verbose_name='Аватар', default=0, null=True,
                                blank=True)
 
     # Свойство USERNAME_FIELD сообщает нам, какое поле мы будем использовать

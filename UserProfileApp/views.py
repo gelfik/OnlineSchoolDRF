@@ -83,7 +83,7 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
             data = request.data.get(item, None)
             if data:
                 serializer_data.update({f'{item}': data})
-        serializer = self.serializer_class(request.user, data=serializer_data, partial=True)
+        serializer = self.serializer_class(request.user, data=serializer_data, partial=True, context={'request': self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -96,7 +96,7 @@ class UserDataAPIView(APIView):
     serializer_class = UserDataSerializer
 
     def get(self, request, *args, **kwargs):
-        serializer = self.serializer_class(request.user, data={'user': request.user}, partial=True)
+        serializer = self.serializer_class(request.user, data={'user': request.user}, partial=True, context={'request': self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
