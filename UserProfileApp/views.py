@@ -21,28 +21,13 @@ class RegistrationAPIView(APIView):
     def post(self, request):
         # user = request.data.get('user', {})
         serializer_data = {}
-        username = request.data.get('username', None)
-        if username:
-            serializer_data.update(username=username)
-        email = request.data.get('email', None)
-        if email:
-            serializer_data.update(email=email)
-        password = request.data.get('password', None)
-        if password:
-            serializer_data.update(password=password)
-
-        lastName = request.data.get('lastName', None)
-        if lastName:
-            serializer_data.update(lastName=lastName)
-        firstName = request.data.get('firstName', None)
-        if firstName:
-            serializer_data.update(firstName=firstName)
-        patronymic = request.data.get('patronymic', None)
-        if patronymic:
-            serializer_data.update(patronymic=patronymic)
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data:
+                serializer_data.update({f'{item}': data})
         # Паттерн создания сериализатора, валидации и сохранения - довольно
         # стандартный, и его можно часто увидеть в реальных проектах.
-        serializer = self.serializer_class(data=serializer_data)
+        serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
