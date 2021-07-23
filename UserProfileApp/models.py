@@ -188,12 +188,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # Дополнительный поля, необходимые Django
     # при указании кастомной модели пользователя.
-    lastName = models.CharField('Фамилия', max_length=255, default=None, null=True)
-    firstName = models.CharField('Имя', max_length=255, default=None, null=True)
-    patronymic = models.CharField('Отчество', max_length=255, default=None, null=True)
-    phone = models.CharField('Телефон', max_length=255, default=None, null=True)
-    vkLink = models.CharField('Ссылка на вк', max_length=255, default=None, null=True)
-
+    lastName = models.CharField('Фамилия', max_length=255, default=None)
+    firstName = models.CharField('Имя', max_length=255, default=None)
+    patronymic = models.CharField('Отчество', max_length=255, default=None)
+    phone = models.CharField('Телефон', max_length=255, default=None)
+    vkLink = models.CharField('Ссылка на вк', max_length=255, default=None)
     avatar = models.ForeignKey(UserAvatar, on_delete=models.CASCADE, verbose_name='Аватар', default=0, null=True,
                                blank=True)
 
