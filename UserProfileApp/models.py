@@ -141,12 +141,20 @@ class UserManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, username, email, password):
+    def create_superuser(self, email, lastName, firstName, vkLink, password):
         """ Создает и возввращет пользователя с привилегиями суперадмина. """
+        if email is None:
+            raise TypeError('Email обязательное поле.')
+        if lastName is None:
+            raise TypeError('Фамилия обязательное поле.')
+        if firstName is None:
+            raise TypeError('Имя обязательное поле.')
+        if vkLink is None:
+            raise TypeError('Ссылка вк обязательное поле.')
         if password is None:
-            raise TypeError('Superusers must have a password.')
+            raise TypeError('Пароль обязательное поле.')
 
-        user = self.create_user(username, email, password)
+        user = self.create_user(email, lastName, firstName, vkLink, password)
         user.is_superuser = True
         user.is_staff = True
         user.save()

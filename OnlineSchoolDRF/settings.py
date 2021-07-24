@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'stdimage',
     'api_v1',
     'UserProfileApp',
+    'MainContentApp',
 ]
 
 MIDDLEWARE = [
