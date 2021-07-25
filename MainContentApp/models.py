@@ -54,6 +54,7 @@ class ExamType(models.Model):
         return f'{self.name}'
 
 
+
 class TeacherLink(models.Model):
     vk = models.CharField('Ссылка Vk', default=None, max_length=255, null=True, blank=True)
     instagram = models.CharField('Ссылка instagram', default=None, max_length=255, null=True, blank=True)
@@ -90,3 +91,32 @@ class TeacherList(models.Model):
 
     def __str__(self):
         return f'{self.lastName} {self.firstName} {self.subject}'
+
+class EducationDataType(models.Model):
+    name = models.CharField('Тип даты курса', default=None, max_length=255)
+    is_active = models.BooleanField('Статус удаления', default=True)
+
+    class Meta:
+        verbose_name = 'Тип даты курса'
+        verbose_name_plural = 'Типы даты курсов'
+        db_table = 'EducationDataType'
+
+    def __str__(self):
+        return f'{self.name}'
+
+class EducationList(models.Model):
+    name = models.CharField('Название', default=None, max_length=255)
+    add_date = models.DateTimeField('Дата добавления', auto_now=True, db_index=True)
+    shortDescription = models.CharField('Краткое описание', default=None, max_length=255)
+    description = models.TextField('Описание', default=None)
+    educationDataType = models.ForeignKey(EducationDataType, on_delete=models.CASCADE, verbose_name='Тип даты курса', default=None)
+    recruitmentStatus = models.BooleanField('Статус набора', default=True)
+    is_active = models.BooleanField('Статус удаления', default=True)
+
+    class Meta:
+        verbose_name = 'Курс'
+        verbose_name_plural = 'Курсы'
+        db_table = 'EducationList'
+
+    def __str__(self):
+        return f'{self.name}'
