@@ -66,8 +66,7 @@ class TeacherDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeacherList
         fields = (
-            'lastName', 'firstName', 'subject', 'shortDescription', 'description', 'examType', 'avatar', 'teacherLink',
-            'is_active')
+            'lastName', 'firstName', 'subject', 'shortDescription', 'description', 'examType', 'avatar', 'teacherLink')
 
 
 class EducationDataSerializer(serializers.ModelSerializer):
@@ -76,4 +75,4 @@ class EducationDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = EducationList
         fields = (
-            'name', 'shortDescription', 'description', 'duration', 'recruitmentStatus', 'is_active')
+            'name', 'shortDescription', 'description', 'duration', 'recruitmentStatus')
