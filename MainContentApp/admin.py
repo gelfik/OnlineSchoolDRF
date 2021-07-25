@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TeacherAvatar, ExamType, TeacherList
+from .models import TeacherAvatar, ExamType, TeacherList, TeacherLink
 
 
 @admin.register(ExamType)
@@ -11,6 +11,9 @@ class ExamType_list(admin.ModelAdmin):
 class TeacherAvatar_list(admin.ModelAdmin):
     list_display = ('name', 'file', 'upload_date', 'size', 'is_active',)
 
+@admin.register(TeacherLink)
+class TeacherLink_list(admin.ModelAdmin):
+    list_display = ('vk', 'telegram', 'youtube', 'instagram', 'is_active',)
 
 @admin.register(TeacherList)
 class TeacherList_list(admin.ModelAdmin):
