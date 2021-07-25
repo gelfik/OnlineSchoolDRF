@@ -83,5 +83,5 @@ class EducationDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = EducationList
         fields = (
-            'name', 'add_date', 'shortDescription', 'description', 'educationDataType', 'recruitmentStatus',
-            'is_active')
+            'name', 'add_date', 'shortDescription', 'description', 'countDate', 'educationDataType',
+            'recruitmentStatus', 'is_active')

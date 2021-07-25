@@ -6,7 +6,9 @@ from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
 
 from .serializers import (TeacherDataSerializer, EducationDataSerializer)
-from .models import TeacherList
+from .models import TeacherList, EducationList
+
+
 # Create your views here.
 
 class TeacherDataAPIView(APIView):
@@ -28,7 +30,7 @@ class EducationDataAPIView(APIView):
     serializer_class = EducationDataSerializer
 
     def get_queryset(self):
-        return TeacherList.objects.filter(is_active=True)
+        return EducationList.objects.filter(is_active=True)
 
     def get(self, request, *args, **kwargs):
         EducationList_objects = self.get_queryset()

@@ -110,6 +110,7 @@ class EducationList(models.Model):
     shortDescription = models.CharField('Краткое описание', default=None, max_length=255)
     description = models.TextField('Описание', default=None)
     educationDataType = models.ForeignKey(EducationDataType, on_delete=models.CASCADE, verbose_name='Тип даты курса', default=None)
+    countDate = models.IntegerField('Число зависимое от типа даты курса', default=0)
     recruitmentStatus = models.BooleanField('Статус набора', default=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
