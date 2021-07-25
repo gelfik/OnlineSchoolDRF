@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 
-from .models import TeacherList, PICTURE_VARIATIONS, ExamType, TeacherLink, EducationDataType, EducationList
+from .models import TeacherList, PICTURE_VARIATIONS, ExamType, TeacherLink, EducationList
 
 
 class StdImageField(serializers.ImageField):
@@ -70,18 +70,10 @@ class TeacherDataSerializer(serializers.ModelSerializer):
             'is_active')
 
 
-class EducationDataTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EducationDataType
-        fields = ('name', 'id')
-
-
 class EducationDataSerializer(serializers.ModelSerializer):
-    """ Ощуществляет сериализацию и десериализацию объектов TeacherList. """
-    educationDataType = EducationDataTypeSerializer(many=False, read_only=True)
+    """ Ощуществляет сериализацию и десериализацию объектов EducationList. """
 
     class Meta:
         model = EducationList
         fields = (
-            'name', 'add_date', 'shortDescription', 'description', 'countDate', 'educationDataType',
-            'recruitmentStatus', 'is_active')
+            'name', 'shortDescription', 'description', 'duration', 'recruitmentStatus', 'is_active')
