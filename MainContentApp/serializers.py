@@ -58,4 +58,4 @@ class TeacherDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeacherList
-        fields = ('name', 'subject', 'shortDescription', 'description', 'examType_id', 'avatar', 'is_active')
+        fields = ('lastName', 'firstName', 'subject', 'shortDescription', 'description', 'examType_id', 'avatar', 'is_active')

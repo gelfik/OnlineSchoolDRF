@@ -14,4 +14,4 @@ class TeacherAvatar_list(admin.ModelAdmin):
 
 @admin.register(TeacherList)
 class TeacherList_list(admin.ModelAdmin):
-    list_display = ('name', 'subject', 'add_date', 'shortDescription', 'examType_id', 'avatar', 'is_active',)
+    list_display = ('subject', 'lastName', 'firstName', 'add_date', 'shortDescription', 'examType_id', 'avatar', 'is_active',)

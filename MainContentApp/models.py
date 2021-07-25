@@ -11,6 +11,7 @@ PICTURE_VARIATIONS = {
     'profile': dict(width=400, height=400, crop=True),
 }
 
+
 class TeacherAvatar(models.Model):
     def get_file_path(instance, filename):
         ext = filename.split('.')[-1]
@@ -52,14 +53,17 @@ class ExamType(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+
 class TeacherList(models.Model):
-    name = models.CharField('Имя препода', default=None, max_length=255)
+    lastName = models.CharField('Фамилия препода', default=None, max_length=255)
+    firstName = models.CharField('Имя препода', default=None, max_length=255)
     subject = models.CharField('Предмет', default=None, max_length=255)
     add_date = models.DateTimeField('Дата добавления', auto_now=True, db_index=True)
     shortDescription = models.CharField('Краткое описание', default=None, max_length=255)
     description = models.TextField('Описание', default=None)
-    examType_id= models.ForeignKey(ExamType, on_delete=models.CASCADE, verbose_name='Тип экзамена', default=None)
-    avatar = models.ForeignKey(TeacherAvatar, on_delete=models.CASCADE, verbose_name='Фото преподавателя', default=None, null=True,
+    examType_id = models.ForeignKey(ExamType, on_delete=models.CASCADE, verbose_name='Тип экзамена', default=None)
+    avatar = models.ForeignKey(TeacherAvatar, on_delete=models.CASCADE, verbose_name='Фото преподавателя', default=None,
+                               null=True,
                                blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
@@ -69,4 +73,4 @@ class TeacherList(models.Model):
         db_table = 'TeacherList'
 
     def __str__(self):
-        return f'{self.name} {self.subject}'
+        return f'{self.lastName} {self.firstName} {self.subject}'
