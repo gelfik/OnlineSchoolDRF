@@ -74,5 +74,4 @@ class EducationDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EducationList
-        fields = (
-            'name', 'shortDescription', 'description', 'duration', 'recruitmentStatus')
+        fields = ('name', 'shortDescription', 'description', 'duration', 'recruitmentStatus', 'svg')

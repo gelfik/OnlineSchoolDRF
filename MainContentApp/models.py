@@ -94,6 +94,7 @@ class TeacherList(models.Model):
 
 class EducationList(models.Model):
     name = models.CharField('Название', default=None, max_length=255)
+    svg = models.TextField('SVG', default=None, null=True, blank=True)
     addDate = models.DateTimeField('Дата добавления', auto_now=True, db_index=True)
     shortDescription = models.CharField('Краткое описание', default=None, max_length=255)
     description = models.TextField('Описание', default=None)
