@@ -7,6 +7,7 @@ from CoursesApp.models import CoursesListModel
 from urllib import parse
 from django.utils.encoding import force_str
 
+
 class PaginationCourses(PageNumberPagination):
     page_size = 1
     max_page_size = 1000
@@ -25,15 +26,15 @@ class PaginationCourses(PageNumberPagination):
         (scheme, netloc, path, query, fragment) = parse.urlsplit(force_str(self.request.build_absolute_uri()))
         return replace_query_param(f'?{query}', self.page_query_param, page_number)
 
-    # def get_paginated_response(self, data):
-    #     return Response({
-    #         'links': {
-    #             'next': self.get_next_link(),
-    #             'previous': self.get_previous_link()
-    #         },
-    #         'count': self.page.paginator.count,
-    #         'results': data
-    #     })
+    def get_paginated_response(self, data):
+        return Response({
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'curent': self.page.number,
+            'count': self.page.paginator.count,
+            'results': data
+        })
+
 
 class CharFilterInFilter(filters.BaseInFilter, filters.CharFilter):
     pass

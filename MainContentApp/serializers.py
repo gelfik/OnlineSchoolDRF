@@ -19,4 +19,5 @@ class EducationDataSerializer(serializers.ModelSerializer):
                 'description': instance.description,
                 'recruitmentStatus': instance.recruitmentStatus,
                 'svg': instance.svg,
-                'course': instance.course.name}
+                'course': instance.course.name,
+                'duration': instance.duration}

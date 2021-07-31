@@ -62,3 +62,4 @@ class CoursesListModel(models.Model):
 
     def __str__(self):
         return f'{self.courseName} {self.predmet} {self.courseExamType}'
+
