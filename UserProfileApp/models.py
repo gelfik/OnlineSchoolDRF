@@ -200,12 +200,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     # при указании кастомной модели пользователя.
     lastName = models.CharField('Фамилия', max_length=255, default=None)
     firstName = models.CharField('Имя', max_length=255, default=None)
-    patronymic = models.CharField('Отчество', max_length=255, default=None)
-    phone = models.CharField('Телефон', max_length=255, default=None)
+    # patronymic = models.CharField('Отчество', max_length=255, default=None)
+    phone = models.CharField('Телефон', max_length=255, default=None, null=True)
     vkLink = models.CharField('Ссылка на вк', max_length=255, default=None)
     avatar = models.ForeignKey(UserAvatar, on_delete=models.CASCADE, verbose_name='Аватар', default=0, null=True,
                                blank=True)
-    coursesBuyList = models.ManyToManyField(CoursesApp.models.CoursesListModel, 'Уроки')
+    coursesBuyList = models.ManyToManyField(CoursesApp.models.CoursesListModel, 'Уроки', default=None, null=True,
+                               blank=True)
     # Свойство USERNAME_FIELD сообщает нам, какое поле мы будем использовать
     # для входа в систему. В данном случае мы хотим использовать почту.
     USERNAME_FIELD = 'email'

@@ -4,14 +4,14 @@ from django.contrib import admin
 from .models import AvatarModel, TeachersModel, LinkModel
 
 
-@admin.register(AvatarModel)
-class TeacherAvatar_list(admin.ModelAdmin):
-    list_display = ('id', 'file', 'is_active',)
-
-
-@admin.register(LinkModel)
-class TeacherLink_list(admin.ModelAdmin):
-    list_display = ('vk', 'telegram', 'youtube', 'instagram', 'is_active',)
+# @admin.register(AvatarModel)
+# class TeacherAvatar_list(admin.ModelAdmin):
+#     list_display = ('id', 'file', 'is_active',)
+#
+#
+# @admin.register(LinkModel)
+# class TeacherLink_list(admin.ModelAdmin):
+#     list_display = ('vk', 'telegram', 'youtube', 'instagram', 'is_active',)
 
 
 @admin.register(TeachersModel)

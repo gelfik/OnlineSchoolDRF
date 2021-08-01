@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import update_last_login
 
 from .models import User, UserAvatar, PICTURE_VARIATIONS
 
@@ -76,7 +77,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Использовать метод create_user, который мы
         # написали ранее, для создания нового пользователя.
-        return User.objects.create_user(**validated_data)
+        user = User.objects.create_user(**validated_data)
+        update_last_login(None, user)
+        return user
 
 
 class LoginSerializer(serializers.Serializer):
@@ -125,7 +128,7 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'Этот пользователь был деактивирован.'
             )
-
+        update_last_login(None, user)
         # Метод validate должен возвращать словать проверенных данных. Это
         # данные, которые передются в т.ч. в методы create и update.
         return {
