@@ -3,7 +3,7 @@ from .models import User, UserAvatar
 
 @admin.register(User)
 class User_list(admin.ModelAdmin):
-    list_display = ('username', 'email', 'is_active', 'is_staff', 'lastName', 'firstName', 'vkLink', )
+    list_display = ('username', 'email', 'is_active', 'is_staff', 'lastName', 'firstName', )
 
 # @admin.register(UserAvatar)
 # class User_list(admin.ModelAdmin):

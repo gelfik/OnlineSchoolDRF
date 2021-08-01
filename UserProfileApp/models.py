@@ -118,7 +118,7 @@ class UserManager(BaseUserManager):
     же самого кода, который Django использовал для создания User (для демонстрации).
     """
 
-    def create_user(self, email, lastName, firstName, vkLink, password=None):
+    def create_user(self, email, lastName, firstName, password=None):
         """ Создает и возвращает пользователя с имэйлом, паролем и именем. """
         # if username is None:
         #     raise TypeError('Users must have a username.')
@@ -129,21 +129,18 @@ class UserManager(BaseUserManager):
             raise TypeError('Фамилия обязательное поле.')
         if firstName is None:
             raise TypeError('Имя обязательное поле.')
-        if vkLink is None:
-            raise TypeError('Ссылка вк обязательное поле.')
 
         new_username = transliterate(firstName[:1] + lastName)
 
         user = self.model(username=new_username, email=self.normalize_email(email))
         user.firstName = firstName
         user.lastName = lastName
-        user.vkLink = vkLink
         user.set_password(password)
         user.save()
 
         return user
 
-    def create_superuser(self, email, lastName, firstName, vkLink, password):
+    def create_superuser(self, email, lastName, firstName, password):
         """ Создает и возввращет пользователя с привилегиями суперадмина. """
         if email is None:
             raise TypeError('Email обязательное поле.')
@@ -151,12 +148,10 @@ class UserManager(BaseUserManager):
             raise TypeError('Фамилия обязательное поле.')
         if firstName is None:
             raise TypeError('Имя обязательное поле.')
-        if vkLink is None:
-            raise TypeError('Ссылка вк обязательное поле.')
         if password is None:
             raise TypeError('Пароль обязательное поле.')
 
-        user = self.create_user(email, lastName, firstName, vkLink, password)
+        user = self.create_user(email, lastName, firstName, password)
         user.is_superuser = True
         user.is_staff = True
         user.save()
@@ -202,7 +197,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     firstName = models.CharField('Имя', max_length=255, default=None)
     # patronymic = models.CharField('Отчество', max_length=255, default=None)
     phone = models.CharField('Телефон', max_length=255, default=None, null=True)
-    vkLink = models.CharField('Ссылка на вк', max_length=255, default=None)
     avatar = models.ForeignKey(UserAvatar, on_delete=models.CASCADE, verbose_name='Аватар', default=0, null=True,
                                blank=True)
     coursesBuyList = models.ManyToManyField(CoursesApp.models.CoursesListModel, 'Уроки', default=None, null=True,
