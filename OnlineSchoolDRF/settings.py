@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'UserProfileApp',
     'MainContentApp',
     'CoursesApp',
+    'LessonApp',
     'TeachersApp',
 ]
 

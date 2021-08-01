@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CoursesNameModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel
+from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel
 # Register your models here.
 
 @admin.register(CoursesExamTypeModel)
@@ -10,10 +10,10 @@ class CoursesExamType(admin.ModelAdmin):
 class CoursesPredmet(admin.ModelAdmin):
     list_display = ('name', 'is_active',)
 
-@admin.register(CoursesNameModel)
+@admin.register(CoursesTypeModel)
 class CoursesName(admin.ModelAdmin):
-    list_display = ('name', 'is_active',)
+    list_display = ('name', 'shortDescription','duration', 'recruitmentStatus', 'is_active',)
 
 @admin.register(CoursesListModel)
 class CoursesList(admin.ModelAdmin):
-    list_display = ('predmet', 'courseName','courseExamType', 'teacher','price', 'is_active',)
+    list_display = ('predmet', 'courseType','courseExamType', 'teacher','price', 'is_active',)

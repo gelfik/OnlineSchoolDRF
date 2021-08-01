@@ -7,8 +7,9 @@ from rest_framework.renderers import JSONRenderer
 
 
 from .serializers import EducationDataSerializer
-from .models import EducationList
+# from .models import EducationList
 from TeachersApp.models import TeachersModel
+from CoursesApp.models import CoursesTypeModel
 from TeachersApp.serializers import TeacherDataSerializer
 
 
@@ -34,7 +35,7 @@ class EducationDataAPIView(APIView):
     serializer_class = EducationDataSerializer
 
     def get_queryset(self):
-        return EducationList.objects.filter(is_active=True)
+        return CoursesTypeModel.objects.filter(is_active=True)
 
     def get(self, request, *args, **kwargs):
         EducationList_objects = self.get_queryset()

@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import CoursesNameModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel
+
+import LessonApp.serializers
+from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel
 from TeachersApp.serializers import TeacherDataSerializer
 
 
@@ -15,47 +17,41 @@ class CoursesPredmetSerializer(serializers.ModelSerializer):
         fields = ('name',)
 
 
-class CoursesNameSerializer(serializers.ModelSerializer):
+class CoursesTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CoursesNameModel
-        fields = ('name',)
+        model = CoursesTypeModel
+        # fields = ('name',)
+        exclude = ('is_active',)
 
 
 class CoursesListSerializer(serializers.ModelSerializer):
-    predmet = CoursesPredmetSerializer(many=False, read_only=True)
-    courseName = CoursesNameSerializer(many=False, read_only=True)
-    courseExamType = CoursesExamTypeSerializer(many=False, read_only=True)
     teacher = TeacherDataSerializer(many=False, read_only=True)
+
+    predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
 
     class Meta:
         model = CoursesListModel
-        fields = ('predmet', 'courseName', 'courseExamType', 'teacher', 'price',)
+        fields = ('id', 'predmet', 'courseType', 'courseExamType', 'teacher', 'price',)
 
-    def to_representation(self, instance):
-        teacher = TeacherDataSerializer(instance=instance.teacher, many=False, read_only=True,
-                                        context={'request': self.context['request']})
-        return {'id': instance.id,
-                'predmet': instance.predmet.name,
-                'courseName': instance.courseName.name,
-                'courseExamType': instance.courseExamType.name,
-                'teacher': teacher.data,
-                'price': instance.price,
-                }
+
+class CoursesDetailSerializer(serializers.ModelSerializer):
+    teacher = TeacherDataSerializer(many=False, read_only=True)
+    predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    leasonList = LessonApp.serializers.LessonSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CoursesListModel
+        fields = ('predmet', 'courseType', 'courseExamType', 'teacher', 'price', 'leasonList',)
 
 
 class FilterDataSerializer(serializers.Serializer):
-    predmet = CoursesPredmetSerializer(many=True, read_only=True)
-    courseName = CoursesNameSerializer(many=True, read_only=True)
-    examType = CoursesExamTypeSerializer(many=True, read_only=True)
+    predmet = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
+    courseType = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
+    examType = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
 
     class Meta:
-        fields = ('predmet', 'courseName', 'examType',)
-
-    def to_representation(self, instance):
-        predmet = CoursesPredmetSerializer(instance=instance['predmet'], many=True)
-        courseName = CoursesNameSerializer(instance=instance['courseName'], many=True)
-        examType = CoursesExamTypeSerializer(instance=instance['examType'], many=True)
-        return {'predmet': predmet.data,
-                'courseName': courseName.data,
-                'examType': examType.data,
-                }
+        fields = ('predmet', 'courseType', 'examType',)
