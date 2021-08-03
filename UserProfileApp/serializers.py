@@ -72,7 +72,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = User
         # Перечислить все поля, которые могут быть включены в запрос
         # или ответ, включая поля, явно указанные выше.
-        fields = ['email','token', 'username', 'is_active', 'password', 'lastName', 'firstName', 'avatar', 'phone',]
+        fields = ['email','token', 'username', 'is_active', 'password', 'lastName', 'firstName', 'vkLink', 'avatar', 'phone',]
 
     def create(self, validated_data):
         # Использовать метод create_user, который мы
@@ -153,7 +153,7 @@ class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'is_active', 'password', 'lastName', 'firstName', 'avatar', 'phone',)
+        fields = ('email', 'username', 'is_active', 'password', 'lastName', 'firstName', 'vkLink', 'avatar', 'phone',)
 
         # Параметр read_only_fields является альтернативой явному указанию поля
         # с помощью read_only = True, как мы это делали для пароля выше.
@@ -189,7 +189,7 @@ class UserDataSerializer(serializers.ModelSerializer):
     avatar = AvatarSerializer(many=False)
     class Meta:
         model = User
-        fields = ('email', 'username', 'is_active', 'firstName', 'lastName', 'avatar', 'phone')
+        fields = ('email', 'username', 'is_active', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone')
 
     # def get_avatar(self, User):
     #     data = {}

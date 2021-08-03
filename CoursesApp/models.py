@@ -1,9 +1,11 @@
-from django.db import models
+import os, uuid
 
-# Create your models here.
-# import TeachersApp.models
+from django.db import models
 from TeachersApp.models import TeachersModel
 from LessonApp.models import LessonModel
+
+# from stdimage import StdImageField
+from stdimage.validators import MaxSizeValidator
 
 
 class CoursesExamTypeModel(models.Model):
@@ -53,20 +55,29 @@ class CoursesTypeModel(models.Model):
 
 
 class CoursesListModel(models.Model):
+    def get_file_path(instance, filename):
+        ext = filename.split('.')[-1]
+        filename = "%s.%s" % (uuid.uuid4(), ext)
+        return os.path.join('coursePicture', filename)
+
     predmet = models.ForeignKey(CoursesPredmetModel, on_delete=models.CASCADE, verbose_name='Предмет',
                                 default=None, null=True)
     courseType = models.ForeignKey(CoursesTypeModel, on_delete=models.CASCADE, verbose_name='Тип курса',
                                    default=None, null=True)
     courseExamType = models.ForeignKey(CoursesExamTypeModel, on_delete=models.CASCADE, verbose_name='Тип курса',
                                        default=None, null=True)
+    # coursePicture = models.ForeignKey(CoursesPictureModel, on_delete=models.CASCADE, verbose_name='Картинка курса',
+    #                                   default=None, null=True)
+    coursePicture = models.ImageField(upload_to=get_file_path, verbose_name='Картинка курса',
+                                      validators=[MaxSizeValidator(500, 500)], default=None, null=True)
     teacher = models.ForeignKey(TeachersModel, on_delete=models.CASCADE, verbose_name='Преподаватель',
                                 default=None, null=True)
     shortDescription = models.TextField('Краткое описание', default=None, null=True)
     description = models.TextField('Описание', default=None, null=True)
-    leasonList = models.ManyToManyField(LessonModel, 'Уроки',null=True, blank=True)
+    leasonList = models.ManyToManyField(LessonModel, 'Уроки', null=True, blank=True)
     price = models.FloatField('Цена', default=0)
-    discountDuration = models.PositiveSmallIntegerField('Скидка за месяц при оплате за весь срок обучения в %', default=0,
-                                                null=True, blank=True)
+    discountDuration = models.PositiveSmallIntegerField('Скидка за месяц при оплате за весь срок обучения в %',
+                                                        default=0, null=True, blank=True)
     draft = models.BooleanField('Черновик', default=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
