@@ -17,3 +17,11 @@ class LessonListAPIView(ListAPIView):
     def get_queryset(self):
         Lesson_object = LessonModel.objects.order_by('id').filter(is_active=True)
         return Lesson_object
+
+
+class LessonListAllAPIView(ListAPIView):
+    queryset = LessonModel.objects.all().order_by('id').filter(is_active=True)
+    permission_classes = (AllowAny,)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = LessonSerializer
+    pagination_class = None

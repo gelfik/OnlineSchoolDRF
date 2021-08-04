@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'CoursesApp',
     'LessonApp',
     'TeachersApp',
+    'HomeworkApp',
 ]
 
 MIDDLEWARE = [

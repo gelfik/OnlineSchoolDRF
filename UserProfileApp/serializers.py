@@ -9,47 +9,45 @@ class StdImageField(serializers.ImageField):
     def to_native(self, obj):
         return self.get_variations_urls(obj)
 
+    def to_representation(self, obj):
+        return self.get_variations_urls(obj)
+
     def get_variations_urls(self, obj):
         return_object = {}
         field = obj.field
         if hasattr(field, 'variations'):
             variations = field.variations
-            for key, attr in variations.iteritems():
+            for key in variations.keys():
                 if hasattr(obj, key):
-                    fieldObj = getattr(obj, key, None)
-                    if fieldObj:
-                        url = getattr(fieldObj, 'url', None)
-                        if url:
-                            return_object[key] = url
+                    field_obj = getattr(obj, key, None)
+                    if field_obj and hasattr(field_obj, 'url'):
+                        return_object[key] = super(StdImageField, self).to_representation(field_obj)
 
         if hasattr(obj, 'url'):
-            return_object['original'] = obj.url
+            return_object['original'] = super(StdImageField, self).to_representation(obj)
 
         return return_object
 
-    def from_native(self, data):
-        return super(serializers.ImageField, self).from_native(data)
-
 
 class AvatarSerializer(serializers.ModelSerializer):
-    file = StdImageField()
+    file = StdImageField(read_only=True)
 
     class Meta:
         model = UserAvatar
         fields = ('file', 'name',)
 
-    def to_representation(self, instance):
-        # return self.fields['file'].to_representation(instance.file)
-        # ans = {}
-        # for i, item in enumerate(PICTURE_VARIATIONS):
-        #     print(item)
-        #     ans.update({f'{item}': instance.file[item].url})
-        print(self.context['request'].META['wsgi.url_scheme']+'://'+self.context['request'].META['HTTP_HOST'])
-        return {'name': instance.name,
-                'orig': instance.file.url,
-                'small': instance.file.small.url,
-                'profile': instance.file.profile.url,
-                'url': self.context['request'].META['wsgi.url_scheme']+'://'+self.context['request'].META['HTTP_HOST']}
+    # def to_representation(self, instance):
+    #     # return self.fields['file'].to_representation(instance.file)
+    #     # ans = {}
+    #     # for i, item in enumerate(PICTURE_VARIATIONS):
+    #     #     print(item)
+    #     #     ans.update({f'{item}': instance.file[item].url})
+    #     print(self.context['request'].META['wsgi.url_scheme']+'://'+self.context['request'].META['HTTP_HOST'])
+    #     return {'name': instance.name,
+    #             'orig': instance.file.url,
+    #             'small': instance.file.small.url,
+    #             'profile': instance.file.profile.url,
+    #             'url': self.context['request'].META['wsgi.url_scheme']+'://'+self.context['request'].META['HTTP_HOST']}
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -68,11 +66,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
     token = serializers.CharField(max_length=255, read_only=True)
     username = serializers.CharField(max_length=255, read_only=True)
     avatar = AvatarSerializer(many=False, read_only=True)
+
     class Meta:
         model = User
         # Перечислить все поля, которые могут быть включены в запрос
         # или ответ, включая поля, явно указанные выше.
-        fields = ['email','token', 'username', 'is_active', 'password', 'lastName', 'firstName', 'vkLink', 'avatar', 'phone',]
+        fields = ['email', 'token', 'username', 'is_active', 'password', 'lastName', 'firstName', 'vkLink', 'avatar',
+                  'phone', ]
 
     def create(self, validated_data):
         # Использовать метод create_user, который мы
@@ -187,6 +187,9 @@ class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
 class UserDataSerializer(serializers.ModelSerializer):
     """ Ощуществляет сериализацию и десериализацию объектов User. """
     avatar = AvatarSerializer(many=False)
+
+    # avatar = serializers.SlugRelatedField(slug_field='file', read_only=True)
+
     class Meta:
         model = User
         fields = ('email', 'username', 'is_active', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone')

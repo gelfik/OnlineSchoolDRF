@@ -63,7 +63,7 @@ class UserAvatar(models.Model):
         db_table = 'UserAvatar'
 
     def __str__(self):
-        return str(self.name)
+        return str(self.file.url)
 
 
 # class UserAvatar(models.Model):

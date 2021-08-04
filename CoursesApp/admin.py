@@ -12,7 +12,7 @@ class CoursesPredmet(admin.ModelAdmin):
 
 @admin.register(CoursesTypeModel)
 class CoursesName(admin.ModelAdmin):
-    list_display = ('name', 'shortDescription','duration', 'recruitmentStatus', 'is_active',)
+    list_display = ('name', 'shortDescription','duration', 'durationCount', 'recruitmentStatus', 'is_active',)
 
 @admin.register(CoursesListModel)
 class CoursesList(admin.ModelAdmin):

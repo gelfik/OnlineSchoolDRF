@@ -3,7 +3,7 @@ from rest_framework import serializers
 import LessonApp.serializers
 from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel
 from TeachersApp.serializers import TeacherDataSerializer
-
+from LessonApp.serializers import LessonSerializer
 
 class CoursesExamTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,7 +26,7 @@ class CoursesTypeSerializer(serializers.ModelSerializer):
 class CoursesTypeForCourseDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesTypeModel
-        fields = ('name','duration', )
+        fields = ('name','duration', 'durationCount', )
         # exclude = ('is_active', 'id', )
 
 class CoursesListSerializer(serializers.ModelSerializer):
@@ -47,7 +47,7 @@ class CoursesDetailSerializer(serializers.ModelSerializer):
     # courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
     courseType = CoursesTypeForCourseDetailSerializer(many=False, read_only=True)
     courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    leasonList = LessonApp.serializers.LessonSerializer(many=True, read_only=True)
+    leasonList = LessonSerializer(many=True, read_only=True)
     # coursePicture = serializers.SlugRelatedField(slug_field='file', read_only=True)
 
     class Meta:

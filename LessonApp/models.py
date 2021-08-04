@@ -1,7 +1,9 @@
 from django.db import models
+import datetime
 from django.utils.timezone import now as django_datetime_now
 
 # Create your models here.
+from HomeworkApp.models import HomeworkListModel
 
 
 class LessonTypeModel(models.Model):
@@ -21,7 +23,9 @@ class LessonModel(models.Model):
                                 default=None, null=True)
     shortDescription = models.CharField('Краткое описание', default=None, max_length=255)
     description = models.TextField('Описание', default=None)
-    lessonDate = models.DateTimeField('Дата и время проведения урока', default=django_datetime_now)
+    lessonDate = models.DateField('Дата проведения урока', default=django_datetime_now)
+    lessonTime = models.TimeField('Время проведения урока', default=datetime.time(00, 00))
+    homeworkList = models.ManyToManyField(HomeworkListModel, verbose_name='Домашнии задания', default=None, null=True, blank=True)
 
     isOpen = models.BooleanField('Статус доступа', default=True)
     is_active = models.BooleanField('Статус удаления', default=True)
