@@ -1,19 +1,30 @@
 from django.contrib import admin
-from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel
+from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel, \
+    CoursesSubCoursesModel
+
+
 # Register your models here.
 
 @admin.register(CoursesExamTypeModel)
 class CoursesExamType(admin.ModelAdmin):
     list_display = ('name', 'is_active',)
 
+
 @admin.register(CoursesPredmetModel)
 class CoursesPredmet(admin.ModelAdmin):
     list_display = ('name', 'is_active',)
 
+
 @admin.register(CoursesTypeModel)
 class CoursesName(admin.ModelAdmin):
-    list_display = ('name', 'shortDescription','duration', 'durationCount', 'recruitmentStatus', 'is_active',)
+    list_display = ('name', 'shortDescription', 'duration', 'durationCount', 'recruitmentStatus', 'is_active',)
+
+
+@admin.register(CoursesSubCoursesModel)
+class CoursesSubCourses(admin.ModelAdmin):
+    list_display = ('startDate', 'endDate', 'is_active',)
+
 
 @admin.register(CoursesListModel)
 class CoursesList(admin.ModelAdmin):
-    list_display = ('predmet', 'courseType','courseExamType', 'teacher','price', 'is_active',)
+    list_display = ('predmet', 'courseType', 'courseExamType', 'teacher', 'price', 'is_active',)

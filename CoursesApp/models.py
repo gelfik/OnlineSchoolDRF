@@ -1,6 +1,7 @@
 import os, uuid
 
 from django.db import models
+from django.utils.timezone import now as django_datetime_now
 from TeachersApp.models import TeachersModel
 from LessonApp.models import LessonModel
 
@@ -53,6 +54,19 @@ class CoursesTypeModel(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+class CoursesSubCoursesModel(models.Model):
+    startDate = models.DateField('Дата начала подкурса', default=django_datetime_now)
+    endDate =models.DateField('Дата окончания подкурса', default=django_datetime_now)
+    leasonList = models.ManyToManyField(LessonModel, 'Уроки', null=True, blank=True)
+    is_active = models.BooleanField('Статус удаления', default=True)
+
+    class Meta:
+        verbose_name = 'Подкурс'
+        verbose_name_plural = 'Подкурсы'
+        db_table = 'CoursesSubCourses'
+
+    def __str__(self):
+        return f'{self.startDate} - {self.endDate}'
 
 class CoursesListModel(models.Model):
     def get_file_path(instance, filename):
@@ -74,7 +88,7 @@ class CoursesListModel(models.Model):
                                 default=None, null=True)
     shortDescription = models.TextField('Краткое описание', default=None, null=True)
     description = models.TextField('Описание', default=None, null=True)
-    leasonList = models.ManyToManyField(LessonModel, 'Уроки', null=True, blank=True)
+    subCourses = models.ManyToManyField(CoursesSubCoursesModel, 'Подкурсы', null=True, blank=True)
     price = models.FloatField('Цена', default=0)
     discountDuration = models.PositiveSmallIntegerField('Скидка за месяц при оплате за весь срок обучения в %',
                                                         default=0, null=True, blank=True)

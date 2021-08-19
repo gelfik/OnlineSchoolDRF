@@ -61,3 +61,11 @@ class TeacherDataSerializer(serializers.ModelSerializer):
         model = TeachersModel
         fields = (
             'subject','lastName', 'firstName', 'subject', 'shortDescription', 'description', 'avatar', 'teacherLink')
+
+class TeacherDataForPurchaseSerializer(serializers.ModelSerializer):
+    """ Ощуществляет сериализацию и десериализацию объектов TeacherList. """
+    avatar = AvatarSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = TeachersModel
+        fields = ('lastName', 'firstName', 'avatar',)

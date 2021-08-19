@@ -8,7 +8,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .serializers import CoursesListSerializer, FilterDataSerializer, CoursesDetailSerializer
+from .serializers import CoursesListSerializer, FilterDataSerializer, CoursesDetailForPurchaseSerializer
 from .models import CoursesListModel, CoursesExamTypeModel, CoursesPredmetModel, CoursesTypeModel
 from .service import CoursesListFilter, PaginationCourses
 
@@ -43,7 +43,7 @@ class CourseDetailAPIView(RetrieveAPIView):
     queryset = CoursesListModel.objects.all().order_by('id').filter(is_active=True)
     permission_classes = (AllowAny,)
     renderer_classes = (JSONRenderer,)
-    serializer_class = CoursesDetailSerializer
+    serializer_class = CoursesDetailForPurchaseSerializer
     pagination_class = None
 
     # def get_queryset(self):

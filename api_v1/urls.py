@@ -8,5 +8,6 @@ urlpatterns = [
     path('main/', include('MainContentApp.urls', namespace='MainContentApp')),
     path('courses/', include('CoursesApp.urls', namespace='CoursesApp')),
     path('lessons/', include('LessonApp.urls', namespace='LessonApp')),
+    path('promocode/', include('PromocodeApp.urls', namespace='PromocodeApp')),
     # path('file/', include('fileapp.urls', namespace='fileapp')),
 ]
