@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'TeachersApp',
     'HomeworkApp',
     'PromocodeApp',
+    'PurchaseApp',
 ]
 
 MIDDLEWARE = [

@@ -1,5 +1,5 @@
 from django.urls import path, re_path, include
-from .views import CoursesListAPIView, FilterDataAPIView, CourseDetailAPIView
+from .views import CoursesListAPIView, FilterDataAPIView, CourseDetailAPIView, TestCourseDataAPIView
 
 app_name = 'CoursesApp'
 
@@ -20,6 +20,7 @@ urlpatterns = [
     path('filterdata/', FilterDataAPIView.as_view()),
     path('course<int:pk>/', CourseDetailAPIView.as_view()),
     # re_path(r'^adm/predmets/([0-9]+)', views.predmets_admin_edit_del),
+    path('testGetCourse/', TestCourseDataAPIView.as_view())
 
     # path('educationlist/', EducationDataAPIView.as_view()),
     # path('register/', RegistrationAPIView.as_view()),

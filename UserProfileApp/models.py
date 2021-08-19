@@ -8,8 +8,6 @@ from django.db import models
 from stdimage import StdImageField
 from stdimage.validators import MaxSizeValidator
 
-import CoursesApp.models
-
 
 def transliterate(name):
     slovar = {'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
@@ -204,8 +202,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField('Телефон', max_length=255, default=None, null=True)
     vkLink = models.CharField('Ссылка на вк', max_length=255, default=None, blank=True, null=True)
     avatar = models.ForeignKey(UserAvatar, on_delete=models.CASCADE, verbose_name='Аватар', default=0, null=True,
-                               blank=True)
-    coursesBuyList = models.ManyToManyField(CoursesApp.models.CoursesListModel, 'Уроки', default=None, null=True,
                                blank=True)
     # Свойство USERNAME_FIELD сообщает нам, какое поле мы будем использовать
     # для входа в систему. В данном случае мы хотим использовать почту.

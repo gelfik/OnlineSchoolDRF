@@ -9,5 +9,6 @@ urlpatterns = [
     path('courses/', include('CoursesApp.urls', namespace='CoursesApp')),
     path('lessons/', include('LessonApp.urls', namespace='LessonApp')),
     path('promocode/', include('PromocodeApp.urls', namespace='PromocodeApp')),
+    path('purchase/', include('PurchaseApp.urls', namespace='PurchaseApp')),
     # path('file/', include('fileapp.urls', namespace='fileapp')),
 ]

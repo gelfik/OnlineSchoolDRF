@@ -16,7 +16,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        fields = ('lessonType', 'shortDescription', 'description', 'lessonDate', 'lessonTime', 'homeworkList')
+        fields = ('id', 'lessonType', 'shortDescription', 'description', 'lessonDate', 'lessonTime', 'homeworkList')
 
     # def to_representation(self, instance):
     #     # course = CoursesListSerializer(instance=instance.course, many=False, read_only=True,

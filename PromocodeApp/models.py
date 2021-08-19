@@ -24,7 +24,8 @@ class PromocodeListModel(models.Model):
     activeCount = models.PositiveSmallIntegerField('Число активированных промокодов', default=0, null=True, blank=True)
     count = models.PositiveSmallIntegerField('Число скидки в зависимости от типа', default=0)
     type = models.ForeignKey(PromocodeTypeModel, on_delete=models.CASCADE, verbose_name='тип', default=None, null=True)
-    validDate = models.DateField('Срок действия промокода', default=datetime.datetime.now() + datetime.timedelta(days=1))
+    validDate = models.DateField('Срок действия промокода', default=django_datetime_now)
+    # validDate = models.DateField('Срок действия промокода', default=datetime.datetime.now() + datetime.timedelta(days=1))
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:

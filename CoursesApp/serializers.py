@@ -6,6 +6,7 @@ from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel,
 from TeachersApp.serializers import TeacherDataForPurchaseSerializer
 from LessonApp.serializers import LessonSerializer
 
+
 class CoursesExamTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesExamTypeModel
@@ -22,13 +23,15 @@ class CoursesTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesTypeModel
         # fields = ('name',)
-        exclude = ('is_active', 'id', )
+        exclude = ('is_active', 'id',)
+
 
 class CoursesTypeForCourseDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesTypeModel
-        fields = ('name','duration', 'durationCount', )
+        fields = ('name', 'duration', 'durationCount',)
         # exclude = ('is_active', 'id', )
+
 
 class CoursesListSerializer(serializers.ModelSerializer):
     teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
@@ -47,7 +50,8 @@ class CoursesSubCoursesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CoursesSubCoursesModel
-        fields = ('startDate', 'endDate', 'leasonList',)
+        fields = ('id', 'startDate', 'endDate', 'leasonList',)
+
 
 class CoursesDetail(serializers.ModelSerializer):
     teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
@@ -57,15 +61,17 @@ class CoursesDetail(serializers.ModelSerializer):
     courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
     # leasonList = LessonSerializer(many=True, read_only=True)
     subCourses = CoursesSubCoursesSerializer(many=True, read_only=True)
+
     # coursePicture = serializers.SlugRelatedField(slug_field='file', read_only=True)
 
     class Meta:
         model = CoursesListModel
         # fields = '__all__'
         # fields = ('predmet', 'courseType', 'courseExamType', 'teacher', 'price', 'leasonList',)
-        exclude = ('draft', 'is_active',)
+        exclude = ('teacherList', 'mentorList', 'userCourseList', 'draft', 'is_active',)
 
-class CoursesDetailForPurchaseSerializer(serializers.ModelSerializer):
+
+class CoursesForCourseSerializer(serializers.ModelSerializer):
     teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
     predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
     courseType = CoursesTypeForCourseDetailSerializer(many=False, read_only=True)
@@ -74,8 +80,35 @@ class CoursesDetailForPurchaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesListModel
         # fields = '__all__'
-        # fields = ('predmet', 'courseType', 'courseExamType', 'teacher', 'price', 'leasonList',)
+        # fields = ('predmet', 'courseType', 'courseExamType', 'coursePictu/re',)
         exclude = ('draft', 'subCourses', 'is_active',)
+
+
+class CoursesForPurchaseSerializer(serializers.ModelSerializer):
+    teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
+    predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseType = CoursesTypeForCourseDetailSerializer(many=False, read_only=True)
+    courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
+    class Meta:
+        model = CoursesListModel
+        # fields = '__all__'
+        # fields = ('predmet', 'courseType', 'courseExamType', 'coursePictu/re',)
+        exclude = ( 'draft', 'subCourses', 'is_active',)
+
+
+class CoursesDetailForPurchaseSerializer(serializers.ModelSerializer):
+    # teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
+    predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
+    class Meta:
+        model = CoursesListModel
+        # fields = '__all__'
+        fields = ('predmet', 'courseType', 'courseExamType', 'coursePicture',)
+        # exclude = ('teacherList', 'mentorList', 'userCourseList', 'draft', 'subCourses', 'is_active',)
+
 
 class FilterDataSerializer(serializers.Serializer):
     predmet = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)

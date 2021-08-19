@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.timezone import now as django_datetime_now
 from TeachersApp.models import TeachersModel
 from LessonApp.models import LessonModel
+from UserProfileApp.models import User
 
 # from stdimage import StdImageField
 from stdimage.validators import MaxSizeValidator
@@ -80,16 +81,14 @@ class CoursesListModel(models.Model):
                                    default=None, null=True)
     courseExamType = models.ForeignKey(CoursesExamTypeModel, on_delete=models.CASCADE, verbose_name='Тип курса',
                                        default=None, null=True)
-    # coursePicture = models.ForeignKey(CoursesPictureModel, on_delete=models.CASCADE, verbose_name='Картинка курса',
-    #                                   default=None, null=True)
     coursePicture = models.ImageField(upload_to=get_file_path, verbose_name='Картинка курса',
                                       validators=[MaxSizeValidator(500, 500)], default=None, null=True)
     teacher = models.ForeignKey(TeachersModel, on_delete=models.CASCADE, verbose_name='Преподаватель',
                                 default=None, null=True)
     shortDescription = models.TextField('Краткое описание', default=None, null=True)
     description = models.TextField('Описание', default=None, null=True)
-    subCourses = models.ManyToManyField(CoursesSubCoursesModel, 'Подкурсы', null=True, blank=True)
-    price = models.FloatField('Цена', default=0)
+    subCourses = models.ManyToManyField(CoursesSubCoursesModel, verbose_name='Подкурсы', null=True, blank=True)
+    price = models.FloatField('Цена за месяц', default=0)
     discountDuration = models.PositiveSmallIntegerField('Скидка за месяц при оплате за весь срок обучения в %',
                                                         default=0, null=True, blank=True)
     draft = models.BooleanField('Черновик', default=True)
