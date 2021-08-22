@@ -9,7 +9,7 @@ from django.utils.encoding import force_str
 
 
 class PaginationCourses(PageNumberPagination):
-    page_size = 1
+    page_size = 20
     max_page_size = 1000
 
     def get_next_link(self):
@@ -27,11 +27,12 @@ class PaginationCourses(PageNumberPagination):
         return replace_query_param(f'?{query}', self.page_query_param, page_number)
 
     def get_paginated_response(self, data):
+        # print(self.page.paginator.num_pages)
         return Response({
             'next': self.get_next_link(),
             'previous': self.get_previous_link(),
             'curent': self.page.number,
-            'count': self.page.paginator.count,
+            'count': self.page.paginator.num_pages,
             'results': data
         })
 

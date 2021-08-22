@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import AvatarModel, TeachersModel, LinkModel
+from .models import TeachersModel, TeachersLinkModel, TeachersRoleModel
 
 
 # @admin.register(AvatarModel)
@@ -14,6 +14,10 @@ from .models import AvatarModel, TeachersModel, LinkModel
 #     list_display = ('vk', 'telegram', 'youtube', 'instagram', 'is_active',)
 
 
+@admin.register(TeachersRoleModel)
+class TeachersRole_list(admin.ModelAdmin):
+    list_display = ('id', 'name',)
+
 @admin.register(TeachersModel)
 class Teachers_list(admin.ModelAdmin):
-    list_display = ('lastName', 'firstName', 'addDate', 'shortDescription', 'avatar', 'is_active',)
+    list_display = ('user', 'addDate', 'shortDescription', 'is_active',)

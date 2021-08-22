@@ -56,8 +56,9 @@ class CoursesTypeModel(models.Model):
         return f'{self.name}'
 
 class CoursesSubCoursesModel(models.Model):
+    name = models.CharField('Название', default=None, max_length=255, null=True)
     startDate = models.DateField('Дата начала подкурса', default=django_datetime_now)
-    endDate =models.DateField('Дата окончания подкурса', default=django_datetime_now)
+    endDate = models.DateField('Дата окончания подкурса', default=django_datetime_now)
     leasonList = models.ManyToManyField(LessonModel, 'Уроки', null=True, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
@@ -67,7 +68,7 @@ class CoursesSubCoursesModel(models.Model):
         db_table = 'CoursesSubCourses'
 
     def __str__(self):
-        return f'{self.startDate} - {self.endDate}'
+        return f'{self.name} {self.startDate} - {self.endDate}'
 
 class CoursesListModel(models.Model):
     def get_file_path(instance, filename):
@@ -75,6 +76,7 @@ class CoursesListModel(models.Model):
         filename = "%s.%s" % (uuid.uuid4(), ext)
         return os.path.join('coursePicture', filename)
 
+    name = models.CharField('Название', default=None, max_length=255, null=True)
     predmet = models.ForeignKey(CoursesPredmetModel, on_delete=models.CASCADE, verbose_name='Предмет',
                                 default=None, null=True)
     courseType = models.ForeignKey(CoursesTypeModel, on_delete=models.CASCADE, verbose_name='Тип курса',
@@ -91,6 +93,7 @@ class CoursesListModel(models.Model):
     price = models.FloatField('Цена за месяц', default=0)
     discountDuration = models.PositiveSmallIntegerField('Скидка за месяц при оплате за весь срок обучения в %',
                                                         default=0, null=True, blank=True)
+    buyAllSubCourses = models.BooleanField('Покупка сразу всех курсов', default=False)
     draft = models.BooleanField('Черновик', default=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 

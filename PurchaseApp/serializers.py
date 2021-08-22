@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from CoursesApp.models import CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesDetailForPurchaseSerializer, CoursesSubCoursesSerializer, \
-    CoursesForPurchaseSerializer, CoursesDetail, CoursesListSerializer
+    CoursesForPurchaseSerializer, CoursesDetail, CoursesListSerializer, CoursesForPurchaseListSerializer
 from .models import PurchasePayModel, PurchaseListModel
 
 
@@ -25,15 +25,14 @@ class PurchasePayDetailSerializer(serializers.ModelSerializer):
 
 
 class PurchaseListSerializer(serializers.ModelSerializer):
-    course = CoursesForPurchaseSerializer(many=False, read_only=True)
-    subCourses = CoursesSubCoursesSerializer(many=True, read_only=True)
+    course = CoursesForPurchaseListSerializer(many=False, read_only=True)
+    # courseSub = CoursesSubCoursesSerializer(many=True, read_only=True)
     purchasePay = PurchasePaySerializer(many=True, read_only=True)
 
     class Meta:
         model = PurchaseListModel
         # fields = '__all__'
-        # fields = ('predmet', 'courseType', 'courseExamType', 'teacher', 'price', 'leasonList',)
-        exclude = ('user', 'is_active',)
+        fields = ('id', 'purchasePay', 'courseSubAll', 'course')
 
 
 class PurchaseDetailSerializer(serializers.ModelSerializer):
@@ -51,9 +50,9 @@ class PurchaseDetailSerializer(serializers.ModelSerializer):
 
     def get_courseSub(self, obj):
         if obj.courseSubAll:
-            return CoursesSubCoursesSerializer(instance=obj.course.subCourses, many=True, read_only=True)
+            return CoursesSubCoursesSerializer(instance=obj.course.subCourses, many=True, read_only=True).data
         else:
-            return CoursesSubCoursesSerializer(instance=obj.courseSub, many=True, read_only=True)
+            return CoursesSubCoursesSerializer(instance=obj.courseSub, many=True, read_only=True).data
 
 
     # def to_representation(self, instance):
@@ -70,3 +69,13 @@ class PurchaseDetailSerializer(serializers.ModelSerializer):
     #         'courseSub': courseSub,
     #         'purchasePay': purchasePay.data
     #     }
+
+
+class PurchaseCheckBuySerializer(serializers.ModelSerializer):
+    status = serializers.BooleanField(default=True, read_only=True)
+
+    class Meta:
+        model = PurchaseListModel
+        # fields = '__all__'
+        fields = ('status',)
+        # exclude = ('status', 'is_active',)

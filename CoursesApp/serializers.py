@@ -42,7 +42,7 @@ class CoursesListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CoursesListModel
-        fields = ('id', 'predmet', 'courseType', 'courseExamType', 'teacher', 'price',)
+        fields = ('id', 'name', 'predmet', 'courseType', 'courseExamType', 'teacher', 'price',)
 
 
 class CoursesSubCoursesSerializer(serializers.ModelSerializer):
@@ -84,6 +84,18 @@ class CoursesForCourseSerializer(serializers.ModelSerializer):
         exclude = ('draft', 'subCourses', 'is_active',)
 
 
+class CoursesForPurchaseListSerializer(serializers.ModelSerializer):
+    # teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
+    predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
+    class Meta:
+        model = CoursesListModel
+        # fields = '__all__'
+        fields = ('name', 'courseExamType', 'coursePicture', 'courseType', 'predmet',)
+
+
 class CoursesForPurchaseSerializer(serializers.ModelSerializer):
     teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
     predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
@@ -106,7 +118,7 @@ class CoursesDetailForPurchaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesListModel
         # fields = '__all__'
-        fields = ('predmet', 'courseType', 'courseExamType', 'coursePicture',)
+        fields = ('name', 'predmet', 'courseType', 'courseExamType', 'coursePicture',)
         # exclude = ('teacherList', 'mentorList', 'userCourseList', 'draft', 'subCourses', 'is_active',)
 
 

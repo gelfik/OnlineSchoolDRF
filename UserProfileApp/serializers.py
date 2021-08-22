@@ -228,3 +228,14 @@ class AvatarUploaderSerializer(serializers.Serializer):
         model = UserAvatar
         fields = ('file')
         read_only_fields = ('name', 'file',)
+
+
+class UserTeacherSerializer(serializers.ModelSerializer):
+    """ Ощуществляет сериализацию и десериализацию объектов User. """
+    avatar = AvatarSerializer(many=False)
+
+    # avatar = serializers.SlugRelatedField(slug_field='file', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('firstName', 'lastName', 'avatar', )

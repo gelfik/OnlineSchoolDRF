@@ -22,7 +22,7 @@ class CoursesName(admin.ModelAdmin):
 
 @admin.register(CoursesSubCoursesModel)
 class CoursesSubCourses(admin.ModelAdmin):
-    list_display = ('startDate', 'endDate', 'is_active',)
+    list_display = ('name', 'startDate', 'endDate', 'is_active',)
 
 
 @admin.register(CoursesListModel)
