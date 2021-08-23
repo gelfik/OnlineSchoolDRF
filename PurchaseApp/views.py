@@ -90,10 +90,10 @@ class PurchaseSubDetailAPIView(APIView):
         return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
 
     def get(self, request, *args, **kwargs):
-        if 'purchaseID' in kwargs and 'subCourseID' in kwargs:
+        if 'purchaseID' in kwargs and 'subID' in kwargs:
             try:
                 purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user, pk=kwargs['purchaseID'])
-                serializer = CoursesSubCoursesDetailSerializer(many=False, instance=purchase.courseSub.get(id=kwargs['subCourseID']))
+                serializer = CoursesSubCoursesDetailSerializer(many=False, instance=purchase.courseSub.get(id=kwargs['subID']))
                 return Response(serializer.data, status=status.HTTP_200_OK)
                 # serializer = PurchaseCheckBuySerializer(instance=purchase)
                 # return Response({'status': True}, status=status.HTTP_200_OK)

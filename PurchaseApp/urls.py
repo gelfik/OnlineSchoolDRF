@@ -14,7 +14,7 @@ PurchaseBuyCourseAPIView.http_method_names = ('post', 'options',)
 
 urlpatterns = [
     path('checkbuy/', PurchaseCheckBuyAPIView.as_view()),
-    path('<int:purchaseID>/sub/<int:subCourseID>/', PurchaseSubDetailAPIView.as_view()),
+    path('<int:purchaseID>/sub/<int:subID>/', PurchaseSubDetailAPIView.as_view()),
     path('list/', PurchaseListAPIView.as_view()),
     path('<int:pk>/', PurchaseDetailAPIView.as_view()),
     # path('<int:course_id>/purchase/', PurchaseDetailAPIView.as_view()),
