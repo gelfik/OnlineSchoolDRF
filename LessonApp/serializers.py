@@ -10,13 +10,24 @@ class LessonTypeSerializer(serializers.ModelSerializer):
         fields = ('name',)
 
 
+class LessonListSerializer(serializers.ModelSerializer):
+    lessonType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    homeworkCount = serializers.SerializerMethodField(read_only=True, source='get_homeworkCount')
+
+    class Meta:
+        model = LessonModel
+        fields = ('id', 'lessonType', 'shortDescription', 'lessonDate', 'lessonTime', 'homeworkCount')
+
+    def get_homeworkCount(self, obj):
+        return obj.homeworkList.all().count()
+
 class LessonSerializer(serializers.ModelSerializer):
     lessonType = serializers.SlugRelatedField(slug_field='name', read_only=True)
     homeworkList = HomeworkListSerializer(many=True)
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'lessonType', 'shortDescription', 'description', 'lessonDate', 'lessonTime', 'homeworkList')
+        fields = ('id', 'lessonType', 'shortDescription', 'description', 'lessonDate', 'lessonTime', 'homeworkList', 'linkVideo')
 
     # def to_representation(self, instance):
     #     # course = CoursesListSerializer(instance=instance.course, many=False, read_only=True,

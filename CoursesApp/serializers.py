@@ -4,7 +4,7 @@ import LessonApp.serializers
 from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel, \
     CoursesSubCoursesModel
 from TeachersApp.serializers import TeacherDataForPurchaseSerializer
-from LessonApp.serializers import LessonSerializer
+from LessonApp.serializers import LessonSerializer, LessonListSerializer
 
 
 class CoursesExamTypeSerializer(serializers.ModelSerializer):
@@ -46,11 +46,20 @@ class CoursesListSerializer(serializers.ModelSerializer):
 
 
 class CoursesSubCoursesSerializer(serializers.ModelSerializer):
-    leasonList = LessonSerializer(many=True, read_only=True)
+    # leasonList = LessonSerializer(many=True, read_only=True)
 
     class Meta:
         model = CoursesSubCoursesModel
-        fields = ('id', 'startDate', 'endDate', 'leasonList',)
+        fields = ('id', 'name',)
+        ordering = ['startDate', 'endDate', 'id']
+
+class CoursesSubCoursesDetailSerializer(serializers.ModelSerializer):
+    leasonList = LessonListSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CoursesSubCoursesModel
+        fields = ('id', 'name', 'leasonList')
+        ordering = ['startDate', 'endDate', 'id']
 
 
 class CoursesDetail(serializers.ModelSerializer):
@@ -106,7 +115,7 @@ class CoursesForPurchaseSerializer(serializers.ModelSerializer):
         model = CoursesListModel
         # fields = '__all__'
         # fields = ('predmet', 'courseType', 'courseExamType', 'coursePictu/re',)
-        exclude = ( 'draft', 'subCourses', 'is_active',)
+        exclude = ('draft', 'subCourses', 'is_active',)
 
 
 class CoursesDetailForPurchaseSerializer(serializers.ModelSerializer):

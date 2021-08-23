@@ -12,6 +12,7 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 
 from CoursesApp.models import CoursesListModel
+from CoursesApp.serializers import CoursesSubCoursesDetailSerializer
 from PromocodeApp.models import PromocodeListModel
 from .serializers import PurchaseListSerializer, PurchaseDetailSerializer, PurchaseCheckBuySerializer
 from .models import PurchaseListModel, PurchasePayModel
@@ -50,8 +51,10 @@ class PurchaseCheckBuyAPIView(APIView):
     def post(self, request, *args, **kwargs):
         if 'courseID' in self.request.data:
             try:
-                PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user, course=int(self.request.data.get('courseID', None)))
-                return Response({'status': True}, status=status.HTTP_200_OK)
+                purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user, course=int(self.request.data.get('courseID', None)))
+                serializer = PurchaseCheckBuySerializer(instance=purchase)
+                # return Response({'status': True}, status=status.HTTP_200_OK)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             except:
                 return Response({'status': False}, status=status.HTTP_200_OK)
         else:
@@ -68,18 +71,49 @@ class PurchaseListAPIView(ListAPIView):
     def get_queryset(self):
         return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
 
-
-
 class PurchaseDetailAPIView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
     serializer_class = PurchaseDetailSerializer
     pagination_class = None
-    lookup_field = 'course_id'
-    lookup_url_kwarg = 'course_id'
 
     def get_queryset(self):
         return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
+
+
+class PurchaseSubDetailAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    pagination_class = None
+
+    def get_queryset(self):
+        return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        if 'purchaseID' in kwargs and 'subCourseID' in kwargs:
+            try:
+                purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user, pk=kwargs['purchaseID'])
+                serializer = CoursesSubCoursesDetailSerializer(many=False, instance=purchase.courseSub.get(id=kwargs['subCourseID']))
+                return Response(serializer.data, status=status.HTTP_200_OK)
+                # serializer = PurchaseCheckBuySerializer(instance=purchase)
+                # return Response({'status': True}, status=status.HTTP_200_OK)
+                # return Response(serializer.data, status=status.HTTP_200_OK)
+            except:
+                return Response({'error': 'подкурс не найден'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'error': 'данные не представлены'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class PurchaseDetailAPIView(RetrieveAPIView):
+#     permission_classes = (IsAuthenticated,)
+#     renderer_classes = (JSONRenderer,)
+#     serializer_class = PurchaseDetailSerializer
+#     pagination_class = None
+#     lookup_field = 'course_id'
+#     lookup_url_kwarg = 'course_id'
+#
+#     def get_queryset(self):
+#         return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
 
     # def handle_exception(self, exc):
     #     if isinstance(exc, Http404):

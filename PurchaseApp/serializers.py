@@ -7,11 +7,16 @@ from .models import PurchasePayModel, PurchaseListModel
 
 
 class PurchasePaySerializer(serializers.ModelSerializer):
+    date = serializers.SerializerMethodField(read_only=True, source='get_date')
+
     class Meta:
         model = PurchasePayModel
         # fields = '__all__'
         fields = ('date', 'sumPay',)
         # exclude = ('draft', 'is_active',)
+
+    def get_date(self, obj):
+        return obj.date.strftime('%d.%m.%Y %H:%M')
 
 
 class PurchasePayDetailSerializer(serializers.ModelSerializer):
@@ -45,8 +50,7 @@ class PurchaseDetailSerializer(serializers.ModelSerializer):
         model = PurchaseListModel
         # fields = '__all__'
         # fields = ('predmet', 'courseType', 'courseExamType', 'teacher', 'price', 'leasonList',)
-        exclude = ('id', 'user', 'is_active',)
-
+        exclude = ('user', 'is_active',)
 
     def get_courseSub(self, obj):
         if obj.courseSubAll:
@@ -54,6 +58,20 @@ class PurchaseDetailSerializer(serializers.ModelSerializer):
         else:
             return CoursesSubCoursesSerializer(instance=obj.courseSub, many=True, read_only=True).data
 
+# class PurchaseSubDetailSerializer(serializers.Serializer):
+#     courseSub = serializers.SerializerMethodField(read_only=True, source='get_courseSub')
+#
+#     class Meta:
+#         model = PurchaseListModel
+#         # fields = '__all__'
+#         # fields = ('predmet', 'courseType', 'courseExamType', 'teacher', 'price', 'leasonList',)
+#         exclude = ('user', 'is_active',)
+#
+#     def get_courseSub(self, obj):
+#         if obj.courseSubAll:
+#             return CoursesSubCoursesSerializer(instance=obj.course.subCourses, many=True, read_only=True).data
+#         else:
+#             return CoursesSubCoursesSerializer(instance=obj.courseSub, many=True, read_only=True).data
 
     # def to_representation(self, instance):
     #     super(PurchaseDetailSerializer, self).to_representation(instance)
@@ -77,5 +95,5 @@ class PurchaseCheckBuySerializer(serializers.ModelSerializer):
     class Meta:
         model = PurchaseListModel
         # fields = '__all__'
-        fields = ('status',)
+        fields = ('status', 'id')
         # exclude = ('status', 'is_active',)

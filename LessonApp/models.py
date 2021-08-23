@@ -21,8 +21,9 @@ class LessonTypeModel(models.Model):
 class LessonModel(models.Model):
     lessonType = models.ForeignKey(LessonTypeModel, on_delete=models.CASCADE, verbose_name='Тип урока',
                                 default=None, null=True)
-    shortDescription = models.CharField('Краткое описание', default=None, max_length=255)
-    description = models.TextField('Описание', default=None)
+    linkVideo = models.TextField('Ссылка на видеоконтент', default=None, null=True, blank=True)
+    shortDescription = models.CharField('Краткое описание', default=None, max_length=255, null=True, blank=True)
+    description = models.TextField('Описание', default=None, null=True, blank=True)
     lessonDate = models.DateField('Дата проведения урока', default=django_datetime_now)
     lessonTime = models.TimeField('Время проведения урока', default=datetime.time(00, 00))
     homeworkList = models.ManyToManyField(HomeworkListModel, verbose_name='Домашнии задания', default=None, null=True, blank=True)
