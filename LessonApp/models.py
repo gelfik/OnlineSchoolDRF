@@ -24,10 +24,8 @@ class LessonModel(models.Model):
     linkVideo = models.TextField('Ссылка на видеоконтент', default=None, null=True, blank=True)
     shortDescription = models.CharField('Краткое описание', default=None, max_length=255, null=True, blank=True)
     description = models.TextField('Описание', default=None, null=True, blank=True)
-    lessonDate = models.DateField('Дата проведения урока', default=django_datetime_now)
-    lessonTime = models.TimeField('Время проведения урока', default=datetime.time(00, 00))
+    lessonDate = models.DateTimeField('Дата проведения урока', default=django_datetime_now)
     homeworkList = models.ManyToManyField(HomeworkListModel, verbose_name='Домашнии задания', default=None, null=True, blank=True)
-
     isOpen = models.BooleanField('Статус доступа', default=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
@@ -35,6 +33,7 @@ class LessonModel(models.Model):
         verbose_name = 'Урок'
         verbose_name_plural = 'Список уроков'
         db_table = 'LessonList'
+        ordering = ['lessonDate']
 
     def __str__(self):
         return f'{self.shortDescription} {self.lessonType}'

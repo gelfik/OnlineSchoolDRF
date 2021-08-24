@@ -91,15 +91,15 @@ class PurchaseSubDetailAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         if 'purchaseID' in kwargs and 'subID' in kwargs:
-            try:
+            # try:
                 purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user, pk=kwargs['purchaseID'])
                 serializer = CoursesSubCoursesDetailSerializer(many=False, instance=purchase.courseSub.get(id=kwargs['subID']))
                 return Response(serializer.data, status=status.HTTP_200_OK)
                 # serializer = PurchaseCheckBuySerializer(instance=purchase)
                 # return Response({'status': True}, status=status.HTTP_200_OK)
                 # return Response(serializer.data, status=status.HTTP_200_OK)
-            except:
-                return Response({'error': 'подкурс не найден'}, status=status.HTTP_404_NOT_FOUND)
+            # except:
+            #     return Response({'error': 'подкурс не найден'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'error': 'данные не представлены'}, status=status.HTTP_400_BAD_REQUEST)
 

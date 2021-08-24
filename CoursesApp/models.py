@@ -59,7 +59,7 @@ class CoursesSubCoursesModel(models.Model):
     name = models.CharField('Название', default=None, max_length=255, null=True)
     startDate = models.DateField('Дата начала подкурса', default=django_datetime_now)
     endDate = models.DateField('Дата окончания подкурса', default=django_datetime_now)
-    leasonList = models.ManyToManyField(LessonModel, 'Уроки', null=True, blank=True)
+    lessonList = models.ManyToManyField(LessonModel, 'Уроки', null=True, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:
