@@ -13,6 +13,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from CoursesApp.models import CoursesListModel
 from CoursesApp.serializers import CoursesSubCoursesDetailSerializer
+from LessonApp.models import LessonListModel, LessonModel
+from LessonApp.serializers import LessonDetailSerializer
 from PromocodeApp.models import PromocodeListModel
 from .serializers import PurchaseListSerializer, PurchaseDetailSerializer, PurchaseCheckBuySerializer
 from .models import PurchaseListModel, PurchasePayModel
@@ -51,7 +53,9 @@ class PurchaseCheckBuyAPIView(APIView):
     def post(self, request, *args, **kwargs):
         if 'courseID' in self.request.data:
             try:
-                purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user, course=int(self.request.data.get('courseID', None)))
+                purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user,
+                                                                        course=int(
+                                                                            self.request.data.get('courseID', None)))
                 serializer = PurchaseCheckBuySerializer(instance=purchase)
                 # return Response({'status': True}, status=status.HTTP_200_OK)
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -59,7 +63,6 @@ class PurchaseCheckBuyAPIView(APIView):
                 return Response({'status': False}, status=status.HTTP_200_OK)
         else:
             return Response({'status': False}, status=status.HTTP_200_OK)
-
 
 
 class PurchaseListAPIView(ListAPIView):
@@ -70,6 +73,7 @@ class PurchaseListAPIView(ListAPIView):
 
     def get_queryset(self):
         return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
+
 
 class PurchaseDetailAPIView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
@@ -91,15 +95,38 @@ class PurchaseSubDetailAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         if 'purchaseID' in kwargs and 'subID' in kwargs:
-            # try:
-                purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user, pk=kwargs['purchaseID'])
-                serializer = CoursesSubCoursesDetailSerializer(many=False, instance=purchase.courseSub.get(id=kwargs['subID']))
+            try:
+                purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user,
+                                                                        pk=kwargs['purchaseID'])
+                serializer = CoursesSubCoursesDetailSerializer(many=False,
+                                                               instance=purchase.courseSub.get(id=kwargs['subID']))
                 return Response(serializer.data, status=status.HTTP_200_OK)
                 # serializer = PurchaseCheckBuySerializer(instance=purchase)
                 # return Response({'status': True}, status=status.HTTP_200_OK)
                 # return Response(serializer.data, status=status.HTTP_200_OK)
-            # except:
-            #     return Response({'error': 'подкурс не найден'}, status=status.HTTP_404_NOT_FOUND)
+            except:
+                return Response({'error': 'подкурс не найден'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'error': 'данные не представлены'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PurchaseLessonDetailAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    pagination_class = None
+
+    def get_queryset(self):
+        return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        if 'purchaseID' in kwargs and 'subID' in kwargs and 'lessonID' in kwargs:
+            try:
+                purchase = PurchaseListModel.objects.get(is_active=True, user=self.request.user, pk=kwargs['purchaseID'])
+                data = purchase.courseSub.get(id=kwargs['subID']).lessons.get(lessonList=kwargs['lessonID']).lessonList.get(id=kwargs['lessonID'])
+                serializer = LessonDetailSerializer(many=False, instance=data)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except:
+                return Response({'error': 'урок не найден'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'error': 'данные не представлены'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -115,11 +142,11 @@ class PurchaseSubDetailAPIView(APIView):
 #     def get_queryset(self):
 #         return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
 
-    # def handle_exception(self, exc):
-    #     if isinstance(exc, Http404):
-    #         return Response({'status': False}, status=status.HTTP_200_OK)
-    #
-    #     return super(PurchaseDetailAPIView, self).handle_exception(exc)
+# def handle_exception(self, exc):
+#     if isinstance(exc, Http404):
+#         return Response({'status': False}, status=status.HTTP_200_OK)
+#
+#     return super(PurchaseDetailAPIView, self).handle_exception(exc)
 
 class PurchasePayData():
     def __init__(self, sumPay, sumFull, promoType=None, discountPromo=None, payStatus=True, promocode=None):

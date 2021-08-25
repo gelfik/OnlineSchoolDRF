@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 import datetime
 from django.utils.timezone import now as django_datetime_now
@@ -6,26 +8,68 @@ from django.utils.timezone import now as django_datetime_now
 from HomeworkApp.models import HomeworkListModel
 
 
-class LessonTypeModel(models.Model):
+class LessonVideoModel(models.Model):
     name = models.CharField('Название', default=None, max_length=255)
+    linkVideo = models.TextField('Ссылка на видеоконтент', default=None, null=True, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:
-        verbose_name = 'Тип урока'
-        verbose_name_plural = 'Типы уроков'
-        db_table = 'LessonType'
+        verbose_name = 'Ссылка на видео'
+        verbose_name_plural = 'Ссылки на видео'
+        db_table = 'LessonVideo'
 
     def __str__(self):
         return f'{self.name}'
 
+
+class LessonFilesModel(models.Model):
+    def get_file_path(instance, filename):
+        return os.path.join('lessonFiles', filename)
+
+    name = models.CharField('Название', default=None, max_length=255)
+    file = models.FileField(upload_to=get_file_path, verbose_name='Файл', default=None, null=True)
+    is_active = models.BooleanField('Статус удаления', default=True)
+
+    class Meta:
+        verbose_name = 'Файл к уроку'
+        verbose_name_plural = 'Файлы к уроку'
+        db_table = 'LessonFiles'
+
+    def __str__(self):
+        return f'{self.name}'
+
+
 class LessonModel(models.Model):
-    lessonType = models.ForeignKey(LessonTypeModel, on_delete=models.CASCADE, verbose_name='Тип урока',
-                                default=None, null=True)
-    linkVideo = models.TextField('Ссылка на видеоконтент', default=None, null=True, blank=True)
-    shortDescription = models.CharField('Краткое описание', default=None, max_length=255, null=True, blank=True)
     description = models.TextField('Описание', default=None, null=True, blank=True)
+    homework = models.ForeignKey(HomeworkListModel, on_delete=models.CASCADE, verbose_name='Домашнии задания',
+                                 default=None, null=True, blank=True)
+    video = models.ForeignKey(LessonVideoModel, on_delete=models.CASCADE, verbose_name='Ссылка на видео',
+                              default=None, null=True, blank=True)
+    files = models.ForeignKey(LessonFilesModel, on_delete=models.CASCADE, verbose_name='Файлы', default=None, null=True,
+                              blank=True)
+    is_active = models.BooleanField('Статус удаления', default=True)
+
+    class Meta:
+        verbose_name = 'Урок'
+        verbose_name_plural = 'Урок'
+        db_table = 'LessonLesson'
+        ordering = ['files', 'homework', 'video', ]
+
+    def __str__(self):
+
+        if (self.homework):
+            return f'{self.homework.name}'
+        elif (self.video):
+            return f'{self.video.name}'
+        elif (self.files):
+            return f'{self.files.name}'
+        else:
+            return f'{self.description}'
+
+
+class LessonListModel(models.Model):
     lessonDate = models.DateTimeField('Дата проведения урока', default=django_datetime_now)
-    homeworkList = models.ManyToManyField(HomeworkListModel, verbose_name='Домашнии задания', default=None, null=True, blank=True)
+    lessonList = models.ManyToManyField(LessonModel, verbose_name='Уроки', default=None, null=True, blank=True)
     isOpen = models.BooleanField('Статус доступа', default=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
@@ -36,4 +80,4 @@ class LessonModel(models.Model):
         ordering = ['lessonDate']
 
     def __str__(self):
-        return f'{self.shortDescription} {self.lessonType}'
+        return f'{self.lessonDate}'

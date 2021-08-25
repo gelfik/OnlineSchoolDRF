@@ -5,7 +5,7 @@ from LessonApp.models import LessonModel
 from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel, \
     CoursesSubCoursesModel
 from TeachersApp.serializers import TeacherDataForPurchaseSerializer
-from LessonApp.serializers import LessonSerializer, LessonListSerializer
+from LessonApp.serializers import LessonListSerializer
 
 
 class CoursesExamTypeSerializer(serializers.ModelSerializer):
@@ -55,11 +55,11 @@ class CoursesSubCoursesSerializer(serializers.ModelSerializer):
         ordering = ['startDate', 'endDate', 'id']
 
 class CoursesSubCoursesDetailSerializer(serializers.ModelSerializer):
-    lessonList = LessonListSerializer(many=True, read_only=True)
+    lessons = LessonListSerializer(many=True, read_only=True)
 
     class Meta:
         model = CoursesSubCoursesModel
-        fields = ('id', 'name', 'lessonList')
+        fields = ('id', 'name', 'lessons')
         ordering = ['startDate', 'endDate', 'id']
 
 

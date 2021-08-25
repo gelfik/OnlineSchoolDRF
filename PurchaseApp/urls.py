@@ -1,11 +1,12 @@
 from django.urls import path, re_path, include
 from .views import PurchaseListAPIView, PurchaseDetailAPIView, PurchaseBuyCourseAPIView, PurchaseCheckBuyAPIView, \
-    PurchaseSubDetailAPIView
+    PurchaseSubDetailAPIView, PurchaseLessonDetailAPIView
 
 app_name = 'PurchaseApp'
 
 PurchaseCheckBuyAPIView.http_method_names = ('post', 'options',)
 PurchaseListAPIView.http_method_names = ('get', 'options',)
+PurchaseLessonDetailAPIView.http_method_names = ('get', 'options',)
 PurchaseDetailAPIView.http_method_names = ('get', 'options',)
 PurchaseSubDetailAPIView.http_method_names = ('get', 'options',)
 PurchaseBuyCourseAPIView.http_method_names = ('post', 'options',)
@@ -14,6 +15,7 @@ PurchaseBuyCourseAPIView.http_method_names = ('post', 'options',)
 
 urlpatterns = [
     path('checkbuy/', PurchaseCheckBuyAPIView.as_view()),
+    path('<int:purchaseID>/sub/<int:subID>/lesson/<int:lessonID>/', PurchaseLessonDetailAPIView.as_view()),
     path('<int:purchaseID>/sub/<int:subID>/', PurchaseSubDetailAPIView.as_view()),
     path('list/', PurchaseListAPIView.as_view()),
     path('<int:pk>/', PurchaseDetailAPIView.as_view()),
