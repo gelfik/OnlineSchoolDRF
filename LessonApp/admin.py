@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from LessonApp.models import  LessonModel, LessonListModel, LessonFilesModel, LessonVideoModel
+from LessonApp.models import LessonModel, LessonListModel, LessonFileListModel, LessonVideoModel, LessonFileModel
 
 
 @admin.register(LessonModel)
@@ -17,6 +17,10 @@ class LessonList(admin.ModelAdmin):
 class LessonVideo(admin.ModelAdmin):
     list_display = ('name', 'linkVideo', 'is_active',)
 
-@admin.register(LessonFilesModel)
-class LessonFiles(admin.ModelAdmin):
+@admin.register(LessonFileModel)
+class LessonFile(admin.ModelAdmin):
     list_display = ('name', 'file', 'is_active',)
+
+@admin.register(LessonFileListModel)
+class LessonFileList(admin.ModelAdmin):
+    list_display = ('name', 'is_active',)

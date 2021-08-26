@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
 from HomeworkApp.serializers import HomeworkListSerializer, HomeworkListDetailSerializer
-from .models import LessonModel, LessonListModel, LessonVideoModel, LessonFilesModel
-
+from .models import LessonModel, LessonListModel, LessonVideoModel, LessonFileModel, LessonFileListModel
 
 
 # class LessonListSerializer(serializers.ModelSerializer):
@@ -20,10 +19,17 @@ from .models import LessonModel, LessonListModel, LessonVideoModel, LessonFilesM
 #     def get_lessonDate(self, obj):
 #         return obj.lessonDate.strftime('%d.%m.%Y %H:%M')
 
-class LessonFilesSerializer(serializers.ModelSerializer):
+class LessonFileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LessonFilesModel
+        model = LessonFileModel
         fields = ('name', 'file', )
+
+class LessonFileListSerializer(serializers.ModelSerializer):
+    fileList = LessonFileSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = LessonFileListModel
+        fields = ('name', 'fileList', )
 
 class LessonVideoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,7 +38,7 @@ class LessonVideoSerializer(serializers.ModelSerializer):
 
 class LessonFilesForListSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LessonFilesModel
+        model = LessonFileListModel
         fields = ('name', )
 
 class LessonVideoForListSerializer(serializers.ModelSerializer):
@@ -65,7 +71,7 @@ class LessonListSerializer(serializers.ModelSerializer):
 class LessonDetailSerializer(serializers.ModelSerializer):
     homework = HomeworkListDetailSerializer(many=False, read_only=True)
     video = LessonVideoSerializer(many=False, read_only=True)
-    files = LessonFilesSerializer(many=False, read_only=True)
+    files = LessonFileListSerializer(many=False, read_only=True)
 
     class Meta:
         model = LessonModel

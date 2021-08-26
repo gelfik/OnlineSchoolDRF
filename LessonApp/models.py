@@ -22,7 +22,7 @@ class LessonVideoModel(models.Model):
         return f'{self.name}'
 
 
-class LessonFilesModel(models.Model):
+class LessonFileModel(models.Model):
     def get_file_path(instance, filename):
         return os.path.join('lessonFiles', filename)
 
@@ -31,9 +31,26 @@ class LessonFilesModel(models.Model):
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:
+        verbose_name = 'Файл'
+        verbose_name_plural = 'Файлы'
+        db_table = 'LessonFile'
+
+    def __str__(self):
+        return f'{self.name}'
+
+class LessonFileListModel(models.Model):
+    def get_file_path(instance, filename):
+        return os.path.join('lessonFiles', filename)
+
+    name = models.CharField('Название', default=None, max_length=255)
+    fileList = models.ManyToManyField(LessonFileModel, verbose_name='Файлы',
+                                      default=None, null=True, blank=True)
+    is_active = models.BooleanField('Статус удаления', default=True)
+
+    class Meta:
         verbose_name = 'Файл к уроку'
         verbose_name_plural = 'Файлы к уроку'
-        db_table = 'LessonFiles'
+        db_table = 'LessonFileList'
 
     def __str__(self):
         return f'{self.name}'
@@ -45,7 +62,7 @@ class LessonModel(models.Model):
                                  default=None, null=True, blank=True)
     video = models.ForeignKey(LessonVideoModel, on_delete=models.CASCADE, verbose_name='Ссылка на видео',
                               default=None, null=True, blank=True)
-    files = models.ForeignKey(LessonFilesModel, on_delete=models.CASCADE, verbose_name='Файлы', default=None, null=True,
+    files = models.ForeignKey(LessonFileListModel, on_delete=models.CASCADE, verbose_name='Файлы', default=None, null=True,
                               blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
