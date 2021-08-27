@@ -1,13 +1,7 @@
 from rest_framework import serializers
 
-from .models import HomeworkTypeModel, HomeworkListModel, HomeworkFilesModel, HomeworkAskAnswerTextInputModel, \
+from .models import HomeworkListModel, HomeworkAskAnswerTextInputModel, \
     HomeworkAskAnswerSelectionOnListAnswersModel, HomeworkAskModel
-
-
-class HomeworkTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HomeworkTypeModel
-        fields = ('name',)
 
 
 class HomeworkAskAnswerSelectionOnListAnswersSerializer(serializers.ModelSerializer):
@@ -27,23 +21,23 @@ class HomeworkAskAnswerTextInputSerializer(serializers.ModelSerializer):
 
 
 class HomeworkAskSerializer(serializers.ModelSerializer):
-    answerInput = serializers.SlugRelatedField(slug_field='answer', read_only=True)
+    # answerInput = serializers.SlugRelatedField(slug_field='answer', read_only=True)
+    answerInput = serializers.SerializerMethodField()
     answerList = serializers.SlugRelatedField(slug_field='answer', read_only=True, many=True)
 
     class Meta:
         model = HomeworkAskModel
-        fields = ('ask', 'askPicture', 'answerList', 'answerInput',)
+        fields = ('ask', 'askPicture', 'answerList', 'answerInput', 'id', )
 
+    def get_answerInput(self, instance):
+        if instance.answerInput:
+            return True
+        else:
+            return False
 
-class HomeworkFilesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HomeworkFilesModel
-        fields = ('name', 'file',)
 
 
 class HomeworkListDetailSerializer(serializers.ModelSerializer):
-    homeworkType = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    files = HomeworkFilesSerializer(read_only=True, many=True)
     askList = HomeworkAskSerializer(read_only=True, many=True)
 
     class Meta:
@@ -53,8 +47,6 @@ class HomeworkListDetailSerializer(serializers.ModelSerializer):
 
 
 class HomeworkListSerializer(serializers.ModelSerializer):
-    homeworkType = serializers.SlugRelatedField(slug_field='name', read_only=True)
-
     class Meta:
         model = HomeworkListModel
-        fields = ('id', 'name', 'homeworkType',)
+        fields = ('id', 'name',)

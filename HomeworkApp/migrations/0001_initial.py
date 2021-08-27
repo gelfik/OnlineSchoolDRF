@@ -61,7 +61,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(default=None, max_length=255, verbose_name='Название')),
-                ('file', models.FileField(default=None, null=True, upload_to=HomeworkApp.models.HomeworkFilesModel.get_file_path, verbose_name='Файл')),
                 ('is_active', models.BooleanField(default=True, verbose_name='Статус удаления')),
             ],
             options={

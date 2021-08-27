@@ -53,7 +53,7 @@ class LessonForListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'homework', 'video', 'files')
+        fields = ('id', 'homework', 'video', 'files', )
 
 
 class LessonListSerializer(serializers.ModelSerializer):
