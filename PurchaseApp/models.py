@@ -1,6 +1,9 @@
 from django.db import models
 
 # Create your models here.
+import LessonApp.models
+from HomeworkApp.models import HomeworkAskModel, HomeworkListModel, HomeworkAskAnswerSelectionOnListAnswersModel, \
+    HomeworkAskAnswerTextInputModel
 from UserProfileApp.models import User
 from CoursesApp.models import CoursesListModel, CoursesSubCoursesModel
 from PromocodeApp.models import PromocodeListModel
@@ -44,3 +47,36 @@ class PurchaseListModel(models.Model):
 
     def __str__(self):
         return f'{self.id} {self.course}'
+
+
+class PurchaseUserAnswerModel(models.Model):
+    ask = models.ForeignKey(HomeworkAskModel, on_delete=models.CASCADE,
+                                    verbose_name='Ответ с вводом текста', default=None, null=True, blank=True)
+    answerList = models.ManyToManyField(HomeworkAskAnswerSelectionOnListAnswersModel, verbose_name='Ответы с выбором',
+                                        default=None, null=True, blank=True)
+    answerInput = models.TextField('Ответ текстом', default=None, null=True, blank=True)
+    answerValid = models.BooleanField('Статус решения', default=False, blank=True)
+    is_active = models.BooleanField('Статус удаления', default=True)
+
+    class Meta:
+        verbose_name = 'Ответ'
+        verbose_name_plural = 'Ответы'
+        db_table = 'PurchaseUserAnswer'
+
+    def __str__(self):
+        return f'{self.ask}'
+
+
+class PurchaseUserAnswerListModel(models.Model):
+    purchase = models.ForeignKey(PurchaseListModel, on_delete=models.CASCADE, verbose_name='Покупка', default=None)
+    homework = models.ForeignKey(HomeworkListModel, on_delete=models.CASCADE, verbose_name='Домашка', default=None)
+    answerData = models.ManyToManyField(PurchaseUserAnswerModel, verbose_name='Ответы', default=None, null=True, blank=True)
+    is_active = models.BooleanField('Статус удаления', default=True)
+
+    class Meta:
+        verbose_name = 'Ответ на домашнее задание'
+        verbose_name_plural = 'Ответы на домашнее задание'
+        db_table = 'PurchaseUserAnswerList'
+
+    def __str__(self):
+        return f'{self.purchase} {self.homework}'

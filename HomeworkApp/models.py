@@ -3,9 +3,6 @@ import uuid
 
 from django.db import models
 
-
-# Create your models here.
-
 class HomeworkAskAnswerSelectionOnListAnswersModel(models.Model):
     answer = models.CharField('Ответ', default=None, max_length=255)
     validStatus = models.BooleanField('Верно/не верно', default=True)
@@ -69,4 +66,3 @@ class HomeworkListModel(models.Model):
 
     def __str__(self):
         return f'{self.name}'
-

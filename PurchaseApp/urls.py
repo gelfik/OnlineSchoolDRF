@@ -1,11 +1,12 @@
 from django.urls import path, re_path, include
 from .views import PurchaseListAPIView, PurchaseDetailAPIView, PurchaseBuyCourseAPIView, PurchaseCheckBuyAPIView, \
-    PurchaseSubDetailAPIView, PurchaseLessonDetailAPIView
+    PurchaseSubDetailAPIView, PurchaseLessonDetailAPIView, PurchaseHomeworkDetailAPIView
 
 app_name = 'PurchaseApp'
 
 PurchaseCheckBuyAPIView.http_method_names = ('post', 'options',)
 PurchaseListAPIView.http_method_names = ('get', 'options',)
+PurchaseHomeworkDetailAPIView.http_method_names = ('get', 'post', 'options',)
 PurchaseLessonDetailAPIView.http_method_names = ('get', 'options',)
 PurchaseDetailAPIView.http_method_names = ('get', 'options',)
 PurchaseSubDetailAPIView.http_method_names = ('get', 'options',)
@@ -15,6 +16,8 @@ PurchaseBuyCourseAPIView.http_method_names = ('post', 'options',)
 
 urlpatterns = [
     path('checkbuy/', PurchaseCheckBuyAPIView.as_view()),
+    # path('<int:purchaseID>/sub/<int:subID>/lesson/<int:lessonID>/homework/<int:homeworkID>/', PurchaseHomeworkDetailAPIView.as_view()),
+    path('<int:purchaseID>/homework/<int:homeworkID>/', PurchaseHomeworkDetailAPIView.as_view()),
     path('<int:purchaseID>/sub/<int:subID>/lesson/<int:lessonID>/', PurchaseLessonDetailAPIView.as_view()),
     path('<int:purchaseID>/sub/<int:subID>/', PurchaseSubDetailAPIView.as_view()),
     path('list/', PurchaseListAPIView.as_view()),

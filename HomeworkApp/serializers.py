@@ -7,14 +7,14 @@ from .models import HomeworkListModel, HomeworkAskAnswerTextInputModel, \
 class HomeworkAskAnswerSelectionOnListAnswersSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomeworkAskAnswerSelectionOnListAnswersModel
-        fields = ('answer',)
+        fields = ('answer', 'id', )
 
-class HomeworkAskAnswerSelectionOnListAnswersSerializerValid(serializers.ModelSerializer):
+class HomeworkAskAnswerSelectionOnListAnswersValidSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomeworkAskAnswerSelectionOnListAnswersModel
-        fields = ('answer', 'validStatus',)
+        fields = ('answer', 'validStatus', 'id', )
 
-class HomeworkAskAnswerTextInputSerializer(serializers.ModelSerializer):
+class HomeworkAskAnswerTextInputValidSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomeworkAskAnswerTextInputModel
         fields = ('answer',)
@@ -23,7 +23,8 @@ class HomeworkAskAnswerTextInputSerializer(serializers.ModelSerializer):
 class HomeworkAskSerializer(serializers.ModelSerializer):
     # answerInput = serializers.SlugRelatedField(slug_field='answer', read_only=True)
     answerInput = serializers.SerializerMethodField()
-    answerList = serializers.SlugRelatedField(slug_field='answer', read_only=True, many=True)
+    # answerList = serializers.SlugRelatedField(slug_field='answer', read_only=True, many=True)
+    answerList = HomeworkAskAnswerSelectionOnListAnswersSerializer(read_only=True, many=True)
 
     class Meta:
         model = HomeworkAskModel
@@ -34,6 +35,16 @@ class HomeworkAskSerializer(serializers.ModelSerializer):
             return True
         else:
             return False
+
+class HomeworkAskAnswersSerializer(serializers.ModelSerializer):
+    answerInput = serializers.SlugRelatedField(slug_field='answer', read_only=True)
+    # answerInput = HomeworkAskAnswerSelectionOnListAnswersValidSerializer(read_only=True, many=False)
+    # answerList = serializers.SlugRelatedField(slug_field='answer', read_only=True, many=True)
+    answerList = HomeworkAskAnswerSelectionOnListAnswersValidSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = HomeworkAskModel
+        fields = ('ask', 'askPicture', 'answerList', 'answerInput', 'id', )
 
 
 

@@ -3,7 +3,13 @@ from rest_framework import serializers
 from CoursesApp.models import CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesDetailForPurchaseSerializer, CoursesSubCoursesSerializer, \
     CoursesForPurchaseSerializer, CoursesDetail, CoursesListSerializer, CoursesForPurchaseListSerializer
-from .models import PurchasePayModel, PurchaseListModel
+from HomeworkApp.models import HomeworkListModel
+from HomeworkApp.serializers import HomeworkAskSerializer, HomeworkAskAnswerSelectionOnListAnswersSerializer, \
+    HomeworkListDetailSerializer, HomeworkAskAnswersSerializer
+from LessonApp.models import LessonModel, LessonListModel
+from LessonApp.serializers import LessonVideoSerializer, LessonFileListSerializer, LessonVideoForListSerializer, \
+    LessonFilesForListSerializer
+from .models import PurchasePayModel, PurchaseListModel, PurchaseUserAnswerListModel, PurchaseUserAnswerModel
 
 
 class PurchasePaySerializer(serializers.ModelSerializer):
@@ -57,6 +63,92 @@ class PurchaseDetailSerializer(serializers.ModelSerializer):
             return CoursesSubCoursesSerializer(instance=obj.course.subCourses, many=True, read_only=True).data
         else:
             return CoursesSubCoursesSerializer(instance=obj.courseSub, many=True, read_only=True).data
+
+
+class PurchaseUserAnswerSerializer(serializers.ModelSerializer):
+    ask = HomeworkAskAnswersSerializer(many=False, read_only=True)
+    answerList = HomeworkAskAnswerSelectionOnListAnswersSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PurchaseUserAnswerModel
+        # fields = '__all__'
+        fields = ('ask', 'answerList', 'answerInput', 'answerValid',)
+
+
+class PurchaseUserAnswerListDetailSerializer(serializers.ModelSerializer):
+    answerData = PurchaseUserAnswerSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PurchaseUserAnswerListModel
+        # fields = '__all__'
+        fields = ('answerData', 'homework')
+
+class PurchaseLessonDetailSerializer(serializers.ModelSerializer):
+    homework = HomeworkListDetailSerializer(many=False, read_only=True)
+    video = LessonVideoSerializer(many=False, read_only=True)
+    files = LessonFileListSerializer(many=False, read_only=True)
+    homeworkAnswer = serializers.SerializerMethodField(read_only=True, source='get_homeworkAnswer')
+
+    class Meta:
+        model = LessonModel
+        fields = ('id', 'description', 'homework', 'video', 'files', 'homeworkAnswer')
+
+
+    def get_homeworkAnswer(self, obj):
+        if 'homeworkAnswer' in self.context and self.context['homeworkAnswer'] != []:
+            return PurchaseUserAnswerListDetailSerializer(instance=self.context['homeworkAnswer']).data
+        else:
+            return None
+
+class PurchaseHomeworkListSerializer(serializers.ModelSerializer):
+    answerStatus = serializers.SerializerMethodField(read_only=True, source='get_answerStatus')
+
+    class Meta:
+        model = HomeworkListModel
+        fields = ('id', 'name', 'answerStatus', )
+
+    def get_answerStatus(self, obj):
+        if 'purchase' in self.context and self.context['purchase'] != []:
+            try:
+                PurchaseUserAnswerListModel.objects.get(purchase=self.context['purchase'], homework=obj.id)
+                return True
+            except:
+                return False
+        else:
+            return False
+
+
+class PurchaseLessonForListSerializer(serializers.ModelSerializer):
+    homework = PurchaseHomeworkListSerializer()
+    video = LessonVideoForListSerializer()
+    files = LessonFilesForListSerializer()
+
+    class Meta:
+        model = LessonModel
+        fields = ('id', 'homework', 'video', 'files', )
+
+
+class PurchaseLessonListSerializer(serializers.ModelSerializer):
+    lessonList = PurchaseLessonForListSerializer(read_only=True, many=True)
+    lessonDate = serializers.SerializerMethodField(read_only=True, source='get_lessonDate')
+
+    class Meta:
+        model = LessonListModel
+        fields = ('lessonDate', 'lessonList')
+
+    def get_lessonDate(self, obj):
+        return obj.lessonDate.strftime('%d.%m.%Y %H:%M')
+
+
+class PurchaseSubCoursesDetailSerializer(serializers.ModelSerializer):
+    lessons = PurchaseLessonListSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CoursesSubCoursesModel
+        fields = ('id', 'name', 'lessons')
+        ordering = ['startDate', 'endDate', 'id']
+
+
 
 # class PurchaseSubDetailSerializer(serializers.Serializer):
 #     courseSub = serializers.SerializerMethodField(read_only=True, source='get_courseSub')
