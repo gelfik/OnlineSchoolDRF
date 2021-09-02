@@ -30,7 +30,7 @@ class CoursesTypeSerializer(serializers.ModelSerializer):
 class CoursesTypeForCourseDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesTypeModel
-        fields = ('name', 'duration', 'durationCount',)
+        fields = ('name', 'duration',)
         # exclude = ('is_active', 'id', )
 
 
@@ -86,12 +86,16 @@ class CoursesForCourseSerializer(serializers.ModelSerializer):
     predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
     courseType = CoursesTypeForCourseDetailSerializer(many=False, read_only=True)
     courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    countDuration = serializers.SerializerMethodField(read_only=True, source='get_countDuration')
 
     class Meta:
         model = CoursesListModel
         # fields = '__all__'
-        # fields = ('predmet', 'courseType', 'courseExamType', 'coursePictu/re',)
+        # fields = ('predmet', 'courseType', 'courseExamType', 'coursePicture',)
         exclude = ('draft', 'subCourses', 'is_active',)
+
+    def get_countDuration(self, instance):
+        return instance.subCourses.all().count()
 
 
 class CoursesForPurchaseListSerializer(serializers.ModelSerializer):

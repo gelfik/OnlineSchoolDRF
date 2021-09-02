@@ -11,14 +11,15 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 
-from CoursesApp.models import CoursesListModel
+from CoursesApp.models import CoursesListModel, CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesSubCoursesDetailSerializer
 from HomeworkApp.models import HomeworkListModel
 from LessonApp.models import LessonListModel, LessonModel
 from LessonApp.serializers import LessonDetailSerializer
 from PromocodeApp.models import PromocodeListModel
 from .serializers import PurchaseListSerializer, PurchaseDetailSerializer, PurchaseCheckBuySerializer, \
-    PurchaseUserAnswerListDetailSerializer, PurchaseLessonDetailSerializer, PurchaseSubCoursesDetailSerializer
+    PurchaseUserAnswerListDetailSerializer, PurchaseLessonDetailSerializer, PurchaseSubCoursesDetailSerializer, \
+    PurchaseSubCoursesNotBuySerializer, PurchaseCoursesForCourseSerializer
 from .models import PurchaseListModel, PurchasePayModel, PurchaseUserAnswerListModel, PurchaseUserAnswerModel
 
 from UserProfileApp.models import User
@@ -66,6 +67,14 @@ class PurchaseCheckBuyAPIView(APIView):
         else:
             return Response({'status': False}, status=status.HTTP_200_OK)
 
+class PurchaseForPurchaseAPIView(RetrieveAPIView):
+    permission_classes = (AllowAny,)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = PurchaseCoursesForCourseSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        return PurchaseListModel.objects.filter(is_active=True, user=self.request.user)
 
 class PurchaseListAPIView(ListAPIView):
     permission_classes = (IsAuthenticated,)
@@ -84,7 +93,20 @@ class PurchaseDetailAPIView(RetrieveAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
+        queryset = PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
+        try:
+            if queryset.count() > 0:
+                data = queryset[0]
+                if data.course.subCourses.exclude(id__in=data.courseSub.all()).count() == 0:
+                    data.courseSubAll = True
+                    data.save()
+                else:
+                    data.courseSubAll = False
+                    data.save()
+        except:
+            pass
+
+        return queryset
 
 
 class PurchaseSubDetailAPIView(APIView):
@@ -100,7 +122,6 @@ class PurchaseSubDetailAPIView(APIView):
             try:
                 purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user,
                                                                         pk=kwargs['purchaseID'])
-
                 serializer = PurchaseSubCoursesDetailSerializer(many=False,
                                                                 instance=purchase.courseSub.get(id=kwargs['subID']),
                                                                 context={'purchase': purchase})
@@ -131,13 +152,15 @@ class PurchaseLessonDetailAPIView(APIView):
                     purchaseUserAnswerListObject = PurchaseUserAnswerListModel.objects.get(purchase=purchase,
                                                                                            homework=data.homework)
                     serializer = PurchaseLessonDetailSerializer(many=False, instance=data, context={
-                        'homeworkAnswer': purchaseUserAnswerListObject})
+                        'homeworkAnswer': purchaseUserAnswerListObject, 'request': self.request})
                 except:
-                    serializer = PurchaseLessonDetailSerializer(many=False, instance=data)
+                    serializer = PurchaseLessonDetailSerializer(many=False, instance=data,
+                                                                context={'request': self.request})
 
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                serializer = PurchaseLessonDetailSerializer(many=False, instance=data)
+                serializer = PurchaseLessonDetailSerializer(many=False, instance=data,
+                                                            context={'request': self.request})
                 return Response(serializer.data, status=status.HTTP_200_OK)
             # except:
             #     return Response({'error': 'урок не найден'}, status=status.HTTP_404_NOT_FOUND)
@@ -220,7 +243,7 @@ class PurchaseHomeworkDetailAPIView(APIView):
                             purchaseUserAnswerListObject.answerData.add(purchaseUserAnswerObject)
                     purchaseUserAnswerListObject.save()
                     serializer = PurchaseUserAnswerListDetailSerializer(instance=purchaseUserAnswerListObject,
-                                                                        many=False)
+                                                                        many=False, context={'request': self.request})
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 else:
                     return Response({'error': 'не на все вопросы получены ответы'}, status=status.HTTP_400_BAD_REQUEST)
@@ -240,7 +263,8 @@ class PurchaseHomeworkDetailAPIView(APIView):
                 homework = lesson.homework
                 purchaseUserAnswerListObject = PurchaseUserAnswerListModel.objects.get(purchase=purchase,
                                                                                        homework=homework)
-                serializer = PurchaseUserAnswerListDetailSerializer(instance=purchaseUserAnswerListObject, many=False)
+                serializer = PurchaseUserAnswerListDetailSerializer(instance=purchaseUserAnswerListObject, many=False,
+                                                                    context={'request': self.request})
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except:
                 return Response({'error': 'домашка не найдена'}, status=status.HTTP_404_NOT_FOUND)
@@ -303,6 +327,127 @@ class PurchasePayData():
         return data
 
 
+class PurchaseBuyPurchaseAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+
+    def post(self, request, *args, **kwargs):
+        serializer_data = {}
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data:
+                serializer_data.update({f'{item}': data})
+
+        subObject = None
+
+        try:
+            purchaseID = int(serializer_data['purchaseID'])
+        except:
+            return Response({'message': 'курс не выбран', 'result': 'error'}, status=status.HTTP_200_OK)
+
+        if 'buyAll' in serializer_data:
+            buyAll = bool(serializer_data['buyAll'])
+        else:
+            buyAll = False
+
+        if not buyAll:
+            try:
+                subID = int(serializer_data['subID'])
+            except:
+                return Response({'message': 'подкурс не выбран', 'result': 'error'}, status=status.HTTP_200_OK)
+
+        buyAllSub = False
+        ### Получение курса по полученному purchaseID
+        try:
+            purchaseObject = PurchaseListModel.objects.get(id=purchaseID)
+            courseSubList = purchaseObject.course.subCourses.exclude(id__in=purchaseObject.courseSub.all())
+            courseSubCount = courseSubList.count()
+
+            if courseSubCount == 0:
+                purchaseObject.courseSubAll = True
+                purchaseObject.save()
+                return Response({'message': 'у вас уже куплен весь курс', 'result': 'error'}, status=status.HTTP_200_OK)
+            else:
+                purchaseObject.courseSubAll = False
+                purchaseObject.save()
+
+            if not buyAll:
+                try:
+                    subObject = purchaseObject.courseSub.get(id=subID)
+                    return Response({'message': 'у вас уже куплен данный подкурс', 'result': 'error'},
+                                    status=status.HTTP_200_OK)
+                except:
+                    try:
+                        subObject = purchaseObject.course.subCourses.get(id=subID)
+                    except:
+                        return Response({'message': 'подкурс не найден', 'result': 'error'}, status=status.HTTP_200_OK)
+            if purchaseObject.course.price == 0:
+                buyAll = True
+            if purchaseObject.course.buyAllSubCourses:
+                buyAllSub = True
+        except PurchaseListModel.DoesNotExist:
+            return Response({'message': 'покупка не найдена', 'result': 'error'}, status=status.HTTP_200_OK)
+
+        ### Проверка промокода
+        if 'promocode' in serializer_data:
+            try:
+                promocode_object = PromocodeListModel.objects.get(promocode=serializer_data['promocode'])
+                if datetime.datetime.strptime(str(promocode_object.validDate),
+                                              "%Y-%m-%d") < datetime.datetime.now() - datetime.timedelta(days=1):
+                    return Response({'message': 'Истек срок действия промокода', 'result': 'error'},
+                                    status=status.HTTP_200_OK)
+                if promocode_object.promocodeCount < promocode_object.activeCount:
+                    return Response({'message': 'Использовано максимальное число промокодов', 'result': 'error'},
+                                    status=status.HTTP_200_OK)
+            except PromocodeListModel.DoesNotExist:
+                return Response({'message': 'промокод не найден', 'result': 'error'}, status=status.HTTP_200_OK)
+
+        ### Проверка на наличие покупки курса, если куплен, просто добавляем подкурсы и создаем оплаты.
+        try:
+            if buyAll or buyAllSub:
+                purchaseObject.courseSubAll = True
+                purchaseObject.save()
+                for item in courseSubList:
+                    purchaseObject.courseSub.add(item)
+                purchaseObject.save()
+
+                sumPay = math.ceil(purchaseObject.course.price * courseSubCount)
+                fullsum = math.ceil(purchaseObject.course.price * courseSubCount)
+                if courseSubCount > 1:
+                    duration = math.ceil(
+                        courseSubCount * purchaseObject.course.price * purchaseObject.course.discountDuration // 100)
+                else:
+                    duration = 0
+
+                sumPay = sumPay - duration
+                if buyAllSub:
+                    sumPay = fullsum = purchaseObject.course.price
+                purchasePayData = PurchasePayData(sumPay, fullsum)
+                if 'promocode' in serializer_data:
+                    purchasePayData.setPomocode(promocode_object)
+                purchasePay_object = PurchasePayModel.objects.create(**purchasePayData.getData())
+                purchaseObject.purchasePay.add(purchasePay_object)
+                purchaseObject.save()
+                return Response({'message': 'Курс куплен успешно', 'result': 'succes'},
+                                status=status.HTTP_200_OK)
+            else:
+                purchaseObject.courseSub.add(subObject)
+                purchaseObject.save()
+                purchasePayData = PurchasePayData(purchaseObject.course.price, purchaseObject.course.price)
+                if 'promocode' in serializer_data:
+                    purchasePayData.setPomocode(promocode_object)
+                purchasePay_object = PurchasePayModel.objects.create(**purchasePayData.getData())
+                purchaseObject.purchasePay.add(purchasePay_object)
+                courseSubCount = purchaseObject.course.subCourses.exclude(id__in=purchaseObject.courseSub.all()).count()
+                if courseSubCount == 0:
+                    purchaseObject.courseSubAll = True
+                    purchaseObject.save()
+                purchaseObject.save()
+                return Response({'message': 'Курс куплен успешно', 'result': 'succes'}, status=status.HTTP_200_OK)
+        except:
+            return Response({'message': 'Возникла непредвиденная ошибка', 'result': 'error'}, status=status.HTTP_200_OK)
+
+
 class PurchaseBuyCourseAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
@@ -327,10 +472,7 @@ class PurchaseBuyCourseAPIView(APIView):
         ### Получение курса по полученному CourseID
         try:
             course_object = CoursesListModel.objects.get(id=courseID)
-            sumPay = math.ceil(course_object.price * course_object.courseType.durationCount)
-            fullsum = math.ceil(course_object.price * course_object.courseType.durationCount)
-            duration = math.ceil(
-                course_object.courseType.durationCount * course_object.price * course_object.discountDuration // 100)
+            courseSubDuration = course_object.subCourses.count()
             if course_object.price == 0:
                 buyAll = True
             if course_object.buyAllSubCourses:
@@ -355,63 +497,69 @@ class PurchaseBuyCourseAPIView(APIView):
         ### Проверка на наличие покупки курса, если куплен, просто добавляем подкурсы и создаем оплаты.
         try:
             purchase_object = PurchaseListModel.objects.get(course_id=courseID, user=request.user)
-            if purchase_object.courseSubAll:
-                return Response({'message': 'у вас уже куплен весь курс', 'result': 'succes'},
-                                status=status.HTTP_200_OK)
-            else:
-                if buyAll or buyAllSub:
-                    purchase_object.courseSubAll = True
-                    purchase_object.save()
-                    for item in course_object.subCourses.all():
-                        purchase_object.courseSub.add(item)
-                        purchase_object.save()
-
-                    sumPay = sumPay - duration
-                    if buyAllSub:
-                        sumPay = fullsum = course_object.price
-                    purchasePayData = PurchasePayData(sumPay, fullsum)
-                    if 'promocode' in serializer_data:
-                        purchasePayData.setPomocode(promocode_object)
-                    purchasePay_object = PurchasePayModel.objects.create(**purchasePayData.getData())
-                    purchase_object.purchasePay.add(purchasePay_object)
-                    purchase_object.save()
-                    return Response({'message': 'Курс куплен успешно', 'result': 'succes'},
-                                    status=status.HTTP_200_OK)
-                else:
-                    searchCourseSub = False
-
-                    for item in course_object.subCourses.all():
-                        if item not in purchase_object.courseSub.all() and datetime.datetime.strptime(
-                                str(item.startDate), "%Y-%m-%d") > datetime.datetime.now() - datetime.timedelta(days=1):
-                            purchase_object.courseSub.add(item)
-                            purchase_object.save()
-                            searchCourseSub = True
-                            break
-                    if not searchCourseSub:
-                        for item in course_object.subCourses.all():
-                            if item not in purchase_object.courseSub.all():
-                                purchase_object.courseSub.add(item)
-                                purchase_object.save()
-                                break
-
-                    purchasePayData = PurchasePayData(course_object.price, course_object.price)
-                    if 'promocode' in serializer_data:
-                        purchasePayData.setPomocode(promocode_object)
-                    purchasePay_object = PurchasePayModel.objects.create(**purchasePayData.getData())
-                    purchase_object.purchasePay.add(purchasePay_object)
-                    if len(purchase_object.courseSub.all()) == len(course_object.subCourses.all()):
-                        purchase_object.courseSubAll = True
-                    purchase_object.save()
-                    return Response({'message': 'Курс куплен успешно', 'result': 'succes'}, status=status.HTTP_200_OK)
+            return Response({'message': 'у вас уже куплен данный курс', 'result': 'succes'},
+                            status=status.HTTP_200_OK)
+            # if purchase_object.courseSubAll:
+            #     return Response({'message': 'у вас уже куплен весь курс', 'result': 'succes'},
+            #                     status=status.HTTP_200_OK)
+            # else:
+            #     if buyAll or buyAllSub:
+            #         purchase_object.courseSubAll = True
+            #         purchase_object.save()
+            #         for item in course_object.subCourses.all():
+            #             purchase_object.courseSub.add(item)
+            #             purchase_object.save()
+            #
+            #         sumPay = sumPay - duration
+            #         if buyAllSub:
+            #             sumPay = fullsum = course_object.price
+            #         purchasePayData = PurchasePayData(sumPay, fullsum)
+            #         if 'promocode' in serializer_data:
+            #             purchasePayData.setPomocode(promocode_object)
+            #         purchasePay_object = PurchasePayModel.objects.create(**purchasePayData.getData())
+            #         purchase_object.purchasePay.add(purchasePay_object)
+            #         purchase_object.save()
+            #         return Response({'message': 'Курс куплен успешно', 'result': 'succes'},
+            #                         status=status.HTTP_200_OK)
+            #     else:
+            #         searchCourseSub = False
+            #
+            #         for item in course_object.subCourses.all():
+            #             if item not in purchase_object.courseSub.all() and datetime.datetime.strptime(
+            #                     str(item.startDate), "%Y-%m-%d") > datetime.datetime.now() - datetime.timedelta(days=1):
+            #                 purchase_object.courseSub.add(item)
+            #                 purchase_object.save()
+            #                 searchCourseSub = True
+            #                 break
+            #         if not searchCourseSub:
+            #             for item in course_object.subCourses.all():
+            #                 if item not in purchase_object.courseSub.all():
+            #                     purchase_object.courseSub.add(item)
+            #                     purchase_object.save()
+            #                     break
+            #
+            #         purchasePayData = PurchasePayData(course_object.price, course_object.price)
+            #         if 'promocode' in serializer_data:
+            #             purchasePayData.setPomocode(promocode_object)
+            #         purchasePay_object = PurchasePayModel.objects.create(**purchasePayData.getData())
+            #         purchase_object.purchasePay.add(purchasePay_object)
+            #         if len(purchase_object.courseSub.all()) == len(course_object.subCourses.all()):
+            #             purchase_object.courseSubAll = True
+            #         purchase_object.save()
+            #         return Response({'message': 'Курс куплен успешно', 'result': 'succes'}, status=status.HTTP_200_OK)
         except PurchaseListModel.DoesNotExist:
             if buyAll or buyAllSub:
                 purchase_object = PurchaseListModel.objects.create(user=request.user, course=course_object,
                                                                    courseSubAll=True)
                 for item in course_object.subCourses.all():
                     purchase_object.courseSub.add(item)
-                    purchase_object.save()
+                purchase_object.save()
 
-                sumPay = sumPay - duration
+                sumPay = math.ceil(course_object.price * courseSubDuration)
+                fullsum = math.ceil(course_object.price * courseSubDuration)
+                if courseSubDuration > 1:
+                    sumPay = math.ceil(sumPay - math.ceil(
+                        courseSubDuration * course_object.price * course_object.discountDuration // 100))
                 if buyAllSub:
                     sumPay = fullsum = course_object.price
                 purchasePayData = PurchasePayData(sumPay, fullsum)
@@ -424,10 +572,7 @@ class PurchaseBuyCourseAPIView(APIView):
             else:
                 purchase_object = PurchaseListModel.objects.create(user=request.user, course=course_object,
                                                                    courseSubAll=False)
-                sumPay = course_object.price
-                fullsum = course_object.price
                 searchCourseSub = False
-
                 for item in course_object.subCourses.all():
                     if item not in purchase_object.courseSub.all() and datetime.datetime.strptime(
                             str(item.startDate), "%Y-%m-%d") > datetime.datetime.now() - datetime.timedelta(days=1):
@@ -442,7 +587,7 @@ class PurchaseBuyCourseAPIView(APIView):
                             purchase_object.save()
                             break
 
-                purchasePayData = PurchasePayData(sumPay, fullsum)
+                purchasePayData = PurchasePayData(course_object.price, course_object.price)
                 if 'promocode' in serializer_data:
                     purchasePayData.setPomocode(promocode_object)
                 purchasePay_object = PurchasePayModel.objects.create(**purchasePayData.getData())

@@ -2,7 +2,8 @@ from rest_framework import serializers
 
 from CoursesApp.models import CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesDetailForPurchaseSerializer, CoursesSubCoursesSerializer, \
-    CoursesForPurchaseSerializer, CoursesDetail, CoursesListSerializer, CoursesForPurchaseListSerializer
+    CoursesForPurchaseSerializer, CoursesDetail, CoursesListSerializer, CoursesForPurchaseListSerializer, \
+    CoursesForCourseSerializer
 from HomeworkApp.models import HomeworkListModel
 from HomeworkApp.serializers import HomeworkAskSerializer, HomeworkAskAnswerSelectionOnListAnswersSerializer, \
     HomeworkListDetailSerializer, HomeworkAskAnswersSerializer
@@ -149,6 +150,29 @@ class PurchaseSubCoursesDetailSerializer(serializers.ModelSerializer):
         ordering = ['startDate', 'endDate', 'id']
 
 
+class PurchaseSubCoursesNotBuySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CoursesSubCoursesModel
+        fields = ('id', 'name')
+        ordering = ['startDate', 'endDate', 'id']
+
+
+class PurchaseCoursesForCourseSerializer(serializers.ModelSerializer):
+    course = CoursesForCourseSerializer(many=False, read_only=True)
+    courseSub = serializers.SerializerMethodField(read_only=True, source='get_courseSub')
+    countDuration = serializers.SerializerMethodField(read_only=True, source='get_countDuration')
+
+    class Meta:
+        model = PurchaseListModel
+        fields = ('course', 'courseSub', 'countDuration',)
+
+    def get_courseSub(self, instance):
+        subList = instance.course.subCourses.exclude(id__in=instance.courseSub.all())
+        return PurchaseSubCoursesNotBuySerializer(many=True, instance=subList).data
+
+    def get_countDuration(self, instance):
+        return instance.course.subCourses.exclude(id__in=instance.courseSub.all()).count()
 
 # class PurchaseSubDetailSerializer(serializers.Serializer):
 #     courseSub = serializers.SerializerMethodField(read_only=True, source='get_courseSub')

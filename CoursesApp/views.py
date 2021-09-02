@@ -38,12 +38,12 @@ class CoursesListAPIView(ListAPIView):
     pagination_class = PaginationCourses
 
     def get_queryset(self):
-        CoursesList_object = CoursesListModel.objects.order_by('id').filter(is_active=True)
+        CoursesList_object = CoursesListModel.objects.order_by('id').filter(is_active=True, draft=False)
         return CoursesList_object
 
 
 class CourseDetailAPIView(RetrieveAPIView):
-    queryset = CoursesListModel.objects.all().order_by('id').filter(is_active=True)
+    queryset = CoursesListModel.objects.all().order_by('id').filter(is_active=True, draft=False)
     permission_classes = (AllowAny,)
     renderer_classes = (JSONRenderer,)
     serializer_class = CoursesForCourseSerializer
