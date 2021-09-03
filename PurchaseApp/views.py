@@ -68,7 +68,7 @@ class PurchaseCheckBuyAPIView(APIView):
             return Response({'status': False}, status=status.HTTP_200_OK)
 
 class PurchaseForPurchaseAPIView(RetrieveAPIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
     serializer_class = PurchaseCoursesForCourseSerializer
     pagination_class = None
