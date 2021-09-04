@@ -87,6 +87,7 @@ class CoursesListModel(models.Model):
                                       validators=[MaxSizeValidator(500, 500)], default=None, null=True)
     teacher = models.ForeignKey(TeachersModel, on_delete=models.CASCADE, verbose_name='Преподаватель',
                                 default=None, null=True)
+    mentors = models.ManyToManyField(User, 'Наставники', null=True, blank=True)
     shortDescription = models.TextField('Краткое описание', default=None, null=True)
     description = models.TextField('Описание', default=None, null=True)
     subCourses = models.ManyToManyField(CoursesSubCoursesModel, verbose_name='Подкурсы', null=True, blank=True)

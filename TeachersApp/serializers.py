@@ -30,7 +30,8 @@ class TeacherDataForPurchaseSerializer(serializers.ModelSerializer):
     """ Ощуществляет сериализацию и десериализацию объектов TeacherList. """
     user = UserTeacherSerializer(many=False, read_only=True)
     role = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    teacherLink = TeacherLinkSerializer(many=False, read_only=True)
 
     class Meta:
         model = TeachersModel
-        fields = ('user', 'role')
+        fields = ('user', 'role', 'teacherLink', )

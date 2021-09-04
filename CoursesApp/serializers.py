@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 import LessonApp.serializers
 from LessonApp.models import LessonModel
+from UserProfileApp.serializers import UserMentorSerializer
 from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel, \
     CoursesSubCoursesModel
 from TeachersApp.serializers import TeacherDataForPurchaseSerializer
@@ -122,9 +123,9 @@ class CoursesForPurchaseSerializer(serializers.ModelSerializer):
         # fields = ('predmet', 'courseType', 'courseExamType', 'coursePictu/re',)
         exclude = ('draft', 'subCourses', 'is_active',)
 
-
 class CoursesDetailForPurchaseSerializer(serializers.ModelSerializer):
-    # teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
+    teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
+    mentors = UserMentorSerializer(many=True, read_only=True)
     predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
     courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
     courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
@@ -132,7 +133,7 @@ class CoursesDetailForPurchaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesListModel
         # fields = '__all__'
-        fields = ('name', 'predmet', 'courseType', 'courseExamType', 'coursePicture',)
+        fields = ('name', 'predmet', 'courseType', 'courseExamType', 'coursePicture', 'teacher', 'mentors', )
         # exclude = ('teacherList', 'mentorList', 'userCourseList', 'draft', 'subCourses', 'is_active',)
 
 
