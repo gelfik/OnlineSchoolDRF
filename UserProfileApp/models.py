@@ -7,7 +7,7 @@ from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, Permi
 from django.db import models
 from stdimage import StdImageField
 from stdimage.validators import MaxSizeValidator
-
+from django.contrib.auth.models import Group
 
 def transliterate(name):
     slovar = {'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
@@ -63,52 +63,6 @@ class UserAvatar(models.Model):
     def __str__(self):
         return str(self.file.url)
 
-
-# class UserAvatar(models.Model):
-#     def get_file_path_200x200(instance, filename):
-#         ext = filename.split('.')[-1]
-#         filename = "%s_200x200.%s" % (uuid.uuid4(), ext)
-#         return os.path.join('avatar', filename)
-#
-#     def get_file_path_orig(instance, filename):
-#         ext = filename.split('.')[-1]
-#         filename = "%s_orig.%s" % (uuid.uuid4(), ext)
-#         return os.path.join('avatar', filename)
-#
-#     def get_file_path_50x50(instance, filename):
-#         ext = filename.split('.')[-1]
-#         filename = "%s_50x50.%s" % (uuid.uuid4(), ext)
-#         return os.path.join('avatar', filename)
-#
-#     def get_file_path(instance, filename):
-#         ext = filename.split('.')[-1]
-#         filename = "%s_orig.%s" % (uuid.uuid4(), ext)
-#         return os.path.join('avatar', filename)
-#
-#     # file_link = get_file_path
-#     new = uuid.uuid4()
-#     file = models.FileField('Файл оригинал', upload_to=get_file_path_orig, null=True, blank=True, unique=True)
-#     file_200x200 = ResizedImageField('Файл 200x200', size=[200, 200], quality=100, upload_to=get_file_path_200x200,
-#                                      null=True,
-#                                      blank=True, unique=True)
-#     file_50x50 = ResizedImageField('Файл 50x50', size=[50, 50], quality=100, upload_to=get_file_path_50x50,
-#                                    null=True,
-#                                    blank=True, unique=True)
-#     name = models.CharField('Название', default=None, max_length=255,
-#                             blank=False)  # name is filename without extension
-#     upload_date = models.DateTimeField('Дата загрузки', auto_now=True, db_index=True)
-#     size = models.IntegerField('Размер', default=0)
-#     is_active = models.BooleanField('Статус удаления', default=True)
-#
-#     class Meta:
-#         verbose_name = 'Аватар'
-#         verbose_name_plural = 'Аватары'
-#         db_table = 'UserAvatar'
-#
-#     def __str__(self):
-#         return str(self.name)
-
-
 class UserManager(BaseUserManager):
     """
     Django требует, чтобы кастомные пользователи определяли свой собственный
@@ -133,6 +87,7 @@ class UserManager(BaseUserManager):
         new_username = transliterate(firstName[:1] + lastName)
 
         user = self.model(username=new_username, email=self.normalize_email(email))
+        user.groups.add(Group.objects.get(name='Пользователь'))
         user.firstName = firstName
         user.lastName = lastName
         user.vkLink = vkLink
@@ -155,6 +110,7 @@ class UserManager(BaseUserManager):
             raise TypeError('Пароль обязательное поле.')
 
         user = self.create_user(email, lastName, firstName, vkLink, password)
+        user.groups.add(Group.objects.get(name='Пользователь'))
         user.is_superuser = True
         user.is_staff = True
         user.save()
@@ -189,10 +145,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
 
     # Временная метка создания объекта.
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField('Дата регистрации', auto_now_add=True)
 
     # Временная метка показывающая время последнего обновления объекта.
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField('Дата последнего изменения', auto_now=True)
 
     # Дополнительный поля, необходимые Django
     # при указании кастомной модели пользователя.
@@ -200,13 +156,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     firstName = models.CharField('Имя', max_length=255, default=None)
     # patronymic = models.CharField('Отчество', max_length=255, default=None)
     phone = models.CharField('Телефон', max_length=255, default=None, null=True)
-    vkLink = models.CharField('Ссылка на вк', max_length=255, default=None, blank=True, null=True)
+    vkLink = models.CharField('Ссылка на вк', max_length=255, default=None, null=True)
     avatar = models.ForeignKey(UserAvatar, on_delete=models.CASCADE, verbose_name='Аватар', default=0, null=True,
                                blank=True)
     # Свойство USERNAME_FIELD сообщает нам, какое поле мы будем использовать
     # для входа в систему. В данном случае мы хотим использовать почту.
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = ['username', 'lastName', 'firstName', 'phone', 'vkLink', ]
 
     # Сообщает Django, что определенный выше класс UserManager
     # должен управлять объектами этого типа.
@@ -229,6 +185,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         """ Строковое представление модели (отображается в консоли) """
         return f'{self.firstName} {self.lastName}'
+
+    @property
+    def isTeacher(self):
+        return self.groups.filter(name='Преподаватель').exists()
+
+    @property
+    def isMentor(self):
+        return self.groups.filter(name='Наставник').exists()
 
     @property
     def token(self):

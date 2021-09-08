@@ -187,12 +187,26 @@ class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
 class UserDataSerializer(serializers.ModelSerializer):
     """ Ощуществляет сериализацию и десериализацию объектов User. """
     avatar = AvatarSerializer(many=False)
+    # isMentor = serializers.BooleanField(read_only=True, default=True)
+    # isTeaher = serializers.BooleanField(read_only=True, default=True)
 
     # avatar = serializers.SlugRelatedField(slug_field='file', read_only=True)
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'is_active', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone')
+        fields = ('email', 'username', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone', 'isTeacher', 'isMentor', )
+
+    def __init__(self, *args, **kwargs):
+        super(UserDataSerializer, self).__init__(*args, **kwargs)
+        user = self.context['request'].user
+        if user.isTeacher:
+            self.fields.pop('isMentor')
+        elif user.isMentor:
+            self.fields.pop('isTeacher')
+        else:
+            self.fields.pop('isTeacher')
+            self.fields.pop('isMentor')
+
 
     # def get_avatar(self, User):
     #     data = {}

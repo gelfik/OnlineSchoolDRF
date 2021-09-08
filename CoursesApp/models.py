@@ -81,10 +81,10 @@ class CoursesListModel(models.Model):
                                 default=None, null=True)
     courseType = models.ForeignKey(CoursesTypeModel, on_delete=models.CASCADE, verbose_name='Тип курса',
                                    default=None, null=True)
-    courseExamType = models.ForeignKey(CoursesExamTypeModel, on_delete=models.CASCADE, verbose_name='Тип курса',
+    courseExamType = models.ForeignKey(CoursesExamTypeModel, on_delete=models.CASCADE, verbose_name='Тип экзамена',
                                        default=None, null=True)
     coursePicture = models.ImageField(upload_to=get_file_path, verbose_name='Картинка курса',
-                                      validators=[MaxSizeValidator(500, 500)], default=None, null=True)
+                                      validators=[MaxSizeValidator(500, 500)], default=None, null=True, blank=True)
     teacher = models.ForeignKey(TeachersModel, on_delete=models.CASCADE, verbose_name='Преподаватель',
                                 default=None, null=True)
     mentors = models.ManyToManyField(User, 'Наставники', null=True, blank=True)
@@ -94,7 +94,7 @@ class CoursesListModel(models.Model):
     price = models.FloatField('Цена за месяц', default=0)
     discountDuration = models.PositiveSmallIntegerField('Скидка за месяц при оплате за весь срок обучения в %',
                                                         default=0, null=True, blank=True)
-    buyAllSubCourses = models.BooleanField('Покупка сразу всех курсов', default=False)
+    buyAllSubCourses = models.BooleanField('Покупка сразу всех курсов', default=False, null=True, blank=True)
     draft = models.BooleanField('Черновик', default=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 

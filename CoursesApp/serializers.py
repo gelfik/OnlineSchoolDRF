@@ -2,30 +2,35 @@ from rest_framework import serializers
 
 import LessonApp.serializers
 from LessonApp.models import LessonModel
+from PurchaseApp.models import PurchaseListModel
 from UserProfileApp.serializers import UserMentorSerializer
 from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel, \
     CoursesSubCoursesModel
 from TeachersApp.serializers import TeacherDataForPurchaseSerializer
 from LessonApp.serializers import LessonListSerializer
 
+from rest_framework.utils.serializer_helpers import (
+    BindingDict, BoundField, JSONBoundField, NestedBoundField, ReturnDict,
+    ReturnList
+)
+
 
 class CoursesExamTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesExamTypeModel
-        fields = ('name',)
+        fields = ('name', 'id',)
 
 
 class CoursesPredmetSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesPredmetModel
-        fields = ('name',)
+        fields = ('name', 'id',)
 
 
 class CoursesTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesTypeModel
-        # fields = ('name',)
-        exclude = ('is_active', 'id',)
+        fields = ('name', 'id',)
 
 
 class CoursesTypeForCourseDetailSerializer(serializers.ModelSerializer):
@@ -54,6 +59,7 @@ class CoursesSubCoursesSerializer(serializers.ModelSerializer):
         model = CoursesSubCoursesModel
         fields = ('id', 'name',)
         ordering = ['startDate', 'endDate', 'id']
+
 
 class CoursesSubCoursesDetailSerializer(serializers.ModelSerializer):
     lessons = LessonListSerializer(many=True, read_only=True)
@@ -123,6 +129,7 @@ class CoursesForPurchaseSerializer(serializers.ModelSerializer):
         # fields = ('predmet', 'courseType', 'courseExamType', 'coursePictu/re',)
         exclude = ('draft', 'subCourses', 'is_active',)
 
+
 class CoursesDetailForPurchaseSerializer(serializers.ModelSerializer):
     teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
     mentors = UserMentorSerializer(many=True, read_only=True)
@@ -133,7 +140,7 @@ class CoursesDetailForPurchaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesListModel
         # fields = '__all__'
-        fields = ('name', 'predmet', 'courseType', 'courseExamType', 'coursePicture', 'teacher', 'mentors', )
+        fields = ('name', 'predmet', 'courseType', 'courseExamType', 'coursePicture', 'teacher', 'mentors',)
         # exclude = ('teacherList', 'mentorList', 'userCourseList', 'draft', 'subCourses', 'is_active',)
 
 
@@ -142,5 +149,54 @@ class FilterDataSerializer(serializers.Serializer):
     courseType = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
     examType = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
 
+    class Meta:
+        fields = ('predmet', 'courseType', 'examType',)
+
+
+class CoursesForApanelListSerializer(serializers.ModelSerializer):
+    predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    purchaseCount = serializers.SerializerMethodField(read_only=True, source='get_purchaseCount')
+
+    class Meta:
+        model = CoursesListModel
+        # fields = '__all__'
+        fields = ('name', 'courseExamType', 'coursePicture', 'courseType', 'predmet', 'purchaseCount', 'draft', 'id',)
+
+    def get_purchaseCount(self, instance):
+        return PurchaseListModel.objects.filter(course_id=instance.id).count()
+
+
+class CoursesAddCourseSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True)
+    predmet = serializers.PrimaryKeyRelatedField(required=True,
+                                                 queryset=CoursesPredmetModel.objects.filter(is_active=True))
+    courseType = serializers.PrimaryKeyRelatedField(required=True,
+                                                    queryset=CoursesTypeModel.objects.filter(is_active=True))
+    courseExamType = serializers.PrimaryKeyRelatedField(required=True,
+                                                        queryset=CoursesExamTypeModel.objects.filter(is_active=True))
+    # coursePicture = serializers.FileField(required=True)
+    shortDescription = serializers.CharField(required=True)
+    description = serializers.CharField(required=True)
+    price = serializers.IntegerField(required=True)
+    discountDuration = serializers.IntegerField(required=True)
+    buyAllSubCourses = serializers.BooleanField(required=False)
+    id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = CoursesListModel
+        # fields = '__all__'
+        fields = ('name', 'courseExamType', 'courseType', 'predmet', 'shortDescription',
+                  'description', 'price', 'discountDuration', 'buyAllSubCourses', 'id')
+
+    def create(self, validated_data):
+        return CoursesListModel.objects.create(**validated_data)
+
+
+class CoursesMetadataSerializer(serializers.Serializer):
+    predmet = CoursesPredmetSerializer(read_only=True, many=True)
+    courseType = CoursesTypeSerializer(read_only=True, many=True)
+    examType = CoursesExamTypeSerializer(read_only=True, many=True)
     class Meta:
         fields = ('predmet', 'courseType', 'examType',)

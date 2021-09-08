@@ -19,8 +19,8 @@ def core_exception_handler(exc, context):
         # случае, вернуть ответ сгенерированный стандартными средствами заранее
         return handlers[exception_class](exc, context, response)
 
-    # if response is not None:
-    #     response.data['status_code'] = response.status_code
+    if response is not None:
+        response.data['status'] = False
 
     return response
 
@@ -29,7 +29,8 @@ def _handle_generic_error(exc, context, response):
     # Это самый простой обработчик исключений, который мы можем создать. Мы
     # берем ответ сгенерированный DRF и заключаем его в ключ 'errors'.
     response.data = {
-        'errors': response.data
+        'errors': response.data,
+        'status': False
     }
 
     return response
