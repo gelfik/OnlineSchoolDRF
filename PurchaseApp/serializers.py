@@ -2,15 +2,14 @@ from rest_framework import serializers
 
 from CoursesApp.models import CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesDetailForPurchaseSerializer, CoursesSubCoursesSerializer, \
-    CoursesForPurchaseSerializer, CoursesDetail, CoursesListSerializer, CoursesForPurchaseListSerializer, \
-    CoursesForCourseSerializer
+    CoursesForPurchaseListSerializer, CoursesForCourseSerializer
 from HomeworkApp.models import HomeworkListModel
-from HomeworkApp.serializers import HomeworkAskSerializer, HomeworkAskAnswerSelectionOnListAnswersSerializer, \
-    HomeworkListDetailSerializer, HomeworkAskAnswersSerializer
+from HomeworkApp.serializers import HomeworkAskAnswerSelectionOnListAnswersSerializer, HomeworkListDetailSerializer, \
+    HomeworkAskAnswersSerializer
 from LessonApp.models import LessonModel, LessonListModel
 from LessonApp.serializers import LessonVideoSerializer, LessonFileListSerializer, LessonVideoForListSerializer, \
     LessonFilesForListSerializer
-from TeachersApp.serializers import TeacherDataForPurchaseSerializer
+from UserProfileApp.serializers import UserForAPanelCoursesSerializer
 from .models import PurchasePayModel, PurchaseListModel, PurchaseUserAnswerListModel, PurchaseUserAnswerModel
 
 
@@ -85,6 +84,7 @@ class PurchaseUserAnswerListDetailSerializer(serializers.ModelSerializer):
         # fields = '__all__'
         fields = ('answerData', 'homework')
 
+
 class PurchaseLessonDetailSerializer(serializers.ModelSerializer):
     homework = HomeworkListDetailSerializer(many=False, read_only=True)
     video = LessonVideoSerializer(many=False, read_only=True)
@@ -95,19 +95,19 @@ class PurchaseLessonDetailSerializer(serializers.ModelSerializer):
         model = LessonModel
         fields = ('id', 'description', 'homework', 'video', 'files', 'homeworkAnswer')
 
-
     def get_homeworkAnswer(self, obj):
         if 'homeworkAnswer' in self.context and self.context['homeworkAnswer'] != []:
             return PurchaseUserAnswerListDetailSerializer(instance=self.context['homeworkAnswer']).data
         else:
             return None
 
+
 class PurchaseHomeworkListSerializer(serializers.ModelSerializer):
     answerStatus = serializers.SerializerMethodField(read_only=True, source='get_answerStatus')
 
     class Meta:
         model = HomeworkListModel
-        fields = ('id', 'name', 'answerStatus', )
+        fields = ('id', 'name', 'answerStatus',)
 
     def get_answerStatus(self, obj):
         if 'purchase' in self.context and self.context['purchase'] != []:
@@ -127,7 +127,7 @@ class PurchaseLessonForListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'homework', 'video', 'files', )
+        fields = ('id', 'homework', 'video', 'files',)
 
 
 class PurchaseLessonListSerializer(serializers.ModelSerializer):
@@ -152,7 +152,6 @@ class PurchaseSubCoursesDetailSerializer(serializers.ModelSerializer):
 
 
 class PurchaseSubCoursesNotBuySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = CoursesSubCoursesModel
         fields = ('id', 'name')
@@ -175,6 +174,7 @@ class PurchaseCoursesForCourseSerializer(serializers.ModelSerializer):
     def get_countDuration(self, instance):
         return instance.course.subCourses.exclude(id__in=instance.courseSub.all()).count()
 
+
 # class PurchaseSubDetailSerializer(serializers.Serializer):
 #     courseSub = serializers.SerializerMethodField(read_only=True, source='get_courseSub')
 #
@@ -190,20 +190,20 @@ class PurchaseCoursesForCourseSerializer(serializers.ModelSerializer):
 #         else:
 #             return CoursesSubCoursesSerializer(instance=obj.courseSub, many=True, read_only=True).data
 
-    # def to_representation(self, instance):
-    #     super(PurchaseDetailSerializer, self).to_representation(instance)
-    #     if instance.courseSubAll:
-    #         courseSub = CoursesSubCoursesSerializer(instance=instance.course.subCourses, many=True, read_only=True)
-    #         courseSub = subCourses.data
-    #     else:
-    #         courseSub = instance.courseSub
-    #     course = CoursesDetailForPurchaseSerializer(instance=instance.course, many=False, read_only=True)
-    #     purchasePay = PurchasePaySerializer(instance=instance.purchasePay,many=True, read_only=True)
-    #     return {
-    #         'course': course.data,
-    #         'courseSub': courseSub,
-    #         'purchasePay': purchasePay.data
-    #     }
+# def to_representation(self, instance):
+#     super(PurchaseDetailSerializer, self).to_representation(instance)
+#     if instance.courseSubAll:
+#         courseSub = CoursesSubCoursesSerializer(instance=instance.course.subCourses, many=True, read_only=True)
+#         courseSub = subCourses.data
+#     else:
+#         courseSub = instance.courseSub
+#     course = CoursesDetailForPurchaseSerializer(instance=instance.course, many=False, read_only=True)
+#     purchasePay = PurchasePaySerializer(instance=instance.purchasePay,many=True, read_only=True)
+#     return {
+#         'course': course.data,
+#         'courseSub': courseSub,
+#         'purchasePay': purchasePay.data
+#     }
 
 
 class PurchaseCheckBuySerializer(serializers.ModelSerializer):
@@ -214,3 +214,16 @@ class PurchaseCheckBuySerializer(serializers.ModelSerializer):
         # fields = '__all__'
         fields = ('status', 'id')
         # exclude = ('status', 'is_active',)
+
+
+class PurchaseListForAPanelCoursesSerializer(serializers.ModelSerializer):
+    # course = CoursesForPurchaseListSerializer(many=False, read_only=True)
+    # courseSub = CoursesSubCoursesSerializer(many=True, read_only=True)
+    purchasePay = PurchasePaySerializer(many=True, read_only=True)
+    user = UserForAPanelCoursesSerializer(read_only=True)
+    courseSub = PurchaseSubCoursesNotBuySerializer(read_only=True, many=True)
+
+    class Meta:
+        model = PurchaseListModel
+        # fields = '__all__'
+        fields = ('id', 'user', 'purchasePay', 'courseSub', )

@@ -64,6 +64,7 @@ class LessonModel(models.Model):
                               default=None, null=True, blank=True)
     files = models.ForeignKey(LessonFileListModel, on_delete=models.CASCADE, verbose_name='Файлы', default=None, null=True,
                               blank=True)
+    isOpen = models.BooleanField('Статус доступа', default=False)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:
@@ -73,7 +74,6 @@ class LessonModel(models.Model):
         ordering = ['files', 'homework', 'video', ]
 
     def __str__(self):
-
         if (self.homework):
             return f'{self.homework.name}'
         elif (self.video):

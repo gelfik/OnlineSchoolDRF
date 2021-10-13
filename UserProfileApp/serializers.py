@@ -34,7 +34,7 @@ class AvatarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAvatar
-        fields = ('file', 'name',)
+        fields = ('file',)
 
     # def to_representation(self, instance):
     #     # return self.fields['file'].to_representation(instance.file)
@@ -263,3 +263,16 @@ class UserMentorSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('firstName', 'lastName', 'avatar', 'vkLink', )
+
+
+class UserForAPanelCoursesSerializer(serializers.ModelSerializer):
+    """ Ощуществляет сериализацию и десериализацию объектов User. """
+    avatar = AvatarSerializer(many=False)
+    # isMentor = serializers.BooleanField(read_only=True, default=True)
+    # isTeaher = serializers.BooleanField(read_only=True, default=True)
+
+    # avatar = serializers.SlugRelatedField(slug_field='file', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone',)

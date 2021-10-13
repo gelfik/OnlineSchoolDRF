@@ -3,6 +3,7 @@ from rest_framework import serializers
 import LessonApp.serializers
 from LessonApp.models import LessonModel
 from PurchaseApp.models import PurchaseListModel
+from TeachersApp.models import TeachersModel
 from UserProfileApp.serializers import UserMentorSerializer
 from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel, \
     CoursesSubCoursesModel
@@ -191,7 +192,10 @@ class CoursesAddCourseSerializer(serializers.ModelSerializer):
                   'description', 'price', 'discountDuration', 'buyAllSubCourses', 'id')
 
     def create(self, validated_data):
-        return CoursesListModel.objects.create(**validated_data)
+        courseObject = CoursesListModel.objects.create(**validated_data)
+        courseObject.teacher = TeachersModel.objects.get(user=self.context['request'].user)
+        courseObject.save()
+        return courseObject
 
 
 class CoursesMetadataSerializer(serializers.Serializer):

@@ -84,7 +84,7 @@ class CoursesListModel(models.Model):
     courseExamType = models.ForeignKey(CoursesExamTypeModel, on_delete=models.CASCADE, verbose_name='Тип экзамена',
                                        default=None, null=True)
     coursePicture = models.ImageField(upload_to=get_file_path, verbose_name='Картинка курса',
-                                      validators=[MaxSizeValidator(500, 500)], default=None, null=True, blank=True)
+                                      validators=[MaxSizeValidator(500, 500)], default='coursePicture/Default.png', null=True, blank=True)
     teacher = models.ForeignKey(TeachersModel, on_delete=models.CASCADE, verbose_name='Преподаватель',
                                 default=None, null=True)
     mentors = models.ManyToManyField(User, 'Наставники', null=True, blank=True)

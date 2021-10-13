@@ -87,7 +87,7 @@ class UserManager(BaseUserManager):
         new_username = transliterate(firstName[:1] + lastName)
 
         user = self.model(username=new_username, email=self.normalize_email(email))
-        user.groups.add(Group.objects.get(name='Пользователь'))
+        # user.groups.add(Group.objects.get(name='Пользователь'))
         user.firstName = firstName
         user.lastName = lastName
         user.vkLink = vkLink

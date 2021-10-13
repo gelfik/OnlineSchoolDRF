@@ -86,3 +86,23 @@ class LessonDetailSerializer(serializers.ModelSerializer):
     #             # 'course': course.data,
     #             'lessonDate': instance.lessonDate,
     #             }
+
+class LessonDetailForAPanelSerializer(serializers.ModelSerializer):
+    homework = HomeworkListSerializer()
+    video = LessonVideoForListSerializer()
+    files = LessonFilesForListSerializer()
+
+    class Meta:
+        model = LessonModel
+        exclude = ('description', 'is_active', )
+
+class LessonListForAPanelSerializer(serializers.ModelSerializer):
+    lessonList = LessonDetailForAPanelSerializer(read_only=True, many=True)
+    lessonDate = serializers.SerializerMethodField(read_only=True, source='get_lessonDate')
+
+    class Meta:
+        model = LessonListModel
+        exclude = ('is_active',)
+
+    def get_lessonDate(self, obj):
+        return obj.lessonDate.strftime('%d.%m.%Y %H:%M')

@@ -6,7 +6,7 @@ from LessonApp.models import LessonModel, LessonListModel, LessonFileListModel, 
 
 @admin.register(LessonModel)
 class LessonList(admin.ModelAdmin):
-    list_display = ('homework', 'video', 'files', 'is_active',)
+    list_display = ('homework', 'video', 'files', 'isOpen', 'is_active',)
 
 
 @admin.register(LessonListModel)
