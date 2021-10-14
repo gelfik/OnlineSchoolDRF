@@ -13,7 +13,7 @@ from APanelApp.service import CoursesListFilter
 from CoursesApp.models import CoursesListModel, CoursesPredmetModel, CoursesTypeModel, CoursesExamTypeModel, \
     CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCourseSerializer, \
-    CoursesMetadataSerializer
+    CoursesMetadataSerializer, CoursesAddSubCourseSerializer
 from LessonApp.models import LessonModel, LessonListModel
 from PurchaseApp.models import PurchaseListModel
 from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer
@@ -52,6 +52,31 @@ class APanelCourseAddAPIView(APIView):
         serializer.save()
         return Response({'status': True, 'id': serializer.data['id']}, status=status.HTTP_201_CREATED)
 
+class APanelSubCourseAddAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = CoursesAddSubCourseSerializer
+    renderer_classes = (JSONRenderer,)
+
+    def post(self, request, *args, **kwargs):
+        # user = request.data.get('user', {})
+        serializer_data = {}
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data:
+                serializer_data.update({f'{item}': data})
+        # Паттерн создания сериализатора, валидации и сохранения - довольно
+        # стандартный, и его можно часто увидеть в реальных проектах.
+        serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        try:
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, draft=True)
+        except:
+            return Response({'status': False, 'id': None, 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
+
+        course.subCourses.add(serializer.data['id'])
+        course.save()
+        return Response({'status': True, 'id': serializer.data['id']}, status=status.HTTP_201_CREATED)
 
 class APanelCourseMetadataAPIView(APIView):
     permission_classes = (IsAuthenticated,)

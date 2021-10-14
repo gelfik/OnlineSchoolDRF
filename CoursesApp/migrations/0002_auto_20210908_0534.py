@@ -36,9 +36,4 @@ class Migration(migrations.Migration):
             name='courseExamType',
             field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='CoursesApp.coursesexamtypemodel', verbose_name='Тип экзамена'),
         ),
-        migrations.AlterField(
-            model_name='courseslistmodel',
-            name='coursePicture',
-            field=models.ImageField(blank=True, default=None, null=True, upload_to=CoursesApp.models.CoursesListModel.get_file_path, validators=[stdimage.validators.MaxSizeValidator(500, 500)], verbose_name='Картинка курса'),
-        ),
     ]

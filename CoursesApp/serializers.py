@@ -197,6 +197,23 @@ class CoursesAddCourseSerializer(serializers.ModelSerializer):
         courseObject.save()
         return courseObject
 
+class CoursesAddSubCourseSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True)
+    startDate = serializers.DateField(required=True)
+    endDate = serializers.DateField(required=True)
+    id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = CoursesSubCoursesModel
+        # fields = '__all__'
+        fields = ('name', 'startDate', 'endDate', 'id')
+
+    # def create(self, validated_data):
+    #     courseObject = CoursesListModel.objects.create(**validated_data)
+    #     courseObject.teacher = TeachersModel.objects.get(user=self.context['request'].user)
+    #     courseObject.save()
+    #     return courseObject
+
 
 class CoursesMetadataSerializer(serializers.Serializer):
     predmet = CoursesPredmetSerializer(read_only=True, many=True)
