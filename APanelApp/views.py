@@ -15,6 +15,7 @@ from CoursesApp.models import CoursesListModel, CoursesPredmetModel, CoursesType
 from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCourseSerializer, \
     CoursesMetadataSerializer, CoursesAddSubCourseSerializer
 from LessonApp.models import LessonModel, LessonListModel
+from LessonApp.serializers import LessonListAddSerializer
 from PurchaseApp.models import PurchaseListModel
 from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer
 
@@ -72,11 +73,38 @@ class APanelSubCourseAddAPIView(APIView):
         try:
             course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, draft=True)
         except:
-            return Response({'status': False, 'id': None, 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
-
+            return Response({'status': False, 'courseID': None, 'subCourseID': None, 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
         course.subCourses.add(serializer.data['id'])
         course.save()
-        return Response({'status': True, 'id': serializer.data['id']}, status=status.HTTP_201_CREATED)
+        return Response({'status': True, 'courseID': course.id, 'subCourseID': serializer.data['id']}, status=status.HTTP_201_CREATED)
+
+class APanelLessonListAddAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = LessonListAddSerializer
+    renderer_classes = (JSONRenderer,)
+
+    def post(self, request, *args, **kwargs):
+        # user = request.data.get('user', {})
+        serializer_data = {}
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data:
+                serializer_data.update({f'{item}': data})
+        # Паттерн создания сериализатора, валидации и сохранения - довольно
+        # стандартный, и его можно часто увидеть в реальных проектах.
+        serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        try:
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, draft=True)
+            subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
+        except:
+            return Response({'status': False, 'courseID': None, 'subCourseID': None, 'lessonListID': None, 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
+
+        subCourse.lessons.add(serializer.data['id'])
+        subCourse.save()
+        return Response({'status': True, 'courseID': course.id, 'subCourseID': subCourse.id, 'lessonListID': serializer.data['id']}, status=status.HTTP_201_CREATED)
+
 
 class APanelCourseMetadataAPIView(APIView):
     permission_classes = (IsAuthenticated,)

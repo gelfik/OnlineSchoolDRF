@@ -87,7 +87,7 @@ class LessonModel(models.Model):
 class LessonListModel(models.Model):
     lessonDate = models.DateTimeField('Дата проведения урока', default=django_datetime_now)
     lessonList = models.ManyToManyField(LessonModel, verbose_name='Уроки', default=None, null=True, blank=True)
-    isOpen = models.BooleanField('Статус доступа', default=True)
+    isOpen = models.BooleanField('Статус доступа', default=False)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:

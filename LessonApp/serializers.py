@@ -106,3 +106,13 @@ class LessonListForAPanelSerializer(serializers.ModelSerializer):
 
     def get_lessonDate(self, obj):
         return obj.lessonDate.strftime('%d.%m.%Y %H:%M')
+
+
+class LessonListAddSerializer(serializers.ModelSerializer):
+    lessonDate = serializers.DateTimeField(required=True)
+    id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = LessonListModel
+        # fields = '__all__'
+        fields = ('lessonDate', 'id', )
