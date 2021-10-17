@@ -116,3 +116,7 @@ class LessonListAddSerializer(serializers.ModelSerializer):
         model = LessonListModel
         # fields = '__all__'
         fields = ('lessonDate', 'id', )
+
+class LessonAddSerializer(serializers.Serializer):
+    lessonType = serializers.CharField(required=True)
+    name = serializers.CharField(required=True)

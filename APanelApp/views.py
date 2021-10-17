@@ -14,10 +14,12 @@ from CoursesApp.models import CoursesListModel, CoursesPredmetModel, CoursesType
     CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCourseSerializer, \
     CoursesMetadataSerializer, CoursesAddSubCourseSerializer
-from LessonApp.models import LessonModel, LessonListModel
-from LessonApp.serializers import LessonListAddSerializer
+from LessonApp.models import LessonModel, LessonListModel, LessonVideoModel, LessonFileListModel
+from LessonApp.serializers import LessonListAddSerializer, LessonAddSerializer
 from PurchaseApp.models import PurchaseListModel
 from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer
+
+from HomeworkApp.models import HomeworkListModel
 
 
 class APanelCourseListAPIView(ListAPIView):
@@ -53,6 +55,7 @@ class APanelCourseAddAPIView(APIView):
         serializer.save()
         return Response({'status': True, 'id': serializer.data['id']}, status=status.HTTP_201_CREATED)
 
+
 class APanelSubCourseAddAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = CoursesAddSubCourseSerializer
@@ -71,12 +74,16 @@ class APanelSubCourseAddAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, draft=True)
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
+                                                  draft=True)
         except:
-            return Response({'status': False, 'courseID': None, 'subCourseID': None, 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': False, 'courseID': None, 'subCourseID': None, 'error': 'Курс не найден!'},
+                            status=status.HTTP_404_NOT_FOUND)
         course.subCourses.add(serializer.data['id'])
         course.save()
-        return Response({'status': True, 'courseID': course.id, 'subCourseID': serializer.data['id']}, status=status.HTTP_201_CREATED)
+        return Response({'status': True, 'courseID': course.id, 'subCourseID': serializer.data['id']},
+                        status=status.HTTP_201_CREATED)
+
 
 class APanelLessonListAddAPIView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -96,14 +103,86 @@ class APanelLessonListAddAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, draft=True)
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
+                                                  draft=True)
             subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
         except:
-            return Response({'status': False, 'courseID': None, 'subCourseID': None, 'lessonListID': None, 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': False, 'courseID': None, 'subCourseID': None, 'lessonListID': None,
+                             'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
 
         subCourse.lessons.add(serializer.data['id'])
         subCourse.save()
-        return Response({'status': True, 'courseID': course.id, 'subCourseID': subCourse.id, 'lessonListID': serializer.data['id']}, status=status.HTTP_201_CREATED)
+        return Response(
+            {'status': True, 'courseID': course.id, 'subCourseID': subCourse.id, 'lessonListID': serializer.data['id']},
+            status=status.HTTP_201_CREATED)
+
+
+class APanelLessonAddAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = LessonAddSerializer
+    renderer_classes = (JSONRenderer,)
+
+    def post(self, request, *args, **kwargs):
+        # user = request.data.get('user', {})
+        serializer_data = {}
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data:
+                serializer_data.update({f'{item}': data})
+        # Паттерн создания сериализатора, валидации и сохранения - довольно
+        # стандартный, и его можно часто увидеть в реальных проектах.
+
+        try:
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
+                                                  draft=True)
+            subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
+            lessonList = subCourse.lessons.get(id=self.kwargs['lessonListID'])
+        except:
+            return Response(
+                {'status': False, 'courseID': None, 'subCourseID': None, 'lessonListID': None, 'lessonID': None,
+                 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
+        serializer.is_valid(raise_exception=True)
+
+        createLesson = None
+        if str(serializer.data['lessonType']) == 'homework':
+            createLesson = LessonModel.objects.create(
+                homework=HomeworkListModel.objects.create(name=serializer.data['name']))
+            lessonList.lessonList.add(createLesson)
+        elif str(serializer.data['lessonType']) == 'files':
+            createLesson = LessonModel.objects.create(
+                files=LessonFileListModel.objects.create(name=serializer.data['name']))
+            lessonList.lessonList.add(createLesson)
+        elif str(serializer.data['lessonType']) == 'video':
+            createLesson = LessonModel.objects.create(
+                video=LessonVideoModel.objects.create(name=serializer.data['name']))
+            lessonList.lessonList.add(LessonModel.objects.create(video=createLesson))
+
+        if not createLesson:
+            return Response(
+                {'status': False, 'courseID': None, 'subCourseID': None, 'lessonListID': None, 'lessonID': None,
+                 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
+
+        lessonList.save()
+
+        return Response(
+            {'status': True, 'courseID': course.id, 'subCourseID': subCourse.id, 'lessonListID': lessonList.id,
+             'lessonID': createLesson.id}, status=status.HTTP_201_CREATED)
+
+        # return Response({'lessonList': lessonList.id})
+        # serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
+        # serializer.is_valid(raise_exception=True)
+        # serializer.save()
+        # try:
+        #     course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, draft=True)
+        #     subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
+        # except:
+        #     return Response({'status': False, 'courseID': None, 'subCourseID': None, 'lessonListID': None, 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
+        #
+        # subCourse.lessons.add(serializer.data['id'])
+        # subCourse.save()
+        # return Response({'status': True, 'courseID': course.id, 'subCourseID': subCourse.id, 'lessonListID': serializer.data['id']}, status=status.HTTP_201_CREATED)
 
 
 class APanelCourseMetadataAPIView(APIView):
@@ -161,13 +240,12 @@ class APanelLessonDetailAPIView(RetrieveAPIView):
     def get_queryset(self):
         try:
             subCourse = CoursesSubCoursesModel.objects.get(is_active=True,
-                                                              courseslistmodel__teacher__user=self.request.user,
-                                                              courseslistmodel=self.kwargs['courseID'],
-                                                              id=self.kwargs['subCourseID'])
+                                                           courseslistmodel__teacher__user=self.request.user,
+                                                           courseslistmodel=self.kwargs['courseID'],
+                                                           id=self.kwargs['subCourseID'])
             return subCourse.lessons.get(is_active=True, lessonList__id=self.kwargs['pk']).lessonList.all()
         except:
             pass
-
 
 # class PurchaseSubDetailAPIView(APIView):
 #     permission_classes = (IsAuthenticated,)

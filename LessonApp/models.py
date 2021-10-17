@@ -26,7 +26,7 @@ class LessonFileModel(models.Model):
     def get_file_path(instance, filename):
         return os.path.join('lessonFiles', filename)
 
-    name = models.CharField('Название', default=None, max_length=255)
+    name = models.CharField('Название', default=None, max_length=255, blank=True, null=True)
     file = models.FileField(upload_to=get_file_path, verbose_name='Файл', default=None, null=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 

@@ -2,7 +2,7 @@ from django.urls import path, re_path, include
 
 from APanelApp.views import APanelCourseListAPIView, APanelCourseAddAPIView, APanelCourseMetadataAPIView, \
     APanelCourseDetailAPIView, APanelSubCourseDetailAPIView, APanelPurchaseListAPIView, APanelLessonDetailAPIView, \
-    APanelSubCourseAddAPIView, APanelLessonListAddAPIView
+    APanelSubCourseAddAPIView, APanelLessonListAddAPIView, APanelLessonAddAPIView
 
 app_name = 'APanelApp'
 
@@ -26,6 +26,7 @@ urlpatterns = [
     path('course/add/', APanelCourseAddAPIView.as_view()),
     path('course/<int:courseID>/sub/add/', APanelSubCourseAddAPIView.as_view()),
     path('course/<int:courseID>/sub/<int:subCourseID>/lessonList/add/', APanelLessonListAddAPIView.as_view()),
+    path('course/<int:courseID>/sub/<int:subCourseID>/lessonList/<int:lessonListID>/lesson/add/', APanelLessonAddAPIView.as_view()),
     # path('<int:pk>/subBuy/', PurchaseForPurchaseAPIView.as_view()),
     # # path('<int:purchaseID>/sub/<int:subID>/lesson/<int:lessonID>/homework/<int:homeworkID>/', PurchaseHomeworkDetailAPIView.as_view()),
     # path('purchaseBuy/', PurchaseBuyPurchaseAPIView.as_view()),
