@@ -8,7 +8,7 @@ from LessonApp.serializers import LessonListForAPanelSerializer, LessonVideoSeri
 from UserProfileApp.serializers import UserMentorSerializer
 
 
-class APanelCoursesDetailSerializer(serializers.ModelSerializer):
+class ACoursesCoursesDetailSerializer(serializers.ModelSerializer):
     # teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
     mentors = UserMentorSerializer(many=True, read_only=True)
     predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
@@ -39,7 +39,7 @@ class APanelCoursesDetailSerializer(serializers.ModelSerializer):
     #     return instance
 
 
-class APanelSubCoursesDetailSerializer(serializers.ModelSerializer):
+class ACoursesSubCoursesDetailSerializer(serializers.ModelSerializer):
     lessons = LessonListForAPanelSerializer(many=True, read_only=True)
 
     class Meta:
@@ -47,7 +47,7 @@ class APanelSubCoursesDetailSerializer(serializers.ModelSerializer):
         exclude = ('is_active',)
 
 
-class APanelLessonDetailSerializer(serializers.ModelSerializer):
+class ACoursesLessonDetailSerializer(serializers.ModelSerializer):
     homework = HomeworkListDetailSerializer(many=False, read_only=True)
     video = LessonVideoSerializer(many=False, read_only=True)
     files = LessonFileListSerializer(many=False, read_only=True)
