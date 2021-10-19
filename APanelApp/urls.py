@@ -16,8 +16,7 @@ APanelCourseAddAPIView.http_method_names = ('post', 'options',)
 APanelSubCourseAddAPIView.http_method_names = ('post', 'options',)
 APanelLessonListAddAPIView.http_method_names = ('post', 'options',)
 APanelLessonAddAPIView.http_method_names = ('post', 'options',)
-APanelCourseEditAPIView.http_method_names = ('post', 'options',)
-
+APanelCourseEditAPIView.http_method_names = ('post', 'delete', 'options',)
 
 # SetUserAvatarAPIView.http_method_names = ('put', 'options',)
 
@@ -35,7 +34,8 @@ urlpatterns = [
     path('course/<int:courseID>/sub/<int:subCourseID>/lessonList/<int:lessonListID>/lesson/add/',
          APanelLessonAddAPIView.as_view()),
 
-    path('course/<int:pk>/edit/', APanelCourseEditAPIView.as_view()),
+    path('course/<int:courseID>/edit/', APanelCourseEditAPIView.as_view()),
+    path('course/<int:courseID>/delete/', APanelCourseEditAPIView.as_view()),
     # path('<int:pk>/subBuy/', PurchaseForPurchaseAPIView.as_view()),
     # # path('<int:purchaseID>/sub/<int:subID>/lesson/<int:lessonID>/homework/<int:homeworkID>/', PurchaseHomeworkDetailAPIView.as_view()),
     # path('purchaseBuy/', PurchaseBuyPurchaseAPIView.as_view()),

@@ -1,3 +1,4 @@
+from django.http import Http404
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -171,16 +172,25 @@ class APanelLessonAddAPIView(APIView):
              'lessonID': createLesson.id}, status=status.HTTP_201_CREATED)
 
 
-class APanelCourseEditAPIView(RetrieveUpdateAPIView):
+class APanelCourseEditAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
     serializer_class = APanelCoursesEditSerializer
 
-    def get_queryset(self):
-        return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
+    # def get_queryset(self):
+    #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
+
+    def get_object(self):
+        try:
+            return CoursesListModel.objects.get(is_active=True, teacher__user=self.request.user, pk=self.kwargs['courseID'])
+        except CoursesListModel.DoesNotExist:
+            return None
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
+        if instance is None:
+            return Response({'status': False, 'detail': 'Курс не найден!'},
+                     status=status.HTTP_404_NOT_FOUND)
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
@@ -189,30 +199,40 @@ class APanelCourseEditAPIView(RetrieveUpdateAPIView):
         if 'draft' in serializer_data:
             draft = bool(serializer_data['draft'])
             if draft and instance.draft:
-                return Response({'status': False, 'detail': 'Курс уже опубликован!'},
+                print(instance.courseType.durationCount, instance.subCourses.count())
+                if instance.courseType.durationCount > instance.subCourses.count():
+                    return Response({'status': False, 'detail': f'Не хватает {instance.courseType.durationCount-instance.subCourses.count()} подкурсов для публикации курса!'},
                                 status=status.HTTP_400_BAD_REQUEST)
-            elif draft:
-                serializer = self.serializer_class(instance=instance, data={'draft': draft}, partial=True,
+                serializer = self.serializer_class(instance=instance, data={'draft': not draft}, partial=True,
                                                    context={'request': self.request})
                 if serializer.is_valid(raise_exception=True):
-                    self.perform_update(serializer)
-                return Response({'status': True, 'detail': 'Курс успешно опубликован!'})
+                    serializer.save()
+                return Response({'status': True, 'detail': 'Курс успешно опубликован!'},
+                                status=status.HTTP_200_OK)
+            elif draft and not instance.draft:
+                return Response({'status': False, 'detail': 'Курс уже опубликован!'},
+                                status=status.HTTP_400_BAD_REQUEST)
             else:
                 serializer = self.serializer_class(instance=instance, data={'draft': draft}, partial=True,
                                                    context={'request': self.request})
                 if serializer.is_valid(raise_exception=True):
-                    self.perform_update(serializer)
-                return Response({'status': True, 'detail': 'Курс перенесен в черновики!'})
+                    serializer.save()
+                return Response({'status': True, 'detail': 'Курс перенесен в черновики!'},
+                                status=status.HTTP_200_OK)
 
         serializer = self.serializer_class(instance=instance, data=serializer_data, partial=True,
                                            context={'request': self.request})
         if serializer.is_valid(raise_exception=True):
-            self.perform_update(serializer)
+            serializer.save()
         return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
 
 
-    # def delete(self, request, *args, **kwargs):
-    #     instance = self.get_object()
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({'status': False, 'detail': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response({'status': True, 'detail': 'Курс удален успешно!'}, status=status.HTTP_200_OK)
 
 
 class APanelCourseMetadataAPIView(APIView):

@@ -33,11 +33,11 @@ class APanelCoursesEditSerializer(serializers.ModelSerializer):
         'name', 'shortDescription', 'description', 'price', 'discountDuration', 'buyAllSubCourses', 'draft', 'predmet',
         'courseType', 'courseExamType',)
 
-    def update(self, instance, validated_data):
-        for key, value in validated_data.items():
-            setattr(instance, key, value)
-        instance.save()
-        return instance
+    # def update(self, instance, validated_data):
+    #     for key, value in validated_data.items():
+    #         setattr(instance, key, value)
+    #     instance.save()
+    #     return instance
 
 
 class APanelSubCoursesDetailSerializer(serializers.ModelSerializer):
