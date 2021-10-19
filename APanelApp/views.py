@@ -189,14 +189,14 @@ class APanelCourseEditAPIView(RetrieveUpdateAPIView):
         if 'draft' in serializer_data:
             draft = bool(serializer_data['draft'])
             if draft and instance.draft:
-                return Response({'status': False, 'detail': 'Курс уже открыт!'},
+                return Response({'status': False, 'detail': 'Курс уже опубликован!'},
                                 status=status.HTTP_400_BAD_REQUEST)
             elif draft:
                 serializer = self.serializer_class(instance=instance, data={'draft': draft}, partial=True,
                                                    context={'request': self.request})
                 if serializer.is_valid(raise_exception=True):
                     self.perform_update(serializer)
-                return Response({'status': True, 'detail': 'Курс открыт!'})
+                return Response({'status': True, 'detail': 'Курс успешно опубликован!'})
             else:
                 serializer = self.serializer_class(instance=instance, data={'draft': draft}, partial=True,
                                                    context={'request': self.request})
@@ -211,8 +211,8 @@ class APanelCourseEditAPIView(RetrieveUpdateAPIView):
         return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
 
 
-    def delete(self, request, *args, **kwargs):
-        instance = self.get_object()
+    # def delete(self, request, *args, **kwargs):
+    #     instance = self.get_object()
 
 
 class APanelCourseMetadataAPIView(APIView):
