@@ -224,7 +224,7 @@ class CoursesEditCourseSerializer(serializers.ModelSerializer):
 
 class CoursesEditSubCourseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CoursesListModel
+        model = CoursesSubCoursesModel
         fields = ('name', 'startDate', 'endDate', 'id')
 
 class CoursesMetadataSerializer(serializers.Serializer):

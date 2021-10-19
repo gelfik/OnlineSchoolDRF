@@ -247,7 +247,7 @@ class APanelSubCourseEditAPIView(APIView):
 
     def get_object(self):
         try:
-            return CoursesSubCoursesModel.objects.filter(is_active=True,
+            return CoursesSubCoursesModel.objects.get(is_active=True,
                                                          courseslistmodel__teacher__user=self.request.user,
                                                          courseslistmodel=self.kwargs['courseID'],
                                                          id=self.kwargs['subCourseID'])
