@@ -25,13 +25,12 @@ class APanelCoursesDetailSerializer(serializers.ModelSerializer):
         exclude = ('teacher', 'is_active',)
 
 
-class APanelCoursesEditSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = CoursesListModel
-        fields = (
-        'name', 'shortDescription', 'description', 'price', 'discountDuration', 'buyAllSubCourses', 'draft', 'predmet',
-        'courseType', 'courseExamType',)
+# class APanelCoursesEditSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = CoursesListModel
+#         fields = (
+#             'name', 'shortDescription', 'description', 'price', 'discountDuration', 'buyAllSubCourses', 'draft',
+#             'predmet', 'courseType', 'courseExamType',)
 
     # def update(self, instance, validated_data):
     #     for key, value in validated_data.items():

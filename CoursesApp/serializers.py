@@ -214,6 +214,18 @@ class CoursesAddSubCourseSerializer(serializers.ModelSerializer):
     #     courseObject.save()
     #     return courseObject
 
+class CoursesEditCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoursesListModel
+        fields = (
+            'name', 'shortDescription', 'description', 'price', 'discountDuration', 'buyAllSubCourses', 'draft',
+            'predmet', 'courseType', 'courseExamType',)
+
+
+class CoursesEditSubCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoursesListModel
+        fields = ('name', 'startDate', 'endDate', 'id')
 
 class CoursesMetadataSerializer(serializers.Serializer):
     predmet = CoursesPredmetSerializer(read_only=True, many=True)

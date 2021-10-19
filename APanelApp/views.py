@@ -9,12 +9,13 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 # Create your views here.
 from APanelApp.serializers import APanelCoursesDetailSerializer, APanelSubCoursesDetailSerializer, \
-    APanelLessonDetailSerializer, APanelCoursesEditSerializer
+    APanelLessonDetailSerializer
 from APanelApp.service import CoursesListFilter
 from CoursesApp.models import CoursesListModel, CoursesPredmetModel, CoursesTypeModel, CoursesExamTypeModel, \
     CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCourseSerializer, \
-    CoursesMetadataSerializer, CoursesAddSubCourseSerializer
+    CoursesMetadataSerializer, CoursesAddSubCourseSerializer, CoursesEditCourseSerializer, \
+    CoursesEditSubCourseSerializer
 from LessonApp.models import LessonModel, LessonListModel, LessonVideoModel, LessonFileListModel
 from LessonApp.serializers import LessonListAddSerializer, LessonAddSerializer
 from PurchaseApp.models import PurchaseListModel
@@ -175,14 +176,15 @@ class APanelLessonAddAPIView(APIView):
 class APanelCourseEditAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
-    serializer_class = APanelCoursesEditSerializer
+    serializer_class = CoursesEditCourseSerializer
 
     # def get_queryset(self):
     #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
 
     def get_object(self):
         try:
-            return CoursesListModel.objects.get(is_active=True, teacher__user=self.request.user, pk=self.kwargs['courseID'])
+            return CoursesListModel.objects.get(is_active=True, teacher__user=self.request.user,
+                                                pk=self.kwargs['courseID'])
         except CoursesListModel.DoesNotExist:
             return None
 
@@ -190,7 +192,7 @@ class APanelCourseEditAPIView(APIView):
         instance = self.get_object()
         if instance is None:
             return Response({'status': False, 'detail': 'Курс не найден!'},
-                     status=status.HTTP_404_NOT_FOUND)
+                            status=status.HTTP_404_NOT_FOUND)
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
@@ -201,8 +203,9 @@ class APanelCourseEditAPIView(APIView):
             if draft and instance.draft:
                 print(instance.courseType.durationCount, instance.subCourses.count())
                 if instance.courseType.durationCount > instance.subCourses.count():
-                    return Response({'status': False, 'detail': f'Не хватает {instance.courseType.durationCount-instance.subCourses.count()} подкурсов для публикации курса!'},
-                                status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'status': False,
+                                     'detail': f'Не хватает {instance.courseType.durationCount - instance.subCourses.count()} подкурсов для публикации курса!'},
+                                    status=status.HTTP_400_BAD_REQUEST)
                 serializer = self.serializer_class(instance=instance, data={'draft': not draft}, partial=True,
                                                    context={'request': self.request})
                 if serializer.is_valid(raise_exception=True):
@@ -226,13 +229,54 @@ class APanelCourseEditAPIView(APIView):
             serializer.save()
         return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
 
-
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance is None:
             return Response({'status': False, 'detail': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
         instance.delete()
         return Response({'status': True, 'detail': 'Курс удален успешно!'}, status=status.HTTP_200_OK)
+
+
+class APanelSubCourseEditAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = CoursesEditSubCourseSerializer
+
+    # def get_queryset(self):
+    #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
+
+    def get_object(self):
+        try:
+            return CoursesSubCoursesModel.objects.filter(is_active=True,
+                                                         courseslistmodel__teacher__user=self.request.user,
+                                                         courseslistmodel=self.kwargs['courseID'],
+                                                         id=self.kwargs['subCourseID'])
+        except CoursesSubCoursesModel.DoesNotExist:
+            return None
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({'status': False, 'detail': 'Подкурс не найден!'},
+                            status=status.HTTP_404_NOT_FOUND)
+        serializer_data = {}
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data:
+                serializer_data.update({f'{item}': data})
+
+        serializer = self.serializer_class(instance=instance, data=serializer_data, partial=True,
+                                           context={'request': self.request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({'status': False, 'detail': 'Подкурс не найден!'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response({'status': True, 'detail': 'Подкурс удален успешно!'}, status=status.HTTP_200_OK)
 
 
 class APanelCourseMetadataAPIView(APIView):
