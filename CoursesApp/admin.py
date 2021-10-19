@@ -17,14 +17,14 @@ class CoursesPredmet(admin.ModelAdmin):
 
 @admin.register(CoursesTypeModel)
 class CoursesName(admin.ModelAdmin):
-    list_display = ('name', 'shortDescription', 'duration', 'durationCount', 'recruitmentStatus', 'is_active',)
+    list_display = ('name', 'id', 'shortDescription', 'duration', 'durationCount', 'recruitmentStatus', 'is_active',)
 
 
 @admin.register(CoursesSubCoursesModel)
 class CoursesSubCourses(admin.ModelAdmin):
-    list_display = ('name', 'startDate', 'endDate', 'is_active',)
+    list_display = ('name', 'id', 'startDate', 'endDate', 'is_active',)
 
 
 @admin.register(CoursesListModel)
 class CoursesList(admin.ModelAdmin):
-    list_display = ('predmet', 'courseType', 'courseExamType', 'teacher', 'price', 'is_active',)
+    list_display = ('predmet', 'id', 'courseType', 'courseExamType', 'teacher', 'price', 'is_active',)

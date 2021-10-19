@@ -15,6 +15,7 @@ class APanelCoursesDetailSerializer(serializers.ModelSerializer):
     courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
     courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
     subCourses = CoursesSubCoursesSerializer(read_only=True, many=True)
+
     # purchaseList = PurchaseListForAPanelCoursesSerializer(read_only=True, many=True)
 
     class Meta:
@@ -23,12 +24,29 @@ class APanelCoursesDetailSerializer(serializers.ModelSerializer):
         # fields = ('name', 'predmet', 'courseType', 'courseExamType', 'coursePicture', 'mentors',)
         exclude = ('teacher', 'is_active',)
 
+
+class APanelCoursesEditSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CoursesListModel
+        fields = (
+        'name', 'shortDescription', 'description', 'price', 'discountDuration', 'buyAllSubCourses', 'draft', 'predmet',
+        'courseType', 'courseExamType',)
+
+    def update(self, instance, validated_data):
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
+
+
 class APanelSubCoursesDetailSerializer(serializers.ModelSerializer):
     lessons = LessonListForAPanelSerializer(many=True, read_only=True)
 
     class Meta:
         model = CoursesSubCoursesModel
         exclude = ('is_active',)
+
 
 class APanelLessonDetailSerializer(serializers.ModelSerializer):
     homework = HomeworkListDetailSerializer(many=False, read_only=True)
@@ -37,8 +55,7 @@ class APanelLessonDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        exclude = ('is_active', )
-
+        exclude = ('is_active',)
 
 # class APanelCoursesDetailSerializer(serializers.ModelSerializer):
 #     # teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)

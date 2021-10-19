@@ -2,7 +2,7 @@ from django.urls import path, re_path, include
 
 from APanelApp.views import APanelCourseListAPIView, APanelCourseAddAPIView, APanelCourseMetadataAPIView, \
     APanelCourseDetailAPIView, APanelSubCourseDetailAPIView, APanelPurchaseListAPIView, APanelLessonDetailAPIView, \
-    APanelSubCourseAddAPIView, APanelLessonListAddAPIView, APanelLessonAddAPIView
+    APanelSubCourseAddAPIView, APanelLessonListAddAPIView, APanelLessonAddAPIView, APanelCourseEditAPIView
 
 app_name = 'APanelApp'
 
@@ -13,6 +13,12 @@ APanelSubCourseDetailAPIView.http_method_names = ('get', 'options',)
 APanelCourseListAPIView.http_method_names = ('get', 'options',)
 APanelCourseMetadataAPIView.http_method_names = ('get', 'options',)
 APanelCourseAddAPIView.http_method_names = ('post', 'options',)
+APanelSubCourseAddAPIView.http_method_names = ('post', 'options',)
+APanelLessonListAddAPIView.http_method_names = ('post', 'options',)
+APanelLessonAddAPIView.http_method_names = ('post', 'options',)
+APanelCourseEditAPIView.http_method_names = ('post', 'options',)
+
+
 # SetUserAvatarAPIView.http_method_names = ('put', 'options',)
 
 
@@ -26,7 +32,10 @@ urlpatterns = [
     path('course/add/', APanelCourseAddAPIView.as_view()),
     path('course/<int:courseID>/sub/add/', APanelSubCourseAddAPIView.as_view()),
     path('course/<int:courseID>/sub/<int:subCourseID>/lessonList/add/', APanelLessonListAddAPIView.as_view()),
-    path('course/<int:courseID>/sub/<int:subCourseID>/lessonList/<int:lessonListID>/lesson/add/', APanelLessonAddAPIView.as_view()),
+    path('course/<int:courseID>/sub/<int:subCourseID>/lessonList/<int:lessonListID>/lesson/add/',
+         APanelLessonAddAPIView.as_view()),
+
+    path('course/<int:pk>/edit/', APanelCourseEditAPIView.as_view()),
     # path('<int:pk>/subBuy/', PurchaseForPurchaseAPIView.as_view()),
     # # path('<int:purchaseID>/sub/<int:subID>/lesson/<int:lessonID>/homework/<int:homeworkID>/', PurchaseHomeworkDetailAPIView.as_view()),
     # path('purchaseBuy/', PurchaseBuyPurchaseAPIView.as_view()),
