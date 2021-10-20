@@ -131,8 +131,9 @@ class PurchaseLessonForListSerializer(serializers.ModelSerializer):
 
 
 class PurchaseLessonListSerializer(serializers.ModelSerializer):
-    lessonList = PurchaseLessonForListSerializer(read_only=True, many=True)
+    # lessonList = PurchaseLessonForListSerializer(read_only=True, many=True)
     lessonDate = serializers.SerializerMethodField(read_only=True, source='get_lessonDate')
+    lessonList = serializers.SerializerMethodField(read_only=True, source='get_lessonList')
 
     class Meta:
         model = LessonListModel
@@ -141,14 +142,21 @@ class PurchaseLessonListSerializer(serializers.ModelSerializer):
     def get_lessonDate(self, obj):
         return obj.lessonDate.strftime('%d.%m.%Y %H:%M')
 
+    def get_lessonList(self, instance):
+        return PurchaseLessonForListSerializer(many=True, instance=instance.lessonList.filter(isOpen=True)).data
+
 
 class PurchaseSubCoursesDetailSerializer(serializers.ModelSerializer):
-    lessons = PurchaseLessonListSerializer(many=True, read_only=True)
+    # lessons = PurchaseLessonListSerializer(many=True, read_only=True)
+    lessons = serializers.SerializerMethodField(read_only=True, source='get_lessons')
 
     class Meta:
         model = CoursesSubCoursesModel
         fields = ('id', 'name', 'lessons')
         ordering = ['startDate', 'endDate', 'id']
+
+    def get_lessons(self, instance):
+        return PurchaseLessonListSerializer(many=True, instance=instance.lessons.filter(isOpen=True)).data
 
 
 class PurchaseSubCoursesNotBuySerializer(serializers.ModelSerializer):

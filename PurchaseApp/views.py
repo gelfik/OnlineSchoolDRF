@@ -93,7 +93,7 @@ class PurchaseDetailAPIView(RetrieveAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        queryset = PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
+        queryset = PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user, course__draft=False)
         try:
             if queryset.count() > 0:
                 data = queryset[0]
@@ -115,16 +115,15 @@ class PurchaseSubDetailAPIView(APIView):
     pagination_class = None
 
     def get_queryset(self):
-        return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
+        return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user, course__draft=False)
 
     def get(self, request, *args, **kwargs):
         if 'purchaseID' in kwargs and 'subID' in kwargs:
             try:
                 purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user,
-                                                                        pk=kwargs['purchaseID'])
+                                                                        pk=kwargs['purchaseID'], course__draft=False)
                 serializer = PurchaseSubCoursesDetailSerializer(many=False,
-                                                                instance=purchase.courseSub.get(id=kwargs['subID']),
-                                                                context={'purchase': purchase})
+                                                                instance=purchase.courseSub.get(id=kwargs['subID']))
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except:
                 return Response({'error': 'подкурс не найден'}, status=status.HTTP_404_NOT_FOUND)
@@ -144,9 +143,9 @@ class PurchaseLessonDetailAPIView(APIView):
         if 'purchaseID' in kwargs and 'subID' in kwargs and 'lessonID' in kwargs:
             # try:
             purchase = PurchaseListModel.objects.get(is_active=True, user=self.request.user,
-                                                     pk=kwargs['purchaseID'])
+                                                     pk=kwargs['purchaseID'], course__draft=False)
             data = purchase.courseSub.get(id=kwargs['subID']).lessons.get(
-                lessonList=kwargs['lessonID']).lessonList.get(id=kwargs['lessonID'])
+                lessonList=kwargs['lessonID'], isOpen=True).lessonList.get(id=kwargs['lessonID'], isOpen=True)
             if data.homework:
                 try:
                     purchaseUserAnswerListObject = PurchaseUserAnswerListModel.objects.get(purchase=purchase,
