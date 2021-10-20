@@ -1,4 +1,3 @@
-from django.http import Http404
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -105,8 +104,7 @@ class ACoursesLessonListAddAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
-                                                  draft=True)
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user)
             subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
         except:
             return Response({'status': False, 'courseID': None, 'subCourseID': None, 'lessonListID': None,
@@ -135,8 +133,7 @@ class ACoursesLessonAddAPIView(APIView):
         # стандартный, и его можно часто увидеть в реальных проектах.
 
         try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
-                                                  draft=True)
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user)
             subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
             lessonList = subCourse.lessons.get(id=self.kwargs['lessonListID'])
         except:
@@ -159,7 +156,7 @@ class ACoursesLessonAddAPIView(APIView):
         elif str(serializer.data['lessonType']) == 'video':
             createLesson = LessonModel.objects.create(
                 video=LessonVideoModel.objects.create(name=serializer.data['name']))
-            lessonList.lessonList.add(LessonModel.objects.create(video=createLesson))
+            lessonList.lessonList.add(createLesson)
 
         if not createLesson:
             return Response(

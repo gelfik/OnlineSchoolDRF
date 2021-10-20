@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'PurchaseApp',
     'APanelApp',
     'ACoursesApp',
+    'AUserApp',
 ]
 
 MIDDLEWARE = [
