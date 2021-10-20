@@ -16,11 +16,11 @@ CourseDetailAPIView.http_method_names = ('get', 'options',)
 
 
 urlpatterns = [
-    path('list/', CoursesListAPIView.as_view()),
-    path('filterdata/', FilterDataAPIView.as_view()),
-    path('course<int:pk>/', CourseDetailAPIView.as_view()),
+    path('/list', CoursesListAPIView.as_view()),
+    path('/filterdata', FilterDataAPIView.as_view()),
+    path('/course<int:pk>', CourseDetailAPIView.as_view()),
     # re_path(r'^adm/predmets/([0-9]+)', views.predmets_admin_edit_del),
-    path('testGetCourse/', TestCourseDataAPIView.as_view())
+    path('/testGetCourse', TestCourseDataAPIView.as_view())
 
     # path('educationlist/', EducationDataAPIView.as_view()),
     # path('register/', RegistrationAPIView.as_view()),

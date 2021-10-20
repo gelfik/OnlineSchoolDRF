@@ -7,7 +7,7 @@ app_name = 'AUserApp'
 # ACoursesCourseDetailAPIView.http_method_names = ('get', 'options',)
 
 urlpatterns = [
-    path('list/', AUserListAPIView.as_view()),
+    path('/list', AUserListAPIView.as_view()),
     # path('<int:pk>/', ACoursesCourseDetailAPIView.as_view()),
     # path('<int:course_id>/purchaseList/', ACoursesPurchaseListAPIView.as_view()),
     # path('<int:courseID>/sub/<int:subCourseID>/lesson/<int:pk>/', ACoursesLessonDetailAPIView.as_view()),

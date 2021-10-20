@@ -16,7 +16,7 @@ LessonListAllAPIView.http_method_names = ('get', 'options',)
 
 
 urlpatterns = [
-    path('course<int:CoursesListModel__pk>/list/', LessonListAllAPIView.as_view()),
+    path('/course<int:CoursesListModel__pk>/list', LessonListAllAPIView.as_view()),
     # re_path(r'^adm/predmets/([0-9]+)', views.predmets_admin_edit_del),
 
     # path('educationlist/', EducationDataAPIView.as_view()),

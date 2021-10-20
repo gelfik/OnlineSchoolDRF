@@ -21,7 +21,7 @@ from django.urls import path, include
 import rest_framework.exceptions
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('api_v1.urls', namespace='api_v1')),
+    path('api', include('api_v1.urls', namespace='api_v1')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

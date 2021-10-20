@@ -11,7 +11,7 @@ PromocodeDataAPIView.http_method_names = ('post', 'options',)
 
 
 urlpatterns = [
-    path('validate/', PromocodeDataAPIView.as_view()),
+    path('/validate', PromocodeDataAPIView.as_view()),
     # path('course<int:pk>/', CourseDetailAPIView.as_view()),
     # re_path(r'^adm/predmets/([0-9]+)', views.predmets_admin_edit_del),
 ]
