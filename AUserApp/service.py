@@ -57,7 +57,8 @@ class UserListFilter(filters.FilterSet):
         fields = ['role', ]
 
     def filter_role(self, queryset, name, role):
-        if role[0] in Group.objects.all():
+        try:
+            Group.objects.get(name=role[0])
             return queryset.filter(groups__name=role[0])
-        else:
+        except Group.DoesNotExist:
             return queryset

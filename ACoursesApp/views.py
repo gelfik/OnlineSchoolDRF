@@ -16,7 +16,7 @@ from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCou
     CoursesMetadataSerializer, CoursesAddSubCourseSerializer, CoursesEditCourseSerializer, \
     CoursesEditSubCourseSerializer
 from LessonApp.models import LessonModel, LessonListModel, LessonVideoModel, LessonFileListModel
-from LessonApp.serializers import LessonListAddSerializer, LessonAddSerializer
+from LessonApp.serializers import LessonListAddSerializer, LessonAddSerializer, LessonListEditSerializer
 from PurchaseApp.models import PurchaseListModel
 from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer
 
@@ -245,9 +245,9 @@ class ACoursesSubCourseEditAPIView(APIView):
     def get_object(self):
         try:
             return CoursesSubCoursesModel.objects.get(is_active=True,
-                                                         courseslistmodel__teacher__user=self.request.user,
-                                                         courseslistmodel=self.kwargs['courseID'],
-                                                         id=self.kwargs['subCourseID'])
+                                                      courseslistmodel__teacher__user=self.request.user,
+                                                      courseslistmodel=self.kwargs['courseID'],
+                                                      id=self.kwargs['subCourseID'])
         except CoursesSubCoursesModel.DoesNotExist:
             return None
 
@@ -274,6 +274,48 @@ class ACoursesSubCourseEditAPIView(APIView):
             return Response({'status': False, 'detail': 'Подкурс не найден!'}, status=status.HTTP_404_NOT_FOUND)
         instance.delete()
         return Response({'status': True, 'detail': 'Подкурс удален успешно!'}, status=status.HTTP_200_OK)
+
+
+class ACoursesLessonListEditAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = LessonListEditSerializer
+
+    # def get_queryset(self):
+    #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
+
+    def get_object(self):
+        try:
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user)
+            subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
+
+            return subCourse.lessons.get(id=self.kwargs['lessonListID'])
+        except:
+            return None
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({'status': False, 'detail': 'Занятие не найдено!'},
+                            status=status.HTTP_404_NOT_FOUND)
+        serializer_data = {}
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data:
+                serializer_data.update({f'{item}': data})
+
+        serializer = self.serializer_class(instance=instance, data=serializer_data, partial=True,
+                                           context={'request': self.request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({'status': False, 'detail': 'Занятие не найдено!'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response({'status': True, 'detail': 'Занятие удалено успешно!'}, status=status.HTTP_200_OK)
 
 
 class ACoursesCourseMetadataAPIView(APIView):

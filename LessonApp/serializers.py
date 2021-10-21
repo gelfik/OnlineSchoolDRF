@@ -120,3 +120,10 @@ class LessonListAddSerializer(serializers.ModelSerializer):
 class LessonAddSerializer(serializers.Serializer):
     lessonType = serializers.CharField(required=True)
     name = serializers.CharField(required=True)
+
+class LessonListEditSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True)
+
+    class Meta:
+        model = LessonListModel
+        fields = ('name',)
