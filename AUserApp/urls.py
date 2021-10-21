@@ -1,13 +1,15 @@
 from django.urls import path, re_path, include
 
-from AUserApp.views import AUserListAPIView
+from AUserApp.views import AUserListAPIView, AUserGroupListAPIView
 
 app_name = 'AUserApp'
 
-# ACoursesCourseDetailAPIView.http_method_names = ('get', 'options',)
+AUserListAPIView.http_method_names = ('get', 'options',)
+AUserGroupListAPIView.http_method_names = ('get', 'options',)
 
 urlpatterns = [
     path('/list', AUserListAPIView.as_view()),
+    path('/groupList', AUserGroupListAPIView.as_view()),
     # path('<int:pk>/', ACoursesCourseDetailAPIView.as_view()),
     # path('<int:course_id>/purchaseList/', ACoursesPurchaseListAPIView.as_view()),
     # path('<int:courseID>/sub/<int:subCourseID>/lesson/<int:pk>/', ACoursesLessonDetailAPIView.as_view()),

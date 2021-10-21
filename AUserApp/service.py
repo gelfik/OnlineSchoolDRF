@@ -7,10 +7,11 @@ from django.utils.functional import cached_property
 
 from urllib import parse
 from django.utils.encoding import force_str
+from django.contrib.auth.models import Group
 from UserProfileApp.models import User
 
 class PaginationUser(PageNumberPagination):
-    page_size = 2
+    page_size = 1
     max_page_size = 1000
 
     def get_next_link(self):
@@ -47,8 +48,16 @@ class UserListFilter(filters.FilterSet):
     # predmet = CharFilterInFilter(field_name='predmet__name', lookup_expr='in')
     # exam = CharFilterInFilter(field_name='courseExamType__name', lookup_expr='in')
     # type = CharFilterInFilter(field_name='courseType__name', lookup_expr='in')
-    role = filters.BooleanFilter(field_name='groups__name')
+    # role = filters.BooleanFilter(field_name='groups__name')
+    # role = CharFilterInFilter(field_name='groups__name')
+    role = CharFilterInFilter(field_name='groups__name', method='filter_role')
 
     class Meta:
         model = User
         fields = ['role', ]
+
+    def filter_role(self, queryset, name, role):
+        if role[0] in Group.objects.all():
+            return queryset.filter(groups__name=role[0])
+        else:
+            return queryset

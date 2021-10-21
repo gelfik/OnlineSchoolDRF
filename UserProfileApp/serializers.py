@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
+from django.contrib.auth.models import Group
 
 from .models import User, UserAvatar, PICTURE_VARIATIONS
 
@@ -194,7 +195,7 @@ class UserDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone', 'isTeacher', 'isMentor', )
+        fields = ('id', 'email', 'username', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone', 'isTeacher', 'isMentor', )
 
     def __init__(self, *args, **kwargs):
         super(UserDataSerializer, self).__init__(*args, **kwargs)
@@ -276,3 +277,9 @@ class UserForAPanelCoursesSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('email', 'username', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone',)
+
+
+class UserGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ('name',)

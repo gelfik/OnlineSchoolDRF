@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -9,7 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 # Create your views here.
 from AUserApp.service import UserListFilter, PaginationUser
 from UserProfileApp.models import User
-from UserProfileApp.serializers import UserDataSerializer
+from UserProfileApp.serializers import UserDataSerializer, UserGroupSerializer
 from rest_framework import filters
 
 class AUserListAPIView(ListAPIView):
@@ -24,3 +25,11 @@ class AUserListAPIView(ListAPIView):
     def get_queryset(self):
         UserList_object = User.objects.order_by('id').filter(is_active=True)
         return UserList_object
+
+class AUserGroupListAPIView(ListAPIView):
+    queryset = Group.objects.all()
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = UserGroupSerializer
+    filterset_class = None
+    pagination_class = None
