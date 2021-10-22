@@ -340,8 +340,8 @@ class ACoursesLessonEditAPIView(APIView):
     def get_object(self):
         try:
             course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, is_active=True)
-            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(is_active=True)
-            return lessons.lessonList.get(id=self.kwargs['lessonID'])
+            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(lessonList__id=self.kwargs['lessonID'])
+            return lessons.lessonList.get(id=self.kwargs['lessonID'], is_active=True)
         except:
             return None
 
