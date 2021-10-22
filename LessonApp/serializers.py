@@ -142,7 +142,7 @@ class LessonListEditSerializer(serializers.ModelSerializer):
 class LessonEditSerializer(serializers.Serializer):
     linkVideo = serializers.CharField(required=False)
     name = serializers.CharField(required=True)
-    description = serializers.CharField(required=True)
+    description = serializers.CharField(required=False)
     isOpen = serializers.BooleanField(required=False)
 
     def update(self, instance, validated_data):
