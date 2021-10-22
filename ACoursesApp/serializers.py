@@ -14,7 +14,8 @@ class ACoursesCoursesDetailSerializer(serializers.ModelSerializer):
     predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
     courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
     courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    subCourses = CoursesSubCoursesSerializer(read_only=True, many=True)
+    # subCourses = CoursesSubCoursesSerializer(read_only=True, many=True)
+    subCourses = serializers.SerializerMethodField(read_only=True, source='get_subCourses')
 
     # purchaseList = PurchaseListForAPanelCoursesSerializer(read_only=True, many=True)
 
@@ -24,6 +25,9 @@ class ACoursesCoursesDetailSerializer(serializers.ModelSerializer):
         # fields = ('name', 'predmet', 'courseType', 'courseExamType', 'coursePicture', 'mentors',)
         exclude = ('teacher', 'is_active',)
 
+    def get_subCourses(self, instance):
+        return CoursesSubCoursesSerializer(many=True, instance=instance.subCourses.filter(is_active=True),
+                                                      context={'request': self.context['request']}).data
 
 # class APanelCoursesEditSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -40,11 +44,16 @@ class ACoursesCoursesDetailSerializer(serializers.ModelSerializer):
 
 
 class ACoursesSubCoursesDetailSerializer(serializers.ModelSerializer):
-    lessons = LessonListForAPanelSerializer(many=True, read_only=True)
+    # lessons = LessonListForAPanelSerializer(many=True, read_only=True)
+    lessons = serializers.SerializerMethodField(read_only=True, source='get_lessons')
 
     class Meta:
         model = CoursesSubCoursesModel
         exclude = ('is_active',)
+
+    def get_lessons(self, instance):
+        return LessonListForAPanelSerializer(many=True, instance=instance.lessons.filter(is_active=True),
+                                                      context={'request': self.context['request']}).data
 
 
 class ACoursesLessonDetailSerializer(serializers.ModelSerializer):

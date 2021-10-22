@@ -32,8 +32,7 @@ class ACoursesCourseListAPIView(ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        CoursesList_object = CoursesListModel.objects.order_by('id').filter(is_active=True,
-                                                                            teacher__user=self.request.user)
+        CoursesList_object = CoursesListModel.objects.order_by('id').filter(is_active=True, teacher__user=self.request.user)
         return CoursesList_object
 
 
@@ -387,6 +386,6 @@ class ACoursesLessonDetailAPIView(RetrieveAPIView):
                                                            courseslistmodel__teacher__user=self.request.user,
                                                            courseslistmodel=self.kwargs['courseID'],
                                                            id=self.kwargs['subCourseID'])
-            return subCourse.lessons.get(is_active=True, lessonList__id=self.kwargs['pk']).lessonList.all()
+            return subCourse.lessons.get(is_active=True, lessonList__id=self.kwargs['pk']).lessonList.filter(is_active=True)
         except:
             pass
