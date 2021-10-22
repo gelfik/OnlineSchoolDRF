@@ -47,7 +47,7 @@ class ACoursesCourseAddAPIView(APIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
         # Паттерн создания сериализатора, валидации и сохранения - довольно
         # стандартный, и его можно часто увидеть в реальных проектах.
@@ -67,7 +67,7 @@ class ACoursesSubCourseAddAPIView(APIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
         # Паттерн создания сериализатора, валидации и сохранения - довольно
         # стандартный, и его можно часто увидеть в реальных проектах.
@@ -96,7 +96,7 @@ class ACoursesLessonListAddAPIView(APIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
         # Паттерн создания сериализатора, валидации и сохранения - довольно
         # стандартный, и его можно часто увидеть в реальных проектах.
@@ -127,7 +127,7 @@ class ACoursesLessonAddAPIView(APIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
         # Паттерн создания сериализатора, валидации и сохранения - довольно
         # стандартный, и его можно часто увидеть в реальных проектах.
@@ -193,7 +193,7 @@ class ACoursesCourseEditAPIView(APIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
         if 'draft' in serializer_data:
             draft = bool(serializer_data['draft'])
@@ -261,7 +261,7 @@ class ACoursesSubCourseEditAPIView(APIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
 
         serializer = self.serializer_class(instance=instance, data=serializer_data, partial=True,
@@ -289,13 +289,13 @@ class ACoursesLessonListEditAPIView(APIView):
     #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
 
     def get_object(self):
-        # try:
+        try:
             course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user)
             subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
 
             return subCourse.lessons.get(id=self.kwargs['lessonListID'])
-        # except:
-        #     return None
+        except:
+            return None
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -305,9 +305,8 @@ class ACoursesLessonListEditAPIView(APIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
-
         serializer = self.serializer_class(instance=instance, data=serializer_data, partial=True,
                                            context={'request': self.request})
         if serializer.is_valid(raise_exception=True):

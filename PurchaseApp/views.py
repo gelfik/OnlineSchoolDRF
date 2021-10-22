@@ -194,7 +194,7 @@ class PurchaseHomeworkDetailAPIView(APIView):
                 serializer_data = {}
                 for i, item in enumerate(request.data):
                     data = request.data.get(item, None)
-                    if data:
+                    if data is not None:
                         serializer_data.update({f'{item}': data})
 
                 if len(askList) == len(serializer_data):
@@ -334,7 +334,7 @@ class PurchaseBuyPurchaseAPIView(APIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
 
         subObject = None
@@ -455,7 +455,7 @@ class PurchaseBuyCourseAPIView(APIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
 
         try:

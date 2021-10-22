@@ -123,7 +123,7 @@ class LessonAddSerializer(serializers.Serializer):
 
 class LessonListEditSerializer(serializers.ModelSerializer):
     lessonDate = serializers.DateTimeField(required=True)
-    isOpen = serializers.BooleanField(required=True)
+    isOpen = serializers.BooleanField(required=True, initial=False)
 
     class Meta:
         model = LessonListModel

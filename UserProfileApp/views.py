@@ -23,7 +23,7 @@ class RegistrationAPIView(APIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
         # Паттерн создания сериализатора, валидации и сохранения - довольно
         # стандартный, и его можно часто увидеть в реальных проектах.
@@ -66,7 +66,7 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
-            if data:
+            if data is not None:
                 serializer_data.update({f'{item}': data})
         serializer = self.serializer_class(request.user, data=serializer_data, partial=True, context={'request': self.request})
         serializer.is_valid(raise_exception=True)
