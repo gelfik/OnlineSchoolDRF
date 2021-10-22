@@ -224,7 +224,9 @@ class ACoursesCourseEditAPIView(APIView):
                                            context={'request': self.request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
+            return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -266,7 +268,9 @@ class ACoursesSubCourseEditAPIView(APIView):
                                            context={'request': self.request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
+            return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -285,13 +289,13 @@ class ACoursesLessonListEditAPIView(APIView):
     #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
 
     def get_object(self):
-        try:
+        # try:
             course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user)
             subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
 
             return subCourse.lessons.get(id=self.kwargs['lessonListID'])
-        except:
-            return None
+        # except:
+        #     return None
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -308,7 +312,9 @@ class ACoursesLessonListEditAPIView(APIView):
                                            context={'request': self.request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
+            return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()

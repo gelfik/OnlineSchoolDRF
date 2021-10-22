@@ -122,8 +122,8 @@ class LessonAddSerializer(serializers.Serializer):
     name = serializers.CharField(required=True)
 
 class LessonListEditSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(required=True)
+    lessonDate = serializers.DateTimeField(required=True)
 
     class Meta:
         model = LessonListModel
-        fields = ('name',)
+        fields = ('lessonDate',)
