@@ -3,7 +3,7 @@ from django.urls import path, re_path, include
 from ACoursesApp.views import ACoursesCourseDetailAPIView, ACoursesPurchaseListAPIView, ACoursesLessonDetailAPIView, \
     ACoursesSubCourseDetailAPIView, ACoursesCourseListAPIView, ACoursesCourseMetadataAPIView, ACoursesCourseAddAPIView, \
     ACoursesSubCourseAddAPIView, ACoursesLessonListAddAPIView, ACoursesLessonAddAPIView, ACoursesCourseEditAPIView, \
-    ACoursesSubCourseEditAPIView, ACoursesLessonListEditAPIView
+    ACoursesSubCourseEditAPIView, ACoursesLessonListEditAPIView, ACoursesLessonEditAPIView
 
 app_name = 'ACoursesApp'
 
@@ -20,6 +20,7 @@ ACoursesLessonAddAPIView.http_method_names = ('post', 'options',)
 ACoursesCourseEditAPIView.http_method_names = ('post', 'delete', 'options',)
 ACoursesSubCourseEditAPIView.http_method_names = ('post', 'delete', 'options',)
 ACoursesLessonListEditAPIView.http_method_names = ('post', 'delete', 'options',)
+ACoursesLessonEditAPIView.http_method_names = ('post', 'delete', 'options',)
 
 # SetUserAvatarAPIView.http_method_names = ('put', 'options',)
 
@@ -47,6 +48,11 @@ urlpatterns = [
          ACoursesLessonListEditAPIView.as_view()),
     path('<int:courseID>/sub<int:subCourseID>/lessonList<int:lessonListID>/delete',
          ACoursesLessonListEditAPIView.as_view()),
+
+    path('<int:courseID>/sub<int:subCourseID>/lesson<int:lessonID>/edit',
+         ACoursesLessonEditAPIView.as_view()),
+    path('<int:courseID>/sub<int:subCourseID>/lesson<int:lessonID>/delete',
+         ACoursesLessonEditAPIView.as_view()),
     # path('<int:pk>/subBuy/', PurchaseForPurchaseAPIView.as_view()),
     # # path('<int:purchaseID>/sub/<int:subID>/lesson/<int:lessonID>/homework/<int:homeworkID>/', PurchaseHomeworkDetailAPIView.as_view()),
     # path('purchaseBuy/', PurchaseBuyPurchaseAPIView.as_view()),

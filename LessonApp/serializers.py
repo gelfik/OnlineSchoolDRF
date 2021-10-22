@@ -22,29 +22,34 @@ from .models import LessonModel, LessonListModel, LessonVideoModel, LessonFileMo
 class LessonFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonFileModel
-        fields = ('name', 'file', )
+        fields = ('name', 'file',)
+
 
 class LessonFileListSerializer(serializers.ModelSerializer):
     fileList = LessonFileSerializer(read_only=True, many=True)
 
     class Meta:
         model = LessonFileListModel
-        fields = ('name', 'fileList', )
+        fields = ('name', 'fileList',)
+
 
 class LessonVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonVideoModel
-        fields = ('name', 'linkVideo', )
+        fields = ('name', 'linkVideo',)
+
 
 class LessonFilesForListSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonFileListModel
-        fields = ('name', )
+        fields = ('name',)
+
 
 class LessonVideoForListSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonVideoModel
-        fields = ('name', )
+        fields = ('name',)
+
 
 class LessonForListSerializer(serializers.ModelSerializer):
     homework = HomeworkListSerializer()
@@ -53,7 +58,7 @@ class LessonForListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'homework', 'video', 'files', )
+        fields = ('id', 'homework', 'video', 'files',)
 
 
 class LessonListSerializer(serializers.ModelSerializer):
@@ -87,6 +92,7 @@ class LessonDetailSerializer(serializers.ModelSerializer):
     #             'lessonDate': instance.lessonDate,
     #             }
 
+
 class LessonDetailForAPanelSerializer(serializers.ModelSerializer):
     homework = HomeworkListSerializer()
     video = LessonVideoForListSerializer()
@@ -94,7 +100,8 @@ class LessonDetailForAPanelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        exclude = ('description', 'is_active', )
+        exclude = ('description', 'is_active',)
+
 
 class LessonListForAPanelSerializer(serializers.ModelSerializer):
     lessonList = LessonDetailForAPanelSerializer(read_only=True, many=True)
@@ -115,16 +122,47 @@ class LessonListAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonListModel
         # fields = '__all__'
-        fields = ('lessonDate', 'id', )
+        fields = ('lessonDate', 'id',)
+
 
 class LessonAddSerializer(serializers.Serializer):
     lessonType = serializers.CharField(required=True)
     name = serializers.CharField(required=True)
 
+
 class LessonListEditSerializer(serializers.ModelSerializer):
     lessonDate = serializers.DateTimeField(required=True)
-    isOpen = serializers.BooleanField(required=True, initial=False)
+    isOpen = serializers.BooleanField(required=True)
 
     class Meta:
         model = LessonListModel
-        fields = ('lessonDate', 'isOpen', )
+        fields = ('lessonDate', 'isOpen',)
+
+
+class LessonEditSerializer(serializers.Serializer):
+    linkVideo = serializers.CharField(required=False)
+    name = serializers.CharField(required=True)
+    description = serializers.CharField(required=True)
+    isOpen = serializers.BooleanField(required=False)
+
+    def update(self, instance, validated_data):
+        if instance.video:
+            instance.video.name = validated_data.get('name', instance.video.name)
+            try:
+                instance.video.linkVideo = validated_data.get('linkVideo', instance.video.linkVideo)
+            except:
+                pass
+            instance.video.save()
+        elif instance.files:
+            instance.files.name = validated_data.get('name', instance.files.name)
+            instance.files.save()
+        elif instance.homework:
+            instance.homework.name = validated_data.get('name', instance.homework.name)
+            instance.homework.save()
+        instance.description = validated_data.get('description', instance.description)
+        instance.isOpen = validated_data.get('isOpen', instance.isOpen)
+        instance.save()
+        return instance
+
+    class Meta:
+        fields = ('linkVideo', 'name', 'description', 'isOpen',)

@@ -16,7 +16,8 @@ from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCou
     CoursesMetadataSerializer, CoursesAddSubCourseSerializer, CoursesEditCourseSerializer, \
     CoursesEditSubCourseSerializer
 from LessonApp.models import LessonModel, LessonListModel, LessonVideoModel, LessonFileListModel
-from LessonApp.serializers import LessonListAddSerializer, LessonAddSerializer, LessonListEditSerializer
+from LessonApp.serializers import LessonListAddSerializer, LessonAddSerializer, LessonListEditSerializer, \
+    LessonEditSerializer
 from PurchaseApp.models import PurchaseListModel
 from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer
 
@@ -202,7 +203,7 @@ class ACoursesCourseEditAPIView(APIView):
                     return Response({'status': False,
                                      'detail': f'Не хватает {instance.courseType.durationCount - instance.subCourses.count()} подкурсов для публикации курса!'},
                                     status=status.HTTP_400_BAD_REQUEST)
-                serializer = self.serializer_class(instance=instance, data={'draft': not draft}, partial=True,
+                serializer = self.serializer_class(instance=instance, data={'draft': not draft},
                                                    context={'request': self.request})
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
@@ -212,14 +213,14 @@ class ACoursesCourseEditAPIView(APIView):
                 return Response({'status': False, 'detail': 'Курс уже опубликован!'},
                                 status=status.HTTP_400_BAD_REQUEST)
             else:
-                serializer = self.serializer_class(instance=instance, data={'draft': draft}, partial=True,
+                serializer = self.serializer_class(instance=instance, data={'draft': draft},
                                                    context={'request': self.request})
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
                 return Response({'status': True, 'detail': 'Курс перенесен в черновики!'},
                                 status=status.HTTP_200_OK)
 
-        serializer = self.serializer_class(instance=instance, data=serializer_data, partial=True,
+        serializer = self.serializer_class(instance=instance, data=serializer_data,
                                            context={'request': self.request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -265,7 +266,7 @@ class ACoursesSubCourseEditAPIView(APIView):
             if data is not None:
                 serializer_data.update({f'{item}': data})
 
-        serializer = self.serializer_class(instance=instance, data=serializer_data, partial=True,
+        serializer = self.serializer_class(instance=instance, data=serializer_data,
                                            context={'request': self.request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -310,7 +311,7 @@ class ACoursesLessonListEditAPIView(APIView):
             data = request.data.get(item, None)
             if data is not None:
                 serializer_data.update({f'{item}': data})
-        serializer = self.serializer_class(instance=instance, data=serializer_data, partial=True,
+        serializer = self.serializer_class(instance=instance, data=serializer_data,
                                            context={'request': self.request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -326,6 +327,51 @@ class ACoursesLessonListEditAPIView(APIView):
         instance.is_active = False
         instance.save()
         return Response({'status': True, 'detail': 'Занятие удалено успешно!'}, status=status.HTTP_200_OK)
+
+
+class ACoursesLessonEditAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = LessonEditSerializer
+
+    # def get_queryset(self):
+    #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
+
+    def get_object(self):
+        try:
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, is_active=True)
+            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(is_active=True)
+            return lessons.lessonList.get(id=self.kwargs['lessonID'])
+        except:
+            return None
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({'status': False, 'detail': 'Урок не найден!'},
+                            status=status.HTTP_404_NOT_FOUND)
+        serializer_data = {}
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data is not None:
+                serializer_data.update({f'{item}': data})
+        serializer = self.serializer_class(data=serializer_data,
+                                           context={'request': self.request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.update(instance=instance, validated_data=serializer.validated_data)
+            instance.save()
+            return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({'status': False, 'detail': 'Урок не найден!'}, status=status.HTTP_404_NOT_FOUND)
+        # instance.delete()
+        instance.is_active = False
+        instance.save()
+        return Response({'status': True, 'detail': 'Урок удален успешно!'}, status=status.HTTP_200_OK)
 
 
 class ACoursesCourseMetadataAPIView(APIView):
