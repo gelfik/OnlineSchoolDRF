@@ -104,8 +104,9 @@ class LessonDetailForAPanelSerializer(serializers.ModelSerializer):
 
 
 class LessonListForAPanelSerializer(serializers.ModelSerializer):
-    lessonList = LessonDetailForAPanelSerializer(read_only=True, many=True)
+    # lessonList = LessonDetailForAPanelSerializer(read_only=True, many=True)
     lessonDate = serializers.SerializerMethodField(read_only=True, source='get_lessonDate')
+    lessonList = serializers.SerializerMethodField(read_only=True, source='get_lessonList')
 
     class Meta:
         model = LessonListModel
@@ -113,6 +114,10 @@ class LessonListForAPanelSerializer(serializers.ModelSerializer):
 
     def get_lessonDate(self, obj):
         return obj.lessonDate.strftime('%d.%m.%Y %H:%M')
+
+    def get_lessonList(self, instance):
+        return LessonDetailForAPanelSerializer(many=True, instance=instance.lessonList.filter(is_active=True),
+                                                      context={'request': self.context['request']}).data
 
 
 class LessonListAddSerializer(serializers.ModelSerializer):
