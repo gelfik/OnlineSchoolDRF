@@ -232,7 +232,9 @@ class ACoursesCourseEditAPIView(APIView):
         instance = self.get_object()
         if instance is None:
             return Response({'status': False, 'detail': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
-        instance.delete()
+        # instance.delete()
+        instance.is_active = False
+        instance.save()
         return Response({'status': True, 'detail': 'Курс удален успешно!'}, status=status.HTTP_200_OK)
 
 
@@ -276,7 +278,9 @@ class ACoursesSubCourseEditAPIView(APIView):
         instance = self.get_object()
         if instance is None:
             return Response({'status': False, 'detail': 'Подкурс не найден!'}, status=status.HTTP_404_NOT_FOUND)
-        instance.delete()
+        # instance.delete()
+        instance.is_active = False
+        instance.save()
         return Response({'status': True, 'detail': 'Подкурс удален успешно!'}, status=status.HTTP_200_OK)
 
 
@@ -319,7 +323,9 @@ class ACoursesLessonListEditAPIView(APIView):
         instance = self.get_object()
         if instance is None:
             return Response({'status': False, 'detail': 'Занятие не найдено!'}, status=status.HTTP_404_NOT_FOUND)
-        instance.delete()
+        # instance.delete()
+        instance.is_active = False
+        instance.save()
         return Response({'status': True, 'detail': 'Занятие удалено успешно!'}, status=status.HTTP_200_OK)
 
 
