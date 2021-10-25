@@ -17,7 +17,7 @@ from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCou
     CoursesEditSubCourseSerializer
 from LessonApp.models import LessonModel, LessonListModel, LessonVideoModel, LessonFileListModel
 from LessonApp.serializers import LessonListAddSerializer, LessonAddSerializer, LessonListEditSerializer, \
-    LessonEditSerializer
+    LessonEditSerializer, LessonFileAddSerializer
 from PurchaseApp.models import PurchaseListModel
 from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer
 
@@ -237,6 +237,33 @@ class ACoursesCourseEditAPIView(APIView):
         instance.save()
         return Response({'status': True, 'detail': 'Курс удален успешно!'}, status=status.HTTP_200_OK)
 
+class ACoursesLessonFileAddAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = LessonFileAddSerializer
+
+    def get_object(self):
+        try:
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, is_active=True)
+            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(lessonList__id=self.kwargs['lessonID'])
+            return lessons.lessonList.get(id=self.kwargs['lessonID'], is_active=True)
+        except:
+            return None
+
+    def put(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None or instance.files is None:
+            return Response({'status': False, 'detail': 'Урок не найден!'},
+                            status=status.HTTP_404_NOT_FOUND)
+        serializer = self.serializer_class(data=request.FILES,
+                                           context={'request': self.request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            instance.files.fileList.add(serializer.data['id'])
+            instance.save()
+            return Response({'status': True, 'detail': 'Файл добавлен успешно!'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': False, 'detail': 'Ошибка при добавлении файла!'}, status=status.HTTP_400_BAD_REQUEST)
 
 class ACoursesSubCourseEditAPIView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -306,6 +333,9 @@ class ACoursesLessonListEditAPIView(APIView):
         if instance is None:
             return Response({'status': False, 'detail': 'Занятие не найдено!'},
                             status=status.HTTP_404_NOT_FOUND)
+        # if instance.lessonList.filter(isOpen=True).count() <= 0:
+        #     return Response({'status': False, 'detail': 'У вас нет уроков или они закрыты!'},
+        #                     status=status.HTTP_404_NOT_FOUND)
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
@@ -372,7 +402,6 @@ class ACoursesLessonEditAPIView(APIView):
         instance.is_active = False
         instance.save()
         return Response({'status': True, 'detail': 'Урок удален успешно!'}, status=status.HTTP_200_OK)
-
 
 class ACoursesCourseMetadataAPIView(APIView):
     permission_classes = (IsAuthenticated,)

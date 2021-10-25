@@ -54,7 +54,7 @@ class HomeworkListDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomeworkListModel
         # fields = ('name', 'homeworkType', 'files', 'askList',)
-        exclude = ('is_active',)
+        exclude = ('id', 'is_active',)
 
 
 class HomeworkListSerializer(serializers.ModelSerializer):

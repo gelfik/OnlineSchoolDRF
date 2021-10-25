@@ -30,7 +30,7 @@ class LessonFileListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonFileListModel
-        fields = ('name', 'fileList',)
+        fields = ('id', 'name', 'fileList',)
 
 
 class LessonVideoSerializer(serializers.ModelSerializer):
@@ -171,3 +171,28 @@ class LessonEditSerializer(serializers.Serializer):
 
     class Meta:
         fields = ('linkVideo', 'name', 'description', 'isOpen',)
+
+class LessonFileAddSerializer(serializers.ModelSerializer):
+    file = serializers.FileField(required=True)
+    # file_50x50 = serializers.FileField(read_only=True)
+    # file_200x200 = serializers.FileField(read_only=True)
+    name = serializers.CharField(max_length=255, read_only=True)
+
+    def validate(self, validated_data):
+        validated_data['name'] = validated_data['file'].name
+        # validated_data['file_50x50'] = validated_data['file']
+        # validated_data['file_200x200'] = validated_data['file']
+        return validated_data
+
+    # def create(self, validated_data):
+    #     AvatarUploader_object = UserAvatar.objects.create(**validated_data)
+    #     AvatarUploader_object.save()
+    #     userObject = User.objects.get(id=self.context['request'].user.id)
+    #     userObject.avatar_id = AvatarUploader_object
+    #     userObject.save()
+    #     return AvatarUploader_object
+
+    class Meta:
+        model = LessonFileModel
+        fields = ('id','file', 'name', )
+        # read_only_fields = ('name', 'file',)
