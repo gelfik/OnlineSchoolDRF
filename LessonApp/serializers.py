@@ -22,7 +22,7 @@ from .models import LessonModel, LessonListModel, LessonVideoModel, LessonFileMo
 class LessonFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonFileModel
-        fields = ('name', 'file',)
+        fields = ('id', 'name', 'file',)
 
 
 class LessonFileListSerializer(serializers.ModelSerializer):
@@ -30,7 +30,7 @@ class LessonFileListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonFileListModel
-        fields = ('id', 'name', 'fileList',)
+        fields = ('name', 'fileList',)
 
 
 class LessonVideoSerializer(serializers.ModelSerializer):

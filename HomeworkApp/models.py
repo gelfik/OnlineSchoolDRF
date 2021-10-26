@@ -43,6 +43,11 @@ class HomeworkAskModel(models.Model):
                                         default=None, null=True, blank=True)
     answerInput = models.ForeignKey(HomeworkAskAnswerTextInputModel, on_delete=models.CASCADE,
                                     verbose_name='Ответ с вводом текста', default=None, null=True, blank=True)
+    a = models.FloatField('Формализационная оценка', default=0)
+    b = models.FloatField('Конструктивная оценка', default=0)
+    c = models.FloatField('Исполнительская оценка', default=0)
+    pol = models.FloatField('Исполнительская оценка', default=0)
+    chl = models.FloatField('Исполнительская оценка', default=0)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:

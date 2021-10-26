@@ -3,7 +3,8 @@ from django.urls import path, re_path, include
 from ACoursesApp.views import ACoursesCourseDetailAPIView, ACoursesPurchaseListAPIView, ACoursesLessonDetailAPIView, \
     ACoursesSubCourseDetailAPIView, ACoursesCourseListAPIView, ACoursesCourseMetadataAPIView, ACoursesCourseAddAPIView, \
     ACoursesSubCourseAddAPIView, ACoursesLessonListAddAPIView, ACoursesLessonAddAPIView, ACoursesCourseEditAPIView, \
-    ACoursesSubCourseEditAPIView, ACoursesLessonListEditAPIView, ACoursesLessonEditAPIView, ACoursesLessonFileAddAPIView
+    ACoursesSubCourseEditAPIView, ACoursesLessonListEditAPIView, ACoursesLessonEditAPIView, \
+    ACoursesLessonFileAddAPIView, ACoursesLessonHomeworkAddAPIView
 
 app_name = 'ACoursesApp'
 
@@ -50,6 +51,8 @@ urlpatterns = [
 
     path('<int:courseID>/sub<int:subCourseID>/lesson<int:lessonID>/fileLoad',
          ACoursesLessonFileAddAPIView.as_view()),
+    path('<int:courseID>/sub<int:subCourseID>/lesson<int:lessonID>/homework/add',
+         ACoursesLessonHomeworkAddAPIView.as_view()),
 
     path('<int:courseID>/edit', ACoursesCourseEditAPIView.as_view()),
     path('<int:courseID>/delete', ACoursesCourseEditAPIView.as_view()),

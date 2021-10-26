@@ -15,6 +15,7 @@ from CoursesApp.models import CoursesListModel, CoursesPredmetModel, CoursesType
 from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCourseSerializer, \
     CoursesMetadataSerializer, CoursesAddSubCourseSerializer, CoursesEditCourseSerializer, \
     CoursesEditSubCourseSerializer
+from HomeworkApp.serializers import HomeworkAskAddInputSerializer, HomeworkAskAddSelectSerializer
 from LessonApp.models import LessonModel, LessonListModel, LessonVideoModel, LessonFileListModel
 from LessonApp.serializers import LessonListAddSerializer, LessonAddSerializer, LessonListEditSerializer, \
     LessonEditSerializer, LessonFileAddSerializer
@@ -264,6 +265,58 @@ class ACoursesLessonFileAddAPIView(APIView):
             return Response({'status': True, 'detail': 'Файл добавлен успешно!'}, status=status.HTTP_200_OK)
         else:
             return Response({'status': False, 'detail': 'Ошибка при добавлении файла!'}, status=status.HTTP_400_BAD_REQUEST)
+
+class ACoursesLessonHomeworkAddAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    # serializer_class = LessonFileAddSerializer
+
+    def get_object(self):
+        try:
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, is_active=True)
+            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(lessonList__id=self.kwargs['lessonID'])
+            return lessons.lessonList.get(id=self.kwargs['lessonID'], is_active=True)
+        except:
+            return None
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None or instance.homework is None:
+            return Response({'status': False, 'detail': 'Урок не найден!'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        serializer_data = {}
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data is not None:
+                serializer_data.update({f'{item}': data})
+        if 'askType' in serializer_data:
+            if serializer_data['askType'] == 'input':
+                self.serializer_class = HomeworkAskAddInputSerializer
+                serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
+                serializer.is_valid(raise_exception=True)
+                serializer.save(**serializer.validated_data)
+                instance.homework.askList.add(serializer.data.get('id'))
+                instance.save()
+                return Response({'status': True, 'detail': 'Успешно добавлено!'}, status=status.HTTP_200_OK)
+            elif serializer_data['askType'] == 'select':
+                if 'answerData' in serializer_data and len(serializer_data['answerData']) > 1:
+                    self.serializer_class = HomeworkAskAddSelectSerializer
+                    serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save(**serializer.validated_data)
+                    instance.homework.askList.add(serializer.data.get('id'))
+                    instance.save()
+                    return Response({'status': True, 'detail': 'Успешно добавлено!'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'status': False, 'detail': 'Нужно добавить минимум 2 варианта ответа!'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({'status': False, 'detail': 'Не верный тип вопроса!'},
+                                status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'status': False, 'detail': 'Не выбран тип вопроса!'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 class ACoursesSubCourseEditAPIView(APIView):
     permission_classes = (IsAuthenticated,)
