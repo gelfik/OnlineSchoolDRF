@@ -44,7 +44,7 @@ class LessonFileListModel(models.Model):
 
     name = models.CharField('Название', default=None, max_length=255)
     fileList = models.ManyToManyField(LessonFileModel, verbose_name='Файлы',
-                                      default=None, null=True, blank=True)
+                                      default=None, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:
@@ -86,7 +86,7 @@ class LessonModel(models.Model):
 
 class LessonListModel(models.Model):
     lessonDate = models.DateTimeField('Дата проведения урока', default=django_datetime_now)
-    lessonList = models.ManyToManyField(LessonModel, verbose_name='Уроки', default=None, null=True, blank=True)
+    lessonList = models.ManyToManyField(LessonModel, verbose_name='Уроки', default=None, blank=True)
     isOpen = models.BooleanField('Статус доступа', default=False)
     is_active = models.BooleanField('Статус удаления', default=True)
 

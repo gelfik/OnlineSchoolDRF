@@ -18,7 +18,6 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
-import rest_framework.exceptions
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api', include('api_v1.urls', namespace='api_v1')),

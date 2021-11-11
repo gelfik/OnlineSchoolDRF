@@ -33,10 +33,10 @@ class PurchaseListModel(models.Model):
                                default=None, null=True)
     course = models.ForeignKey(CoursesListModel, on_delete=models.CASCADE, verbose_name='Курс',
                                default=None, null=True)
-    courseSub = models.ManyToManyField(CoursesSubCoursesModel, related_name='purchaseCourseSub', verbose_name='Подкурсы', null=True, blank=True)
+    courseSub = models.ManyToManyField(CoursesSubCoursesModel, related_name='purchaseCourseSub', verbose_name='Подкурсы', default=None, blank=True)
     courseSubAll = models.BooleanField('Все подкурсы', default=False, null=True, blank=True)
     purchasePay = models.ManyToManyField(PurchasePayModel, related_name='purchasePay', verbose_name='Оплаты',
-                                       null=True, blank=True)
+                                       default=None, blank=True)
 
     is_active = models.BooleanField('Статус удаления', default=True)
 
@@ -51,9 +51,9 @@ class PurchaseListModel(models.Model):
 
 class PurchaseUserAnswerModel(models.Model):
     ask = models.ForeignKey(HomeworkAskModel, on_delete=models.CASCADE,
-                                    verbose_name='Ответ с вводом текста', default=None, null=True, blank=True)
+                                    verbose_name='Вопрос', default=None, null=True, blank=True)
     answerList = models.ManyToManyField(HomeworkAskAnswerSelectionOnListAnswersModel, verbose_name='Ответы с выбором',
-                                        default=None, null=True, blank=True)
+                                        default=None, blank=True)
     answerInput = models.TextField('Ответ текстом', default=None, null=True, blank=True)
     answerValid = models.BooleanField('Статус решения', default=False, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
@@ -70,7 +70,7 @@ class PurchaseUserAnswerModel(models.Model):
 class PurchaseUserAnswerListModel(models.Model):
     purchase = models.ForeignKey(PurchaseListModel, on_delete=models.CASCADE, verbose_name='Покупка', default=None)
     homework = models.ForeignKey(HomeworkListModel, on_delete=models.CASCADE, verbose_name='Домашка', default=None)
-    answerData = models.ManyToManyField(PurchaseUserAnswerModel, verbose_name='Ответы', default=None, null=True, blank=True)
+    answerData = models.ManyToManyField(PurchaseUserAnswerModel, verbose_name='Ответы', default=None, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:

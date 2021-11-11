@@ -84,9 +84,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.CharField(max_length=255, write_only=True)
+    email = serializers.CharField(max_length=255, write_only=True, required=True)
     username = serializers.CharField(max_length=255, read_only=True)
-    password = serializers.CharField(max_length=128, write_only=True)
+    password = serializers.CharField(max_length=128, write_only=True, required=True)
     token = serializers.CharField(max_length=255, read_only=True)
 
     def validate(self, data):
@@ -137,7 +137,10 @@ class LoginSerializer(serializers.Serializer):
             # 'username': user.username,
             'token': user.token,
         }
-
+    class Meta:
+        model = User
+        # Перечислить все поля, которые могут быть включены в запрос
+        # или ответ, включая поля, явно указанные выше.
 
 class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
     """ Ощуществляет сериализацию и десериализацию объектов User. """

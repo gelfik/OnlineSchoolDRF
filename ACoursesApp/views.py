@@ -1,5 +1,6 @@
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser, FileUploadParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -269,7 +270,7 @@ class ACoursesLessonFileAddAPIView(APIView):
 class ACoursesLessonHomeworkAddAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
-    # serializer_class = LessonFileAddSerializer
+    parser_classes = (MultiPartParser, JSONParser)
 
     def get_object(self):
         try:
@@ -290,6 +291,7 @@ class ACoursesLessonHomeworkAddAPIView(APIView):
             data = request.data.get(item, None)
             if data is not None:
                 serializer_data.update({f'{item}': data})
+        print(request.FILES, request.data)
         if 'askType' in serializer_data:
             if serializer_data['askType'] == 'input':
                 self.serializer_class = HomeworkAskAddInputSerializer

@@ -38,18 +38,29 @@ class HomeworkAskSerializer(serializers.ModelSerializer):
 
 class HomeworkAskAnswersSerializer(serializers.ModelSerializer):
     answerInput = serializers.SlugRelatedField(slug_field='answer', read_only=True)
-    # answerInput = HomeworkAskAnswerSelectionOnListAnswersValidSerializer(read_only=True, many=False)
-    # answerList = serializers.SlugRelatedField(slug_field='answer', read_only=True, many=True)
-    answerList = HomeworkAskAnswerSelectionOnListAnswersValidSerializer(read_only=True, many=True)
+    # answerList = HomeworkAskAnswerSelectionOnListAnswersValidSerializer(read_only=True, many=True)
+    answerList = serializers.SerializerMethodField()
 
     class Meta:
         model = HomeworkAskModel
-        fields = ('ask', 'askPicture', 'answerList', 'answerInput', 'id', 'a', 'b', 'c', 'pol', 'chl',)
+        fields = ('id', 'ask', 'askPicture', 'answerList', 'answerInput', 'id', 'a', 'b', 'c', 'pol', 'chl',)
 
-
+    def get_answerList(self, instance):
+        if instance.answerList:
+            return HomeworkAskAnswerSelectionOnListAnswersValidSerializer(instance=instance.answerList, many=True).data
+        else:
+            return None
 
 class HomeworkListDetailSerializer(serializers.ModelSerializer):
     askList = HomeworkAskSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = HomeworkListModel
+        # fields = ('name', 'homeworkType', 'files', 'askList',)
+        exclude = ('id', 'is_active',)
+
+class HomeworkListAnswerSerializer(serializers.ModelSerializer):
+    askList = HomeworkAskAnswersSerializer(read_only=True, many=True)
 
     class Meta:
         model = HomeworkListModel
@@ -70,7 +81,7 @@ class HomeworkAskAddInputSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomeworkAskModel
-        fields = ('ask', 'answerInput', 'id', 'a', 'b', 'c', 'pol', 'chl', 'answer',)
+        fields = ('ask', 'answerInput', 'askPicture', 'id', 'a', 'b', 'c', 'pol', 'chl', 'answer',)
 
     def create(self, validated_data):
         homeworkInputObject = HomeworkAskAnswerTextInputModel.objects.create(answer=validated_data.pop('answer'))
@@ -86,7 +97,7 @@ class HomeworkAskAddSelectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomeworkAskModel
-        fields = ('ask', 'answerList', 'id', 'a', 'b', 'c', 'pol', 'chl', 'answerData',)
+        fields = ('ask', 'answerList', 'askPicture', 'id', 'a', 'b', 'c', 'pol', 'chl', 'answerData',)
 
     def create(self, validated_data):
         answerData = validated_data.pop('answerData')

@@ -59,7 +59,7 @@ class CoursesSubCoursesModel(models.Model):
     name = models.CharField('Название', default=None, max_length=255, null=True)
     startDate = models.DateField('Дата начала подкурса', default=django_datetime_now)
     endDate = models.DateField('Дата окончания подкурса', default=django_datetime_now)
-    lessons = models.ManyToManyField(LessonListModel, 'Уроки', null=True, blank=True)
+    lessons = models.ManyToManyField(LessonListModel, 'Уроки', default=None, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:
@@ -87,10 +87,10 @@ class CoursesListModel(models.Model):
                                       validators=[MaxSizeValidator(500, 500)], default='coursePicture/Default.png', null=True, blank=True)
     teacher = models.ForeignKey(TeachersModel, on_delete=models.CASCADE, verbose_name='Преподаватель',
                                 default=None, null=True)
-    mentors = models.ManyToManyField(User, verbose_name='Наставники', null=True, blank=True)
+    mentors = models.ManyToManyField(User, verbose_name='Наставники', default=None, blank=True)
     shortDescription = models.TextField('Краткое описание', default=None, null=True)
     description = models.TextField('Описание', default=None, null=True)
-    subCourses = models.ManyToManyField(CoursesSubCoursesModel, verbose_name='Подкурсы', null=True, blank=True)
+    subCourses = models.ManyToManyField(CoursesSubCoursesModel, verbose_name='Подкурсы', default=None, blank=True)
     price = models.FloatField('Цена за месяц', default=0)
     discountDuration = models.PositiveSmallIntegerField('Скидка за месяц при оплате за весь срок обучения в %',
                                                         default=0, null=True, blank=True)

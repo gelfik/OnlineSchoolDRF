@@ -21,7 +21,7 @@ class LessonListAPIView(ListAPIView):
 
 class LessonListAllAPIView(ListAPIView):
     queryset = LessonModel.objects.all().order_by('id').filter(is_active=True)
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
     serializer_class = LessonDetailSerializer
     pagination_class = None

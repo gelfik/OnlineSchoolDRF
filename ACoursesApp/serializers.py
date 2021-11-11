@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from CoursesApp.models import CoursesListModel, CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesSubCoursesSerializer
-from HomeworkApp.serializers import HomeworkListDetailSerializer
+from HomeworkApp.serializers import HomeworkListAnswerSerializer
 from LessonApp.models import LessonModel
 from LessonApp.serializers import LessonListForAPanelSerializer, LessonVideoSerializer, LessonFileListSerializer
 from UserProfileApp.serializers import UserMentorSerializer
@@ -57,13 +57,14 @@ class ACoursesSubCoursesDetailSerializer(serializers.ModelSerializer):
 
 
 class ACoursesLessonDetailSerializer(serializers.ModelSerializer):
-    homework = HomeworkListDetailSerializer(many=False, read_only=True)
+    homework = HomeworkListAnswerSerializer(many=False, read_only=True)
     video = LessonVideoSerializer(many=False, read_only=True)
     files = LessonFileListSerializer(many=False, read_only=True)
 
     class Meta:
         model = LessonModel
         exclude = ('is_active',)
+
 
 # class APanelCoursesDetailSerializer(serializers.ModelSerializer):
 #     # teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)

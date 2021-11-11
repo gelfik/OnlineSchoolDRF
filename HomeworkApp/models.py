@@ -40,7 +40,7 @@ class HomeworkAskModel(models.Model):
     askPicture = models.ImageField(upload_to=get_file_path, verbose_name='Картинка к вопросу', default=None, null=True,
                                    blank=True)
     answerList = models.ManyToManyField(HomeworkAskAnswerSelectionOnListAnswersModel, verbose_name='Ответы с выбором',
-                                        default=None, null=True, blank=True)
+                                        default=None, blank=True)
     answerInput = models.ForeignKey(HomeworkAskAnswerTextInputModel, on_delete=models.CASCADE,
                                     verbose_name='Ответ с вводом текста', default=None, null=True, blank=True)
     a = models.FloatField('Формализационная оценка', default=0)
@@ -61,7 +61,7 @@ class HomeworkAskModel(models.Model):
 
 class HomeworkListModel(models.Model):
     name = models.CharField('Название', default=None, max_length=255)
-    askList = models.ManyToManyField(HomeworkAskModel, verbose_name='Вопросы', default=None, null=True, blank=True)
+    askList = models.ManyToManyField(HomeworkAskModel, verbose_name='Вопросы', default=None, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:
