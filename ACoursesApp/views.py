@@ -349,8 +349,6 @@ class ACoursesLessonHomeworkEditAPIView(APIView):
                 serializer = self.serializer_class(instance=instance, data=serializer_data, context={'request': self.request})
                 serializer.is_valid(raise_exception=True)
                 serializer.save(**serializer.validated_data)
-                instance.homework.askList.add(serializer.data.get('id'))
-                instance.save()
                 return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
             elif serializer_data['askType'] == 'select':
                 if 'answerData' in serializer_data and len(serializer_data['answerData']) > 1:

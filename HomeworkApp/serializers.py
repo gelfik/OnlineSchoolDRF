@@ -97,6 +97,14 @@ class HomeworkAskAddInputSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.answerInput = HomeworkAskAnswerTextInputModel.objects.create(answer=validated_data.pop('answer'))
+        if 'ask' in validated_data:
+            instance.ask = validated_data['ask']
+        if 'a' in validated_data:
+            instance.a = validated_data['a']
+        if 'b' in validated_data:
+            instance.b = validated_data['b']
+        if 'c' in validated_data:
+            instance.c = validated_data['c']
         instance.save()
         return instance
 
@@ -123,6 +131,16 @@ class HomeworkAskAddSelectSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         answerData = validated_data.pop('answerData')
+        # for i, item in enumerate(validated_data):
+        #     print(validated_data[f'{item}'], instance[f'{item}'])
+        #     instance[f'{item}'] = validated_data[f'{item}']
+        if 'ask' in validated_data:
+            instance.ask = validated_data['ask']
+        if 'pol' in validated_data:
+            instance.pol = validated_data['pol']
+        if 'chl' in validated_data:
+            instance.chl = validated_data['chl']
+        instance.answerList.clear()
         for i, item in enumerate(answerData):
             homeworkSelectObject = HomeworkAskAnswerSelectionOnListAnswersModel.objects.create(answer=item['answer'],
                                                                                                validStatus=item[

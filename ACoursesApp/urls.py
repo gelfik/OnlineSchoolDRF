@@ -53,7 +53,7 @@ urlpatterns = [
          ACoursesLessonFileAddAPIView.as_view()),
     path('<int:courseID>/sub<int:subCourseID>/lesson<int:lessonID>/homework/add',
          ACoursesLessonHomeworkAddAPIView.as_view()),
-    path('<int:courseID>/sub<int:subCourseID>/lesson<int:lessonID>/homework/ask<int:lessonID>',
+    path('<int:courseID>/sub<int:subCourseID>/lesson<int:lessonID>/homework/ask<int:askID>',
          ACoursesLessonHomeworkEditAPIView.as_view()),
 
     path('<int:courseID>/edit', ACoursesCourseEditAPIView.as_view()),
