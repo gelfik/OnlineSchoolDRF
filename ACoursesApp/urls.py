@@ -4,7 +4,7 @@ from ACoursesApp.views import ACoursesCourseDetailAPIView, ACoursesPurchaseListA
     ACoursesSubCourseDetailAPIView, ACoursesCourseListAPIView, ACoursesCourseMetadataAPIView, ACoursesCourseAddAPIView, \
     ACoursesSubCourseAddAPIView, ACoursesLessonListAddAPIView, ACoursesLessonAddAPIView, ACoursesCourseEditAPIView, \
     ACoursesSubCourseEditAPIView, ACoursesLessonListEditAPIView, ACoursesLessonEditAPIView, \
-    ACoursesLessonFileAddAPIView, ACoursesLessonHomeworkAddAPIView
+    ACoursesLessonFileAddAPIView, ACoursesLessonHomeworkAddAPIView, ACoursesLessonHomeworkEditAPIView
 
 app_name = 'ACoursesApp'
 
@@ -53,6 +53,8 @@ urlpatterns = [
          ACoursesLessonFileAddAPIView.as_view()),
     path('<int:courseID>/sub<int:subCourseID>/lesson<int:lessonID>/homework/add',
          ACoursesLessonHomeworkAddAPIView.as_view()),
+    path('<int:courseID>/sub<int:subCourseID>/lesson<int:lessonID>/homework/ask<int:lessonID>',
+         ACoursesLessonHomeworkEditAPIView.as_view()),
 
     path('<int:courseID>/edit', ACoursesCourseEditAPIView.as_view()),
     path('<int:courseID>/delete', ACoursesCourseEditAPIView.as_view()),

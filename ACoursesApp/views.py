@@ -291,7 +291,6 @@ class ACoursesLessonHomeworkAddAPIView(APIView):
             data = request.data.get(item, None)
             if data is not None:
                 serializer_data.update({f'{item}': data})
-        print(request.FILES, request.data)
         if 'askType' in serializer_data:
             if serializer_data['askType'] == 'input':
                 self.serializer_class = HomeworkAskAddInputSerializer
@@ -319,6 +318,65 @@ class ACoursesLessonHomeworkAddAPIView(APIView):
         else:
             return Response({'status': False, 'detail': 'Не выбран тип вопроса!'},
                             status=status.HTTP_400_BAD_REQUEST)
+
+class ACoursesLessonHomeworkEditAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    parser_classes = (MultiPartParser, JSONParser)
+
+    def get_object(self):
+        try:
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, is_active=True)
+            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(lessonList__id=self.kwargs['lessonID']).lessonList.get(id=self.kwargs['lessonID'], is_active=True)
+            return lessons.homework.askList.get(id=self.kwargs['askID'])
+        except:
+            return None
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({'status': False, 'detail': 'Вопрос не найден!'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        serializer_data = {}
+        for i, item in enumerate(request.data):
+            data = request.data.get(item, None)
+            if data is not None:
+                serializer_data.update({f'{item}': data})
+        if 'askType' in serializer_data:
+            if serializer_data['askType'] == 'input':
+                self.serializer_class = HomeworkAskAddInputSerializer
+                serializer = self.serializer_class(instance=instance, data=serializer_data, context={'request': self.request})
+                serializer.is_valid(raise_exception=True)
+                serializer.save(**serializer.validated_data)
+                instance.homework.askList.add(serializer.data.get('id'))
+                instance.save()
+                return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
+            elif serializer_data['askType'] == 'select':
+                if 'answerData' in serializer_data and len(serializer_data['answerData']) > 1:
+                    self.serializer_class = HomeworkAskAddSelectSerializer
+                    serializer = self.serializer_class(instance=instance, data=serializer_data, context={'request': self.request})
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save(**serializer.validated_data)
+                    return Response({'status': True, 'detail': 'Изменения внесены успешно!!'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'status': False, 'detail': 'Нужно добавить минимум 2 варианта ответа!'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({'status': False, 'detail': 'Не верный тип вопроса!'},
+                                status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'status': False, 'detail': 'Не выбран тип вопроса!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({'status': False, 'detail': 'Вопрос не найден!'}, status=status.HTTP_404_NOT_FOUND)
+        # instance.delete()
+        instance.is_active = False
+        instance.save()
+        return Response({'status': True, 'detail': 'Вопрос удален успешно!'}, status=status.HTTP_200_OK)
 
 class ACoursesSubCourseEditAPIView(APIView):
     permission_classes = (IsAuthenticated,)
