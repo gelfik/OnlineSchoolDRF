@@ -50,7 +50,7 @@ class HomeworkAskAnswersSerializer(serializers.ModelSerializer):
 
     def get_answerList(self, instance):
         if instance.answerList:
-            return HomeworkAskAnswerSelectionOnListAnswersValidSerializer(instance=instance.answerList, many=True).data
+            return HomeworkAskAnswerSelectionOnListAnswersValidSerializer(instance=instance.answerList.filter(is_active=True), many=True).data
         else:
             return None
 
@@ -65,12 +65,19 @@ class HomeworkListDetailSerializer(serializers.ModelSerializer):
 
 
 class HomeworkListAnswerSerializer(serializers.ModelSerializer):
-    askList = HomeworkAskAnswersSerializer(read_only=True, many=True)
+    # askList = HomeworkAskAnswersSerializer(read_only=True, many=True)
+    askList = serializers.SerializerMethodField()
 
     class Meta:
         model = HomeworkListModel
         # fields = ('name', 'homeworkType', 'files', 'askList',)
         exclude = ('id', 'is_active',)
+
+    def get_askList(self, instance):
+        if instance.askList:
+            return HomeworkAskAnswersSerializer(instance=instance.askList.filter(is_active=True), many=True).data
+        else:
+            return None
 
 
 class HomeworkListSerializer(serializers.ModelSerializer):
