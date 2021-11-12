@@ -5,8 +5,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import get_object_or_404, ListAPIView, RetrieveAPIView
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth.models import Group
 # Create your views here.
 from ACoursesApp.serializers import ACoursesCoursesDetailSerializer, ACoursesSubCoursesDetailSerializer, \
     ACoursesLessonDetailSerializer
@@ -20,14 +21,16 @@ from HomeworkApp.serializers import HomeworkAskAddInputSerializer, HomeworkAskAd
 from LessonApp.models import LessonModel, LessonListModel, LessonVideoModel, LessonFileListModel
 from LessonApp.serializers import LessonListAddSerializer, LessonAddSerializer, LessonListEditSerializer, \
     LessonEditSerializer, LessonFileAddSerializer
+from OnlineSchoolDRF.service import IsTeacherPermission
 from PurchaseApp.models import PurchaseListModel
 from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer
-
 from HomeworkApp.models import HomeworkListModel
+from UserProfileApp.serializers import UserMentorSerializer
+from UserProfileApp.models import User
 
 
 class ACoursesCourseListAPIView(ListAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = CoursesForApanelListSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -35,12 +38,13 @@ class ACoursesCourseListAPIView(ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        CoursesList_object = CoursesListModel.objects.order_by('id').filter(is_active=True, teacher__user=self.request.user)
+        CoursesList_object = CoursesListModel.objects.order_by('id').filter(is_active=True,
+                                                                            teacher__user=self.request.user)
         return CoursesList_object
 
 
 class ACoursesCourseAddAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     serializer_class = CoursesAddCourseSerializer
     renderer_classes = (JSONRenderer,)
 
@@ -60,7 +64,7 @@ class ACoursesCourseAddAPIView(APIView):
 
 
 class ACoursesSubCourseAddAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     serializer_class = CoursesAddSubCourseSerializer
     renderer_classes = (JSONRenderer,)
 
@@ -89,7 +93,7 @@ class ACoursesSubCourseAddAPIView(APIView):
 
 
 class ACoursesLessonListAddAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     serializer_class = LessonListAddSerializer
     renderer_classes = (JSONRenderer,)
 
@@ -120,7 +124,7 @@ class ACoursesLessonListAddAPIView(APIView):
 
 
 class ACoursesLessonAddAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     serializer_class = LessonAddSerializer
     renderer_classes = (JSONRenderer,)
 
@@ -173,7 +177,7 @@ class ACoursesLessonAddAPIView(APIView):
 
 
 class ACoursesCourseEditAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = CoursesEditCourseSerializer
 
@@ -228,7 +232,8 @@ class ACoursesCourseEditAPIView(APIView):
             serializer.save()
             return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
         else:
-            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -239,15 +244,18 @@ class ACoursesCourseEditAPIView(APIView):
         instance.save()
         return Response({'status': True, 'detail': 'Курс удален успешно!'}, status=status.HTTP_200_OK)
 
+
 class ACoursesLessonFileAddAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = LessonFileAddSerializer
 
     def get_object(self):
         try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, is_active=True)
-            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(lessonList__id=self.kwargs['lessonID'])
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
+                                                  is_active=True)
+            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(
+                lessonList__id=self.kwargs['lessonID'])
             return lessons.lessonList.get(id=self.kwargs['lessonID'], is_active=True)
         except:
             return None
@@ -265,17 +273,21 @@ class ACoursesLessonFileAddAPIView(APIView):
             instance.save()
             return Response({'status': True, 'detail': 'Файл добавлен успешно!'}, status=status.HTTP_200_OK)
         else:
-            return Response({'status': False, 'detail': 'Ошибка при добавлении файла!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'status': False, 'detail': 'Ошибка при добавлении файла!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
 
 class ACoursesLessonHomeworkAddAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     parser_classes = (MultiPartParser, JSONParser)
 
     def get_object(self):
         try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, is_active=True)
-            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(lessonList__id=self.kwargs['lessonID'])
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
+                                                  is_active=True)
+            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(
+                lessonList__id=self.kwargs['lessonID'])
             return lessons.lessonList.get(id=self.kwargs['lessonID'], is_active=True)
         except:
             return None
@@ -319,15 +331,18 @@ class ACoursesLessonHomeworkAddAPIView(APIView):
             return Response({'status': False, 'detail': 'Не выбран тип вопроса!'},
                             status=status.HTTP_400_BAD_REQUEST)
 
+
 class ACoursesLessonHomeworkEditAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     parser_classes = (MultiPartParser, JSONParser)
 
     def get_object(self):
         try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, is_active=True)
-            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(lessonList__id=self.kwargs['lessonID']).lessonList.get(id=self.kwargs['lessonID'], is_active=True)
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
+                                                  is_active=True)
+            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(
+                lessonList__id=self.kwargs['lessonID']).lessonList.get(id=self.kwargs['lessonID'], is_active=True)
             return lessons.homework.askList.get(id=self.kwargs['askID'])
         except:
             return None
@@ -346,17 +361,20 @@ class ACoursesLessonHomeworkEditAPIView(APIView):
         if 'askType' in serializer_data:
             if serializer_data['askType'] == 'input':
                 self.serializer_class = HomeworkAskAddInputSerializer
-                serializer = self.serializer_class(instance=instance, data=serializer_data, context={'request': self.request})
+                serializer = self.serializer_class(instance=instance, data=serializer_data,
+                                                   context={'request': self.request})
                 serializer.is_valid(raise_exception=True)
                 serializer.save(**serializer.validated_data)
                 return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
             elif serializer_data['askType'] == 'select':
                 if 'answerData' in serializer_data and len(serializer_data['answerData']) > 1:
                     self.serializer_class = HomeworkAskAddSelectSerializer
-                    serializer = self.serializer_class(instance=instance, data=serializer_data, context={'request': self.request})
+                    serializer = self.serializer_class(instance=instance, data=serializer_data,
+                                                       context={'request': self.request})
                     serializer.is_valid(raise_exception=True)
                     serializer.save(**serializer.validated_data)
-                    return Response({'status': True, 'detail': 'Изменения внесены успешно!!'}, status=status.HTTP_200_OK)
+                    return Response({'status': True, 'detail': 'Изменения внесены успешно!!'},
+                                    status=status.HTTP_200_OK)
                 else:
                     return Response({'status': False, 'detail': 'Нужно добавить минимум 2 варианта ответа!'},
                                     status=status.HTTP_400_BAD_REQUEST)
@@ -376,8 +394,9 @@ class ACoursesLessonHomeworkEditAPIView(APIView):
         instance.save()
         return Response({'status': True, 'detail': 'Вопрос удален успешно!'}, status=status.HTTP_200_OK)
 
+
 class ACoursesSubCourseEditAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = CoursesEditSubCourseSerializer
 
@@ -410,7 +429,8 @@ class ACoursesSubCourseEditAPIView(APIView):
             serializer.save()
             return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
         else:
-            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -423,7 +443,7 @@ class ACoursesSubCourseEditAPIView(APIView):
 
 
 class ACoursesLessonListEditAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = LessonListEditSerializer
 
@@ -432,7 +452,8 @@ class ACoursesLessonListEditAPIView(APIView):
 
     def get_object(self):
         try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, is_active=True)
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
+                                                  is_active=True)
             subCourse = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True)
 
             return subCourse.lessons.get(id=self.kwargs['lessonListID'], is_active=True)
@@ -458,7 +479,8 @@ class ACoursesLessonListEditAPIView(APIView):
             serializer.save()
             return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
         else:
-            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -471,7 +493,7 @@ class ACoursesLessonListEditAPIView(APIView):
 
 
 class ACoursesLessonEditAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = LessonEditSerializer
 
@@ -480,8 +502,10 @@ class ACoursesLessonEditAPIView(APIView):
 
     def get_object(self):
         try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user, is_active=True)
-            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(lessonList__id=self.kwargs['lessonID'])
+            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
+                                                  is_active=True)
+            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(
+                lessonList__id=self.kwargs['lessonID'])
             return lessons.lessonList.get(id=self.kwargs['lessonID'], is_active=True)
         except:
             return None
@@ -503,7 +527,8 @@ class ACoursesLessonEditAPIView(APIView):
             instance.save()
             return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
         else:
-            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -514,8 +539,9 @@ class ACoursesLessonEditAPIView(APIView):
         instance.save()
         return Response({'status': True, 'detail': 'Урок удален успешно!'}, status=status.HTTP_200_OK)
 
+
 class ACoursesCourseMetadataAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
 
     def get(self, request, *args, **kwargs):
@@ -528,7 +554,7 @@ class ACoursesCourseMetadataAPIView(APIView):
 
 
 class ACoursesCourseDetailAPIView(RetrieveAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = ACoursesCoursesDetailSerializer
     pagination_class = None
@@ -538,7 +564,7 @@ class ACoursesCourseDetailAPIView(RetrieveAPIView):
 
 
 class ACoursesPurchaseListAPIView(ListAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = PurchaseListForAPanelCoursesSerializer
     pagination_class = None
@@ -549,7 +575,7 @@ class ACoursesPurchaseListAPIView(ListAPIView):
 
 
 class ACoursesSubCourseDetailAPIView(RetrieveAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = ACoursesSubCoursesDetailSerializer
     pagination_class = None
@@ -561,7 +587,7 @@ class ACoursesSubCourseDetailAPIView(RetrieveAPIView):
 
 
 class ACoursesLessonDetailAPIView(RetrieveAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = ACoursesLessonDetailSerializer
     pagination_class = None
@@ -572,6 +598,43 @@ class ACoursesLessonDetailAPIView(RetrieveAPIView):
                                                            courseslistmodel__teacher__user=self.request.user,
                                                            courseslistmodel=self.kwargs['courseID'],
                                                            id=self.kwargs['subCourseID'])
-            return subCourse.lessons.get(is_active=True, lessonList__id=self.kwargs['pk']).lessonList.filter(is_active=True)
+            return subCourse.lessons.get(is_active=True, lessonList__id=self.kwargs['pk']).lessonList.filter(
+                is_active=True)
         except:
             pass
+
+
+class ACoursesMentorListAPIView(ListAPIView):
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = UserMentorSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        groupObj, groupCreateStatus = Group.objects.get_or_create(name='Наставник')
+        return User.objects.filter(groups=groupObj, is_active=True)
+
+
+class ACoursesCourseMentorAPIView(APIView):
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = CoursesEditCourseSerializer
+
+    def post(self, request, *args, **kwargs):
+        instance = get_object_or_404(CoursesListModel, is_active=True, teacher__user=self.request.user,
+                                     pk=self.kwargs['courseID'])
+        groupObj, _ = Group.objects.get_or_create(name='Наставник')
+        user = get_object_or_404(User, id=self.kwargs['mentorID'], is_active=True, groups=groupObj)
+        if not instance.mentors.filter(id=user.id).exists():
+            instance.mentors.add(user)
+            instance.save()
+        return Response({'status': True, 'detail': 'Наставник добавлен успешно!'}, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        instance = get_object_or_404(CoursesListModel, is_active=True, teacher__user=self.request.user,
+                                     pk=self.kwargs['courseID'])
+        user = get_object_or_404(User, id=self.kwargs['mentorID'], is_active=True)
+        if instance.mentors.filter(id=user.id).exists():
+            instance.mentors.remove(user)
+            instance.save()
+        return Response({'status': True, 'detail': 'Наставник удален успешно!'}, status=status.HTTP_200_OK)

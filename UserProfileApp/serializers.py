@@ -266,7 +266,7 @@ class UserMentorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('firstName', 'lastName', 'avatar', 'vkLink', )
+        fields = ('id', 'firstName', 'lastName', 'avatar', 'vkLink', )
 
 
 class UserForAPanelCoursesSerializer(serializers.ModelSerializer):

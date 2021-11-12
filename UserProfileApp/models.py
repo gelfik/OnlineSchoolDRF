@@ -87,7 +87,9 @@ class UserManager(BaseUserManager):
         new_username = transliterate(firstName[:1] + lastName)
 
         user = self.model(username=new_username, email=self.normalize_email(email))
-        # user.groups.add(Group.objects.get(name='Пользователь'))
+
+        groupObj, groupCreatedStatus = Group.objects.get_or_create(name='Пользователь')
+        user.groups.add(groupObj)
         user.firstName = firstName
         user.lastName = lastName
         user.vkLink = vkLink
@@ -109,8 +111,12 @@ class UserManager(BaseUserManager):
         if password is None:
             raise TypeError('Пароль обязательное поле.')
 
+        Group.objects.get_or_create(name='Пользователь')
+        Group.objects.get_or_create(name='Наставник')
+        groupObj, groupCreatedStatus = Group.objects.get_or_create(name='Преподаватель')
+
         user = self.create_user(email, lastName, firstName, vkLink, password)
-        user.groups.add(Group.objects.get(name='Пользователь'))
+        user.groups.add(groupObj)
         user.is_superuser = True
         user.is_staff = True
         user.save()

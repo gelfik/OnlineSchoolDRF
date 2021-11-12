@@ -4,11 +4,14 @@ from ACoursesApp.views import ACoursesCourseDetailAPIView, ACoursesPurchaseListA
     ACoursesSubCourseDetailAPIView, ACoursesCourseListAPIView, ACoursesCourseMetadataAPIView, ACoursesCourseAddAPIView, \
     ACoursesSubCourseAddAPIView, ACoursesLessonListAddAPIView, ACoursesLessonAddAPIView, ACoursesCourseEditAPIView, \
     ACoursesSubCourseEditAPIView, ACoursesLessonListEditAPIView, ACoursesLessonEditAPIView, \
-    ACoursesLessonFileAddAPIView, ACoursesLessonHomeworkAddAPIView, ACoursesLessonHomeworkEditAPIView
+    ACoursesLessonFileAddAPIView, ACoursesLessonHomeworkAddAPIView, ACoursesLessonHomeworkEditAPIView, \
+    ACoursesMentorListAPIView, ACoursesCourseMentorAPIView
 
 app_name = 'ACoursesApp'
 
 ACoursesCourseListAPIView.http_method_names = ('get', 'options',)
+
+ACoursesMentorListAPIView.http_method_names = ('get', 'options',)
 
 ACoursesPurchaseListAPIView.http_method_names = ('get', 'options',)
 
@@ -24,6 +27,7 @@ ACoursesLessonListAddAPIView.http_method_names = ('post', 'options',)
 ACoursesLessonAddAPIView.http_method_names = ('post', 'options',)
 
 ACoursesCourseEditAPIView.http_method_names = ('post', 'delete', 'options',)
+ACoursesCourseMentorAPIView.http_method_names = ('post', 'delete', 'options',)
 ACoursesSubCourseEditAPIView.http_method_names = ('post', 'delete', 'options',)
 ACoursesLessonListEditAPIView.http_method_names = ('post', 'delete', 'options',)
 ACoursesLessonEditAPIView.http_method_names = ('post', 'delete', 'options',)
@@ -35,6 +39,8 @@ ACoursesLessonFileAddAPIView.http_method_names = ('put', 'options',)
 
 urlpatterns = [
     path('/metadata', ACoursesCourseMetadataAPIView.as_view()),
+
+    path('/mentorList', ACoursesMentorListAPIView.as_view()),
 
     path('/list', ACoursesCourseListAPIView.as_view()),
 
@@ -58,6 +64,8 @@ urlpatterns = [
 
     path('<int:courseID>/edit', ACoursesCourseEditAPIView.as_view()),
     path('<int:courseID>/delete', ACoursesCourseEditAPIView.as_view()),
+
+    path('<int:courseID>/mentor<int:mentorID>', ACoursesCourseMentorAPIView.as_view()),
 
     path('<int:courseID>/sub<int:subCourseID>/edit', ACoursesSubCourseEditAPIView.as_view()),
     path('<int:courseID>/sub<int:subCourseID>/delete', ACoursesSubCourseEditAPIView.as_view()),
