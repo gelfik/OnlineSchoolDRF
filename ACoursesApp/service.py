@@ -1,6 +1,8 @@
 from django_filters import rest_framework as filters
 
 from CoursesApp.models import CoursesListModel
+from PurchaseApp.models import PurchaseListModel
+
 
 class CharFilterInFilter(filters.BaseInFilter, filters.CharFilter):
     pass
@@ -15,3 +17,11 @@ class CoursesListFilter(filters.FilterSet):
     class Meta:
         model = CoursesListModel
         fields = ['predmet', 'exam', 'type', 'draft', ]
+
+
+class CoursesPurchaseFilter(filters.FilterSet):
+    courseSub = CharFilterInFilter(field_name='courseSub__id', lookup_expr='in')
+
+    class Meta:
+        model = PurchaseListModel
+        fields = ['courseSub', ]

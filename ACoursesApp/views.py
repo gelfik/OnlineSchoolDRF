@@ -1,4 +1,4 @@
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser, FileUploadParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -11,7 +11,7 @@ from django.contrib.auth.models import Group
 # Create your views here.
 from ACoursesApp.serializers import ACoursesCoursesDetailSerializer, ACoursesSubCoursesDetailSerializer, \
     ACoursesLessonDetailSerializer
-from ACoursesApp.service import CoursesListFilter
+from ACoursesApp.service import CoursesListFilter, CoursesPurchaseFilter
 from CoursesApp.models import CoursesListModel, CoursesPredmetModel, CoursesTypeModel, CoursesExamTypeModel, \
     CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCourseSerializer, \
@@ -567,8 +567,11 @@ class ACoursesPurchaseListAPIView(ListAPIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
     serializer_class = PurchaseListForAPanelCoursesSerializer
-    pagination_class = None
     lookup_field = 'course_id'
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = CoursesPurchaseFilter
+    search_fields = ['user__username', 'user__email', 'user__lastName', 'user__firstName']
+    pagination_class = None
 
     def get_queryset(self):
         return PurchaseListModel.objects.filter(course__teacher__user=self.request.user)
