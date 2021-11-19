@@ -1,23 +1,9 @@
 from rest_framework import serializers
 
-from HomeworkApp.serializers import HomeworkListSerializer, HomeworkListDetailSerializer
-from .models import LessonModel, LessonListModel, LessonVideoModel, LessonFileModel, LessonFileListModel
+from TestApp.serializers import TestDataSerializer, TestDataDetailSerializer, TestSerializer, TestAPanelSerializer, \
+    TestAPanelDetailSerializer
+from .models import LessonTaskABCModel, LessonModel, LessonFileModel, LessonLectureModel
 
-
-# class LessonListSerializer(serializers.ModelSerializer):
-#     lessonType = serializers.SlugRelatedField(slug_field='name', read_only=True)
-#     homeworkCount = serializers.SerializerMethodField(read_only=True, source='get_homeworkCount')
-#     lessonDate = serializers.SerializerMethodField(read_only=True, source='get_lessonDate')
-#
-#     class Meta:
-#         model = LessonModel
-#         fields = ('id', 'lessonType', 'shortDescription', 'lessonDate', 'homeworkCount')
-#
-#     def get_homeworkCount(self, obj):
-#         return obj.homeworkList.all().count()
-#
-#     def get_lessonDate(self, obj):
-#         return obj.lessonDate.strftime('%d.%m.%Y %H:%M')
 
 class LessonFileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,174 +11,174 @@ class LessonFileSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'file',)
 
 
-class LessonFileListSerializer(serializers.ModelSerializer):
-    fileList = LessonFileSerializer(read_only=True, many=True)
+# TODO: SERIALIZER LESSON
 
+class LessonLectureSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LessonFileListModel
-        fields = ('name', 'fileList',)
+        model = LessonLectureModel
+        fields = ('id', 'name', 'time',)
 
 
-class LessonVideoSerializer(serializers.ModelSerializer):
+class LessonTaskABCSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LessonVideoModel
-        fields = ('name', 'linkVideo',)
+        model = LessonTaskABCModel
+        fields = ('id', 'name', 'description',)
 
 
-class LessonFilesForListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LessonFileListModel
-        fields = ('name',)
-
-
-class LessonVideoForListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LessonVideoModel
-        fields = ('name',)
-
-
-class LessonForListSerializer(serializers.ModelSerializer):
-    homework = HomeworkListSerializer()
-    video = LessonVideoForListSerializer()
-    files = LessonFilesForListSerializer()
+class LessonSerializer(serializers.ModelSerializer):
+    date = serializers.SerializerMethodField(read_only=True, source='get_date')
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'homework', 'video', 'files',)
+        fields = ('id', 'date',)
+
+    def get_date(self, instance):
+        return instance.date.strftime('%d.%m.%Y')
 
 
-class LessonListSerializer(serializers.ModelSerializer):
-    lessonList = LessonForListSerializer(read_only=True, many=True)
-    lessonDate = serializers.SerializerMethodField(read_only=True, source='get_lessonDate')
+class LessonDataSerializer(serializers.ModelSerializer):
+    lecture = LessonLectureSerializer(read_only=True)
+    testPOL = TestDataSerializer(read_only=True)
+    testCHL = TestDataSerializer(read_only=True)
+    taskABC = LessonTaskABCSerializer(read_only=True)
+    date = serializers.SerializerMethodField(read_only=True, source='get_date')
 
     class Meta:
-        model = LessonListModel
-        fields = ('lessonDate', 'lessonList')
+        model = LessonModel
+        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC',)
 
-    def get_lessonDate(self, obj):
-        return obj.lessonDate.strftime('%d.%m.%Y %H:%M')
+    def get_date(self, instance):
+        return instance.date.strftime('%d.%m.%Y')
+
+
+# TODO: SERIALIZER LESSON DETAIL
+
+class LessonLectureDetailSerializer(serializers.ModelSerializer):
+    files = LessonFileSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = LessonLectureModel
+        fields = ('id', 'name', 'time', 'description', 'video', 'files', 'isOpen',)
 
 
 class LessonDetailSerializer(serializers.ModelSerializer):
-    homework = HomeworkListDetailSerializer(many=False, read_only=True)
-    video = LessonVideoSerializer(many=False, read_only=True)
-    files = LessonFileListSerializer(many=False, read_only=True)
+    lecture = LessonLectureDetailSerializer(read_only=True)
+    testPOL = TestDataSerializer(read_only=True)
+    testCHL = TestDataSerializer(read_only=True)
+    taskABC = LessonTaskABCSerializer(read_only=True)
+    date = serializers.SerializerMethodField(read_only=True, source='get_date')
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'description', 'homework', 'video', 'files')
+        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC',)
 
-    # def to_representation(self, instance):
-    #     # course = CoursesListSerializer(instance=instance.course, many=False, read_only=True,
-    #     #                                 context={'request': self.context['request']})
-    #     return {'lessonType': instance.lessonType.name,
-    #             'shortDescription': instance.shortDescription,
-    #             'courseExamType': instance.description,
-    #             # 'course': course.data,
-    #             'lessonDate': instance.lessonDate,
-    #             }
+    def get_date(self, instance):
+        return instance.date.strftime('%d.%m.%Y')
 
 
-class LessonDetailForAPanelSerializer(serializers.ModelSerializer):
-    homework = HomeworkListSerializer()
-    video = LessonVideoForListSerializer()
-    files = LessonFilesForListSerializer()
+class LessonDataDetailSerializer(serializers.ModelSerializer):
+    lecture = LessonLectureDetailSerializer(read_only=True)
+    testPOL = TestDataDetailSerializer(read_only=True)
+    testCHL = TestDataDetailSerializer(read_only=True)
+    taskABC = LessonTaskABCSerializer(read_only=True)
+    date = serializers.SerializerMethodField(read_only=True, source='get_date')
 
     class Meta:
         model = LessonModel
-        exclude = ('description', 'is_active',)
+        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC',)
+
+    def get_date(self, instance):
+        return instance.date.strftime('%d.%m.%Y')
 
 
-class LessonListForAPanelSerializer(serializers.ModelSerializer):
-    # lessonList = LessonDetailForAPanelSerializer(read_only=True, many=True)
-    lessonDate = serializers.SerializerMethodField(read_only=True, source='get_lessonDate')
-    lessonList = serializers.SerializerMethodField(read_only=True, source='get_lessonList')
+# TODO: SERIALIZER LESSON APANEL
+
+class LessonLectureAPanelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LessonLectureModel
+        fields = ('id', 'name', 'time', 'isOpen',)
+
+
+class LessonTaskABCAPanelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LessonTaskABCModel
+        fields = ('id', 'name', 'description', 'isOpen',)
+
+
+class LessonAPanelSerializer(serializers.ModelSerializer):
+    lecture = LessonLectureAPanelSerializer(read_only=True)
+    testPOL = TestAPanelSerializer(read_only=True)
+    testCHL = TestAPanelSerializer(read_only=True)
+    taskABC = LessonTaskABCAPanelSerializer(read_only=True)
+    date = serializers.SerializerMethodField(read_only=True, source='get_date')
 
     class Meta:
-        model = LessonListModel
-        exclude = ('is_active',)
+        model = LessonModel
+        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen',)
 
-    def get_lessonDate(self, obj):
-        return obj.lessonDate.strftime('%d.%m.%Y %H:%M')
-
-    def get_lessonList(self, instance):
-        return LessonDetailForAPanelSerializer(many=True, instance=instance.lessonList.filter(is_active=True),
-                                                      context={'request': self.context['request']}).data
+    def get_date(self, instance):
+        return instance.date.strftime('%d.%m.%Y')
 
 
-class LessonListAddSerializer(serializers.ModelSerializer):
-    lessonDate = serializers.DateTimeField(required=True)
-    id = serializers.IntegerField(read_only=True)
+# TODO: SERIALIZER LESSON APANEL DETAIL
+
+class LessonLectureAPanelDetailSerializer(serializers.ModelSerializer):
+    files = LessonFileSerializer(read_only=True, many=True)
 
     class Meta:
-        model = LessonListModel
-        # fields = '__all__'
-        fields = ('lessonDate', 'id',)
+        model = LessonLectureModel
+        fields = ('id', 'name', 'description', 'time', 'video', 'files', 'isOpen',)
 
 
-class LessonAddSerializer(serializers.Serializer):
-    lessonType = serializers.CharField(required=True)
-    name = serializers.CharField(required=True)
-
-
-class LessonListEditSerializer(serializers.ModelSerializer):
-    lessonDate = serializers.DateTimeField(required=True)
-    isOpen = serializers.BooleanField(required=True)
+class LessonAPanelDetailSerializer(serializers.ModelSerializer):
+    lecture = LessonLectureAPanelDetailSerializer(read_only=False, required=False)
+    testPOL = TestAPanelDetailSerializer(read_only=False, required=False)
+    testCHL = TestAPanelDetailSerializer(read_only=False, required=False)
+    taskABC = LessonTaskABCAPanelSerializer(read_only=False, required=False)
+    date = serializers.SerializerMethodField(read_only=True, source='get_date', required=False)
+    date = serializers.DateField(write_only=True, required=False)
 
     class Meta:
-        model = LessonListModel
-        fields = ('lessonDate', 'isOpen',)
+        model = LessonModel
+        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen')
+
+    def get_date(self, instance):
+        return instance.date.strftime('%d.%m.%Y')
 
 
-class LessonEditSerializer(serializers.Serializer):
-    linkVideo = serializers.CharField(required=False)
-    name = serializers.CharField(required=True)
-    description = serializers.CharField(required=False)
-    isOpen = serializers.BooleanField(required=False)
+# TODO: SERIALIZER LESSON APANEL EDIT AND ADD
 
-    def update(self, instance, validated_data):
-        if instance.video:
-            instance.video.name = validated_data.get('name', instance.video.name)
-            try:
-                instance.video.linkVideo = validated_data.get('linkVideo', instance.video.linkVideo)
-            except:
-                pass
-            instance.video.save()
-        elif instance.files:
-            instance.files.name = validated_data.get('name', instance.files.name)
-            instance.files.save()
-        elif instance.homework:
-            instance.homework.name = validated_data.get('name', instance.homework.name)
-            instance.homework.save()
-        instance.description = validated_data.get('description', instance.description)
-        instance.isOpen = validated_data.get('isOpen', instance.isOpen)
-        instance.save()
-        return instance
+class LessonAPanelEditSerializer(serializers.ModelSerializer):
+    lecture = LessonLectureAPanelDetailSerializer(read_only=False, required=False)
+    testPOL = TestAPanelDetailSerializer(read_only=False, required=False)
+    testCHL = TestAPanelDetailSerializer(read_only=False, required=False)
+    taskABC = LessonTaskABCAPanelSerializer(read_only=False, required=False)
+    date = serializers.SerializerMethodField(read_only=False, source='get_date', required=False)
 
     class Meta:
-        fields = ('linkVideo', 'name', 'description', 'isOpen',)
+        model = LessonModel
+        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen')
+
+    def get_date(self, instance):
+        return instance.date.strftime('%d.%m.%Y')
+
+
+class LessonAPanelListAddSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(write_only=True, required=False)
+
+    class Meta:
+        model = LessonModel
+        fields = ('id', 'date', )
+
 
 class LessonFileAddSerializer(serializers.ModelSerializer):
     file = serializers.FileField(required=True)
-    # file_50x50 = serializers.FileField(read_only=True)
-    # file_200x200 = serializers.FileField(read_only=True)
     name = serializers.CharField(max_length=255, read_only=True)
 
     def validate(self, validated_data):
         validated_data['name'] = validated_data['file'].name
-        # validated_data['file_50x50'] = validated_data['file']
-        # validated_data['file_200x200'] = validated_data['file']
         return validated_data
-
-    # def create(self, validated_data):
-    #     AvatarUploader_object = UserAvatar.objects.create(**validated_data)
-    #     AvatarUploader_object.save()
-    #     userObject = User.objects.get(id=self.context['request'].user.id)
-    #     userObject.avatar_id = AvatarUploader_object
-    #     userObject.save()
-    #     return AvatarUploader_object
 
     class Meta:
         model = LessonFileModel
-        fields = ('id','file', 'name', )
-        # read_only_fields = ('name', 'file',)
+        fields = ('id', 'file', 'name',)

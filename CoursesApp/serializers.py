@@ -1,19 +1,13 @@
 from rest_framework import serializers
 
-import LessonApp.serializers
-from LessonApp.models import LessonModel
+
 from PurchaseApp.models import PurchaseListModel
 from TeachersApp.models import TeachersModel
 from UserProfileApp.serializers import UserMentorSerializer
 from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel, \
     CoursesSubCoursesModel
 from TeachersApp.serializers import TeacherDataForPurchaseSerializer
-from LessonApp.serializers import LessonListSerializer
-
-from rest_framework.utils.serializer_helpers import (
-    BindingDict, BoundField, JSONBoundField, NestedBoundField, ReturnDict,
-    ReturnList
-)
+from LessonApp.serializers import LessonDataSerializer
 
 
 class CoursesExamTypeSerializer(serializers.ModelSerializer):
@@ -63,7 +57,7 @@ class CoursesSubCoursesSerializer(serializers.ModelSerializer):
 
 
 class CoursesSubCoursesDetailSerializer(serializers.ModelSerializer):
-    lessons = LessonListSerializer(many=True, read_only=True)
+    lessons = LessonDataSerializer(many=True, read_only=True)
 
     class Meta:
         model = CoursesSubCoursesModel

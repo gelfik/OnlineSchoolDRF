@@ -1,26 +1,24 @@
 from django.contrib import admin
 
 # Register your models here.
-from LessonApp.models import LessonModel, LessonListModel, LessonFileListModel, LessonVideoModel, LessonFileModel
+from LessonApp.models import LessonModel, LessonTaskABCModel, LessonLectureModel, LessonFileModel
 
 
 @admin.register(LessonModel)
-class LessonList(admin.ModelAdmin):
-    list_display = ('homework', 'video', 'files', 'isOpen', 'is_active',)
+class LessonListAdmin(admin.ModelAdmin):
+    list_display = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen', 'is_active',)
 
 
-@admin.register(LessonListModel)
-class LessonList(admin.ModelAdmin):
-    list_display = ('lessonDate', 'isOpen', 'is_active',)
+@admin.register(LessonTaskABCModel)
+class LessonTaskABCAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'description', 'isOpen', 'is_active',)
 
-@admin.register(LessonVideoModel)
-class LessonVideo(admin.ModelAdmin):
-    list_display = ('name', 'linkVideo', 'is_active',)
+
+@admin.register(LessonLectureModel)
+class LessonLectureAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'time', 'description', 'video', 'isOpen', 'is_active',)
+
 
 @admin.register(LessonFileModel)
-class LessonFile(admin.ModelAdmin):
-    list_display = ('name', 'file', 'is_active',)
-
-@admin.register(LessonFileListModel)
-class LessonFileList(admin.ModelAdmin):
-    list_display = ('name', 'is_active',)
+class LessonFileAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'file', 'is_active',)

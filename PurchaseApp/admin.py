@@ -19,4 +19,4 @@ class PurchaseListAdmin(admin.ModelAdmin):
 
 @admin.register(PurchaseUserAnswerListModel)
 class PurchaseListAdmin(admin.ModelAdmin):
-    list_display = ('id', 'purchase', 'homework', 'is_active',)
+    list_display = ('id', 'purchase', 'test', 'is_active',)

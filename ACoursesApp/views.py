@@ -1,30 +1,30 @@
 from rest_framework import status, filters
-from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser, FileUploadParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
 from rest_framework.generics import get_object_or_404, ListAPIView, RetrieveAPIView
+from django.shortcuts import get_list_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth.models import Group
+from django.db.models import Q
 # Create your views here.
-from ACoursesApp.serializers import ACoursesCoursesDetailSerializer, ACoursesSubCoursesDetailSerializer, \
-    ACoursesLessonDetailSerializer
+from ACoursesApp.serializers import ACoursesCoursesDetailSerializer, ACoursesSubCoursesDetailSerializer
 from ACoursesApp.service import CoursesListFilter, CoursesPurchaseFilter
 from CoursesApp.models import CoursesListModel, CoursesPredmetModel, CoursesTypeModel, CoursesExamTypeModel, \
     CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCourseSerializer, \
     CoursesMetadataSerializer, CoursesAddSubCourseSerializer, CoursesEditCourseSerializer, \
     CoursesEditSubCourseSerializer
-from HomeworkApp.serializers import HomeworkAskAddInputSerializer, HomeworkAskAddSelectSerializer
-from LessonApp.models import LessonModel, LessonListModel, LessonVideoModel, LessonFileListModel
-from LessonApp.serializers import LessonListAddSerializer, LessonAddSerializer, LessonListEditSerializer, \
-    LessonEditSerializer, LessonFileAddSerializer
+from LessonApp.models import LessonModel, LessonLectureModel, LessonTaskABCModel
+from LessonApp.serializers import LessonFileAddSerializer, LessonAPanelDetailSerializer, LessonAPanelListAddSerializer
 from OnlineSchoolDRF.service import IsTeacherPermission
 from PurchaseApp.models import PurchaseListModel
 from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer
-from HomeworkApp.models import HomeworkListModel
+from TestApp.models import TestAskModel, TestAskAnswerSelectionModel, TestModel
+from TestApp.serializers import TestAskAPanelEditSerializer, TestAskAPanelAddSerializer
 from UserProfileApp.serializers import UserMentorSerializer
 from UserProfileApp.models import User
 
@@ -92,88 +92,22 @@ class ACoursesSubCourseAddAPIView(APIView):
                         status=status.HTTP_201_CREATED)
 
 
-class ACoursesLessonListAddAPIView(APIView):
+class ACoursesLessonListAddAPIView(CreateAPIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
-    serializer_class = LessonListAddSerializer
     renderer_classes = (JSONRenderer,)
+    serializer_class = LessonAPanelListAddSerializer
 
-    def post(self, request, *args, **kwargs):
-        # user = request.data.get('user', {})
-        serializer_data = {}
-        for i, item in enumerate(request.data):
-            data = request.data.get(item, None)
-            if data is not None:
-                serializer_data.update({f'{item}': data})
-        # Паттерн создания сериализатора, валидации и сохранения - довольно
-        # стандартный, и его можно часто увидеть в реальных проектах.
-        serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
+    def create(self, request, *args, **kwargs):
+        subCourse = get_object_or_404(CoursesSubCoursesModel, courseslistmodel__teacher__user=self.request.user,
+                                      courseslistmodel__id=self.kwargs['courseID'],
+                                      id=self.kwargs['subCourseID'])
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user)
-            subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
-        except:
-            return Response({'status': False, 'courseID': None, 'subCourseID': None, 'lessonListID': None,
-                             'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
-
-        subCourse.lessons.add(serializer.data['id'])
+        subCourse.lessons.add(LessonModel.objects.get(id=serializer.data['id']))
         subCourse.save()
-        return Response(
-            {'status': True, 'courseID': course.id, 'subCourseID': subCourse.id, 'lessonListID': serializer.data['id']},
-            status=status.HTTP_201_CREATED)
-
-
-class ACoursesLessonAddAPIView(APIView):
-    permission_classes = (IsAuthenticated, IsTeacherPermission)
-    serializer_class = LessonAddSerializer
-    renderer_classes = (JSONRenderer,)
-
-    def post(self, request, *args, **kwargs):
-        # user = request.data.get('user', {})
-        serializer_data = {}
-        for i, item in enumerate(request.data):
-            data = request.data.get(item, None)
-            if data is not None:
-                serializer_data.update({f'{item}': data})
-        # Паттерн создания сериализатора, валидации и сохранения - довольно
-        # стандартный, и его можно часто увидеть в реальных проектах.
-
-        try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user)
-            subCourse = course.subCourses.get(id=self.kwargs['subCourseID'])
-            lessonList = subCourse.lessons.get(id=self.kwargs['lessonListID'])
-        except:
-            return Response(
-                {'status': False, 'courseID': None, 'subCourseID': None, 'lessonListID': None, 'lessonID': None,
-                 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
-        serializer.is_valid(raise_exception=True)
-
-        createLesson = None
-        if str(serializer.data['lessonType']) == 'homework':
-            createLesson = LessonModel.objects.create(
-                homework=HomeworkListModel.objects.create(name=serializer.data['name']))
-            lessonList.lessonList.add(createLesson)
-        elif str(serializer.data['lessonType']) == 'files':
-            createLesson = LessonModel.objects.create(
-                files=LessonFileListModel.objects.create(name=serializer.data['name']))
-            lessonList.lessonList.add(createLesson)
-        elif str(serializer.data['lessonType']) == 'video':
-            createLesson = LessonModel.objects.create(
-                video=LessonVideoModel.objects.create(name=serializer.data['name']))
-            lessonList.lessonList.add(createLesson)
-
-        if not createLesson:
-            return Response(
-                {'status': False, 'courseID': None, 'subCourseID': None, 'lessonListID': None, 'lessonID': None,
-                 'error': 'Курс не найден!'}, status=status.HTTP_404_NOT_FOUND)
-
-        lessonList.save()
-
-        return Response(
-            {'status': True, 'courseID': course.id, 'subCourseID': subCourse.id, 'lessonListID': lessonList.id,
-             'lessonID': createLesson.id}, status=status.HTTP_201_CREATED)
+        return Response({'status': True, 'detail': 'Занятие добавлено!', 'id': serializer.data['id']},
+                        status=status.HTTP_201_CREATED)
 
 
 class ACoursesCourseEditAPIView(APIView):
@@ -250,149 +184,115 @@ class ACoursesLessonFileAddAPIView(APIView):
     renderer_classes = (JSONRenderer,)
     serializer_class = LessonFileAddSerializer
 
-    def get_object(self):
-        try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
-                                                  is_active=True)
-            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(
-                lessonList__id=self.kwargs['lessonID'])
-            return lessons.lessonList.get(id=self.kwargs['lessonID'], is_active=True)
-        except:
-            return None
-
     def put(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance is None or instance.files is None:
-            return Response({'status': False, 'detail': 'Урок не найден!'},
+        instance = get_object_or_404(LessonModel, lessons__courseslistmodel__teacher__user=self.request.user,
+                                   lessons__courseslistmodel__id=self.kwargs['courseID'],
+                                   lessons__id=self.kwargs['subCourseID'],
+                                   id=self.kwargs['lessonID'])
+        if instance is None or instance.lecture is None:
+            return Response({'status': False, 'detail': 'Занятие не найдено!'},
                             status=status.HTTP_404_NOT_FOUND)
         serializer = self.serializer_class(data=request.FILES,
                                            context={'request': self.request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            instance.files.fileList.add(serializer.data['id'])
+            instance.lecture.files.add(serializer.data['id'])
             instance.save()
             return Response({'status': True, 'detail': 'Файл добавлен успешно!'}, status=status.HTTP_200_OK)
         else:
             return Response({'status': False, 'detail': 'Ошибка при добавлении файла!'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-
-class ACoursesLessonHomeworkAddAPIView(APIView):
+class ACoursesLessonFileDetailAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
-    parser_classes = (MultiPartParser, JSONParser)
+    serializer_class = LessonAPanelDetailSerializer
 
-    def get_object(self):
-        try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
-                                                  is_active=True)
-            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(
-                lessonList__id=self.kwargs['lessonID'])
-            return lessons.lessonList.get(id=self.kwargs['lessonID'], is_active=True)
-        except:
-            return None
+    def get_queryset(self):
+        return LessonModel.objects.filter(is_active=True,
+                                          lessons__courseslistmodel__teacher__user=self.request.user,
+                                          lessons__courseslistmodel__id=self.kwargs['courseID'],
+                                          lessons__id=self.kwargs['subCourseID'],
+                                          id=self.kwargs['pk'], lecture__files__id=self.kwargs['fileID'])
 
-    def post(self, request, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance is None or instance.homework is None:
-            return Response({'status': False, 'detail': 'Урок не найден!'},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        serializer_data = {}
-        for i, item in enumerate(request.data):
-            data = request.data.get(item, None)
-            if data is not None:
-                serializer_data.update({f'{item}': data})
-        if 'askType' in serializer_data:
-            if serializer_data['askType'] == 'input':
-                self.serializer_class = HomeworkAskAddInputSerializer
-                serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
-                serializer.is_valid(raise_exception=True)
-                serializer.save(**serializer.validated_data)
-                instance.homework.askList.add(serializer.data.get('id'))
-                instance.save()
-                return Response({'status': True, 'detail': 'Успешно добавлено!'}, status=status.HTTP_200_OK)
-            elif serializer_data['askType'] == 'select':
-                if 'answerData' in serializer_data and len(serializer_data['answerData']) > 1:
-                    self.serializer_class = HomeworkAskAddSelectSerializer
-                    serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save(**serializer.validated_data)
-                    instance.homework.askList.add(serializer.data.get('id'))
-                    instance.save()
-                    return Response({'status': True, 'detail': 'Успешно добавлено!'}, status=status.HTTP_200_OK)
-                else:
-                    return Response({'status': False, 'detail': 'Нужно добавить минимум 2 варианта ответа!'},
-                                    status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response({'status': False, 'detail': 'Не верный тип вопроса!'},
-                                status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'status': False, 'detail': 'Не выбран тип вопроса!'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        file = instance.lecture.files.get(id=self.kwargs['fileID'])
+        file.is_active = False
+        file.save()
+        instance.lecture.files.remove(file)
+        instance.save()
+        return Response({'status': True, 'detail': 'Файл удален!'})
 
 
-class ACoursesLessonHomeworkEditAPIView(APIView):
+class ACoursesLessonAskAddAPIView(CreateAPIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
-    parser_classes = (MultiPartParser, JSONParser)
+    serializer_class = TestAskAPanelAddSerializer
 
-    def get_object(self):
-        try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
-                                                  is_active=True)
-            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(
-                lessonList__id=self.kwargs['lessonID']).lessonList.get(id=self.kwargs['lessonID'], is_active=True)
-            return lessons.homework.askList.get(id=self.kwargs['askID'])
-        except:
-            return None
-
-    def post(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance is None:
-            return Response({'status': False, 'detail': 'Вопрос не найден!'},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        serializer_data = {}
-        for i, item in enumerate(request.data):
-            data = request.data.get(item, None)
-            if data is not None:
-                serializer_data.update({f'{item}': data})
-        if 'askType' in serializer_data:
-            if serializer_data['askType'] == 'input':
-                self.serializer_class = HomeworkAskAddInputSerializer
-                serializer = self.serializer_class(instance=instance, data=serializer_data,
-                                                   context={'request': self.request})
-                serializer.is_valid(raise_exception=True)
-                serializer.save(**serializer.validated_data)
-                return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
-            elif serializer_data['askType'] == 'select':
-                if 'answerData' in serializer_data and len(serializer_data['answerData']) > 1:
-                    self.serializer_class = HomeworkAskAddSelectSerializer
-                    serializer = self.serializer_class(instance=instance, data=serializer_data,
-                                                       context={'request': self.request})
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save(**serializer.validated_data)
-                    return Response({'status': True, 'detail': 'Изменения внесены успешно!!'},
-                                    status=status.HTTP_200_OK)
-                else:
-                    return Response({'status': False, 'detail': 'Нужно добавить минимум 2 варианта ответа!'},
-                                    status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response({'status': False, 'detail': 'Не верный тип вопроса!'},
-                                status=status.HTTP_400_BAD_REQUEST)
+    def create(self, request, *args, **kwargs):
+        lesson = get_object_or_404(LessonModel, lessons__courseslistmodel__teacher__user=self.request.user,
+                                   lessons__courseslistmodel__id=self.kwargs['courseID'],
+                                   lessons__id=self.kwargs['subCourseID'],
+                                   id=self.kwargs['lessonID'])
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        testType = serializer.validated_data.pop('testType', None)
+        if testType == 'testPOL' or testType == 'testPOL':
+            answerList = serializer.validated_data.pop('answerList', None)
+            serializer.save()
+            testAsk = TestAskModel.objects.get(id=serializer.data['id'])
+            for i, item in enumerate(answerList):
+                obj, _ = TestAskAnswerSelectionModel.objects.get_or_create(**item)
+                testAsk.answerList.add(obj)
+                testAsk.save()
+            if testType == 'testPOL':
+                lesson.testPOL.askList.add(serializer.data['id'])
+            elif testType == 'testPOL':
+                lesson.testPOL.askList.add(serializer.data['id'])
+            lesson.save()
+            return Response({'status': True, 'detail': 'Вопрос добавлен!'}, status=status.HTTP_201_CREATED)
         else:
-            return Response({'status': False, 'detail': 'Не выбран тип вопроса!'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({'status': False, 'detail': 'Не передан тип теста!'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, *args, **kwargs):
+
+class ACoursesLessonAskDetailAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = TestAskAPanelEditSerializer
+
+    def get_queryset(self):
+        return TestAskModel.objects.filter(
+            (Q(testmodel__testCHL_set__lessons__courseslistmodel__teacher__user=self.request.user) |
+             Q(testmodel__testPOL_set__lessons__courseslistmodel__teacher__user=self.request.user)),
+            (Q(testmodel__testCHL_set__lessons__courseslistmodel__id=self.kwargs['courseID']) |
+             Q(testmodel__testPOL_set__lessons__courseslistmodel__id=self.kwargs['courseID'])),
+            (Q(testmodel__testCHL_set__lessons__id=self.kwargs['subCourseID']) |
+             Q(testmodel__testPOL_set__lessons__id=self.kwargs['subCourseID'])),
+            (Q(testmodel__testCHL_set__id=self.kwargs['lessonID']) |
+             Q(testmodel__testPOL_set__id=self.kwargs['lessonID']))
+        )
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        if instance is None:
-            return Response({'status': False, 'detail': 'Вопрос не найден!'}, status=status.HTTP_404_NOT_FOUND)
-        # instance.delete()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        answerList = serializer.validated_data.pop('answerList', None)
+        serializer.save()
+        for i, item in enumerate(answerList):
+            obj, _ = TestAskAnswerSelectionModel.objects.get_or_create(**item)
+            instance.answerList.add(obj)
+            instance.save()
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+        return Response({'status': True, 'detail': 'Изменения внесены успешно!'})
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
         instance.is_active = False
         instance.save()
-        return Response({'status': True, 'detail': 'Вопрос удален успешно!'}, status=status.HTTP_200_OK)
+        return Response({'status': True, 'detail': 'Вопрос удален!'})
 
 
 class ACoursesSubCourseEditAPIView(APIView):
@@ -442,102 +342,142 @@ class ACoursesSubCourseEditAPIView(APIView):
         return Response({'status': True, 'detail': 'Подкурс удален успешно!'}, status=status.HTTP_200_OK)
 
 
-class ACoursesLessonListEditAPIView(APIView):
+class ACoursesLessonDetailAPIView(RetrieveUpdateDestroyAPIView, CreateAPIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
-    serializer_class = LessonListEditSerializer
+    serializer_class = LessonAPanelDetailSerializer
+    pagination_class = None
 
-    # def get_queryset(self):
-    #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
+    def get_queryset(self):
+        return LessonModel.objects.filter(is_active=True,
+                                          lessons__courseslistmodel__teacher__user=self.request.user,
+                                          lessons__courseslistmodel__id=self.kwargs['courseID'],
+                                          lessons__id=self.kwargs['subCourseID'],
+                                          id=self.kwargs['pk'])
 
-    def get_object(self):
-        try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
-                                                  is_active=True)
-            subCourse = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True)
-
-            return subCourse.lessons.get(id=self.kwargs['lessonListID'], is_active=True)
-        except:
-            return None
-
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance is None:
-            return Response({'status': False, 'detail': 'Занятие не найдено!'},
-                            status=status.HTTP_404_NOT_FOUND)
-        # if instance.lessonList.filter(isOpen=True).count() <= 0:
-        #     return Response({'status': False, 'detail': 'У вас нет уроков или они закрыты!'},
-        #                     status=status.HTTP_404_NOT_FOUND)
-        serializer_data = {}
-        for i, item in enumerate(request.data):
-            data = request.data.get(item, None)
-            if data is not None:
-                serializer_data.update({f'{item}': data})
-        serializer = self.serializer_class(instance=instance, data=serializer_data,
-                                           context={'request': self.request})
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance is None:
-            return Response({'status': False, 'detail': 'Занятие не найдено!'}, status=status.HTTP_404_NOT_FOUND)
-        # instance.delete()
-        instance.is_active = False
+        serializer = self.get_serializer(instance=instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        lecture = serializer.validated_data.pop('lecture', None)
+        testPOL = serializer.validated_data.pop('testPOL', None)
+        testCHL = serializer.validated_data.pop('testCHL', None)
+        taskABC = serializer.validated_data.pop('taskABC', None)
+        serializer.save()
+        if lecture:
+            instance.lecture = LessonLectureModel.objects.create(**lecture)
+        elif testPOL:
+            instance.testPOL = TestModel.objects.create(**testPOL)
+        elif testCHL:
+            instance.testCHL = TestModel.objects.create(**testCHL)
+        elif taskABC:
+            instance.taskABC = LessonTaskABCModel.objects.create(**taskABC)
         instance.save()
-        return Response({'status': True, 'detail': 'Занятие удалено успешно!'}, status=status.HTTP_200_OK)
+        return Response({'status': True, 'detail': 'Занятие добавлено!', 'id': serializer.data['id']},
+                        status=status.HTTP_201_CREATED)
 
-
-class ACoursesLessonEditAPIView(APIView):
-    permission_classes = (IsAuthenticated, IsTeacherPermission)
-    renderer_classes = (JSONRenderer,)
-    serializer_class = LessonEditSerializer
-
-    # def get_queryset(self):
-    #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
-
-    def get_object(self):
-        try:
-            course = CoursesListModel.objects.get(id=self.kwargs['courseID'], teacher__user=self.request.user,
-                                                  is_active=True)
-            lessons = course.subCourses.get(id=self.kwargs['subCourseID'], is_active=True).lessons.get(
-                lessonList__id=self.kwargs['lessonID'])
-            return lessons.lessonList.get(id=self.kwargs['lessonID'], is_active=True)
-        except:
-            return None
-
-    def post(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        if instance is None:
-            return Response({'status': False, 'detail': 'Урок не найден!'},
-                            status=status.HTTP_404_NOT_FOUND)
-        serializer_data = {}
-        for i, item in enumerate(request.data):
-            data = request.data.get(item, None)
-            if data is not None:
-                serializer_data.update({f'{item}': data})
-        serializer = self.serializer_class(data=serializer_data,
-                                           context={'request': self.request})
-        if serializer.is_valid(raise_exception=True):
-            serializer.update(instance=instance, validated_data=serializer.validated_data)
-            instance.save()
-            return Response({'status': True, 'detail': 'Изменения внесены успешно!'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'status': False, 'detail': 'Ошибка при внесении изменений!'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        lecture = serializer.validated_data.pop('lecture', None)
+        testPOL = serializer.validated_data.pop('testPOL', None)
+        testCHL = serializer.validated_data.pop('testCHL', None)
+        taskABC = serializer.validated_data.pop('taskABC', None)
+        isOpen = serializer.validated_data.pop('isOpen', None)
+        serializer.save()
+        if lecture:
+            for i, item in enumerate(lecture):
+                setattr(instance.lecture, f'{item}', lecture[f'{item}'])
+                instance.lecture.save()
+        elif testPOL:
+            for i, item in enumerate(testPOL):
+                if item == 'isOpen' and testPOL[f'{item}']:
+                    if instance.testPOL.askList.count() > 0:
+                        setattr(instance.testPOL, f'{item}', testPOL[f'{item}'])
+                    else:
+                        return Response({'status': False, 'detail': 'Вы не можете открыть тест без вопросов!'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    setattr(instance.testPOL, f'{item}', testPOL[f'{item}'])
+                instance.testPOL.save()
+        elif testCHL:
+            for i, item in enumerate(testCHL):
+                if item == 'isOpen' and testCHL[f'{item}']:
+                    if instance.testCHL.askList.count() > 0:
+                        setattr(instance.testCHL, f'{item}', testCHL[f'{item}'])
+                    else:
+                        return Response({'status': False, 'detail': 'Вы не можете открыть тест без вопросов!'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    setattr(instance.testCHL, f'{item}', testCHL[f'{item}'])
+                instance.testCHL.save()
+        elif taskABC:
+            for i, item in enumerate(taskABC):
+                setattr(instance.taskABC, f'{item}', taskABC[f'{item}'])
+                instance.taskABC.save()
 
-    def delete(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance is None:
-            return Response({'status': False, 'detail': 'Урок не найден!'}, status=status.HTTP_404_NOT_FOUND)
-        # instance.delete()
-        instance.is_active = False
+        if isOpen:
+            if instance.testPOL and instance.testCHL and instance.taskABC and instance.lecture:
+                if instance.testPOL.isOpen and instance.testCHL.isOpen and instance.taskABC.isOpen and instance.lecture.isOpen:
+                    instance.isOpen = True
+                else:
+                    return Response({'status': False,
+                                     'detail': 'Откройте все материалы, перед открытием занятия!'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            elif instance.lecture and not (instance.testPOL or instance.testCHL or instance.taskABC):
+                if instance.lecture.isOpen:
+                    instance.isOpen = True
+                else:
+                    return Response({'status': False, 'detail': 'Откройте лекцию, перед открытием занятия!'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            elif (instance.testPOL or instance.testCHL or instance.taskABC) and not instance.lecture:
+                if instance.testPOL.isOpen and instance.testCHL.isOpen and instance.taskABC.isOpen:
+                    instance.isOpen = True
+                else:
+                    return Response({'status': False, 'detail': 'Откройте все тесты, перед открытием занятия!'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({'status': False, 'detail': 'Откройте все материалы, перед открытием занятия!'},
+                                status=status.HTTP_400_BAD_REQUEST)
         instance.save()
-        return Response({'status': True, 'detail': 'Урок удален успешно!'}, status=status.HTTP_200_OK)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+        # return Response({'status': True, 'detail': 'Изменения внесены успешно!'})
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        def deleteTest(instance, type):
+            instanceType = getattr(instance, type)
+            if (instance.testPOL and instance.testPOL.isOpen) or (instance.testCHL and instance.testCHL.isOpen) or (
+                    instance.taskABC and instance.taskABC.isOpen):
+                return Response(
+                    {'status': False, 'detail': 'Вы не можете удалить занятие, так как имеется открытое задание!'},
+                    status=status.HTTP_400_BAD_REQUEST)
+            else:
+                instanceType.is_active = False
+                instanceType.save()
+                instanceType = None
+            setattr(instance, f'{type}', instanceType)
+            return instance
+
+        instance = self.get_object()
+        if self.request.query_params.get('lecture', None):
+            instance.lecture.is_active = False
+            instance.lecture.save()
+            instance.lecture = None
+        elif self.request.query_params.get('testPOL', None):
+            instance = deleteTest(instance, 'testPOL')
+        elif self.request.query_params.get('testCHL', None):
+            instance = deleteTest(instance, 'testCHL')
+        elif self.request.query_params.get('taskABC', None):
+            instance = deleteTest(instance, 'taskABC')
+        else:
+            instance.is_active = False
+        instance.save()
+        return Response({'status': True, 'detail': 'Занятие удалено!'})
 
 
 class ACoursesCourseMetadataAPIView(APIView):
@@ -587,24 +527,6 @@ class ACoursesSubCourseDetailAPIView(RetrieveAPIView):
         return CoursesSubCoursesModel.objects.filter(is_active=True,
                                                      courseslistmodel__teacher__user=self.request.user,
                                                      courseslistmodel=self.kwargs['courseID'])
-
-
-class ACoursesLessonDetailAPIView(RetrieveAPIView):
-    permission_classes = (IsAuthenticated, IsTeacherPermission)
-    renderer_classes = (JSONRenderer,)
-    serializer_class = ACoursesLessonDetailSerializer
-    pagination_class = None
-
-    def get_queryset(self):
-        try:
-            subCourse = CoursesSubCoursesModel.objects.get(is_active=True,
-                                                           courseslistmodel__teacher__user=self.request.user,
-                                                           courseslistmodel=self.kwargs['courseID'],
-                                                           id=self.kwargs['subCourseID'])
-            return subCourse.lessons.get(is_active=True, lessonList__id=self.kwargs['pk']).lessonList.filter(
-                is_active=True)
-        except:
-            pass
 
 
 class ACoursesMentorListAPIView(ListAPIView):

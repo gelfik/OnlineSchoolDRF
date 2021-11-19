@@ -8,8 +8,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .serializers import CoursesListSerializer, FilterDataSerializer, CoursesDetailForPurchaseSerializer, CoursesDetail, \
-    CoursesForPurchaseSerializer, CoursesForCourseSerializer, CoursesSubCoursesDetailSerializer
+from .serializers import CoursesListSerializer, FilterDataSerializer, CoursesForCourseSerializer
 from .models import CoursesListModel, CoursesExamTypeModel, CoursesPredmetModel, CoursesTypeModel
 from .service import CoursesListFilter, PaginationCourses
 

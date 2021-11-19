@@ -2,8 +2,9 @@ from django.db import models
 
 # Create your models here.
 import LessonApp.models
-from HomeworkApp.models import HomeworkAskModel, HomeworkListModel, HomeworkAskAnswerSelectionOnListAnswersModel, \
-    HomeworkAskAnswerTextInputModel
+# from HomeworkApp.models import HomeworkAskModel, HomeworkListModel, HomeworkAskAnswerSelectionOnListAnswersModel, \
+#     HomeworkAskAnswerTextInputModel
+from TestApp.models import TestModel, TestAskModel, TestAskAnswerSelectionModel
 from UserProfileApp.models import User
 from CoursesApp.models import CoursesListModel, CoursesSubCoursesModel
 from PromocodeApp.models import PromocodeListModel
@@ -50,9 +51,9 @@ class PurchaseListModel(models.Model):
 
 
 class PurchaseUserAnswerModel(models.Model):
-    ask = models.ForeignKey(HomeworkAskModel, on_delete=models.CASCADE,
+    ask = models.ForeignKey(TestAskModel, on_delete=models.CASCADE,
                                     verbose_name='Вопрос', default=None, null=True, blank=True)
-    answerList = models.ManyToManyField(HomeworkAskAnswerSelectionOnListAnswersModel, verbose_name='Ответы с выбором',
+    answerList = models.ManyToManyField(TestAskAnswerSelectionModel, verbose_name='Ответы с выбором',
                                         default=None, blank=True)
     answerInput = models.TextField('Ответ текстом', default=None, null=True, blank=True)
     answerValid = models.BooleanField('Статус решения', default=False, blank=True)
@@ -64,12 +65,13 @@ class PurchaseUserAnswerModel(models.Model):
         db_table = 'PurchaseUserAnswer'
 
     def __str__(self):
-        return f'{self.ask}'
+        return f'{self.id}'
 
 
 class PurchaseUserAnswerListModel(models.Model):
     purchase = models.ForeignKey(PurchaseListModel, on_delete=models.CASCADE, verbose_name='Покупка', default=None)
-    homework = models.ForeignKey(HomeworkListModel, on_delete=models.CASCADE, verbose_name='Домашка', default=None)
+    # homework = models.ForeignKey(HomeworkListModel, on_delete=models.CASCADE, verbose_name='Домашка', default=None)
+    test = models.ForeignKey(TestModel, on_delete=models.CASCADE, verbose_name='Домашка', default=None)
     answerData = models.ManyToManyField(PurchaseUserAnswerModel, verbose_name='Ответы', default=None, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
@@ -79,4 +81,4 @@ class PurchaseUserAnswerListModel(models.Model):
         db_table = 'PurchaseUserAnswerList'
 
     def __str__(self):
-        return f'{self.purchase} {self.homework}'
+        return f'{self.purchase}'

@@ -13,8 +13,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from CoursesApp.models import CoursesListModel, CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesSubCoursesDetailSerializer
-from HomeworkApp.models import HomeworkListModel
-from LessonApp.models import LessonListModel, LessonModel
+from LessonApp.models import LessonModel
 from LessonApp.serializers import LessonDetailSerializer
 from PromocodeApp.models import PromocodeListModel
 from .serializers import PurchaseListSerializer, PurchaseDetailSerializer, PurchaseCheckBuySerializer, \

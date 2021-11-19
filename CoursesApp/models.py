@@ -3,7 +3,7 @@ import os, uuid
 from django.db import models
 from django.utils.timezone import now as django_datetime_now
 from TeachersApp.models import TeachersModel
-from LessonApp.models import LessonModel, LessonListModel
+from LessonApp.models import LessonModel
 from UserProfileApp.models import User
 
 # from stdimage import StdImageField
@@ -59,7 +59,7 @@ class CoursesSubCoursesModel(models.Model):
     name = models.CharField('Название', default=None, max_length=255, null=True)
     startDate = models.DateField('Дата начала подкурса', default=django_datetime_now)
     endDate = models.DateField('Дата окончания подкурса', default=django_datetime_now)
-    lessons = models.ManyToManyField(LessonListModel, 'Уроки', default=None, blank=True)
+    lessons = models.ManyToManyField(LessonModel, verbose_name='Уроки', related_name="lessons", default=None, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:

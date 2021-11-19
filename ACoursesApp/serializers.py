@@ -2,9 +2,8 @@ from rest_framework import serializers
 
 from CoursesApp.models import CoursesListModel, CoursesSubCoursesModel
 from CoursesApp.serializers import CoursesSubCoursesSerializer
-from HomeworkApp.serializers import HomeworkListAnswerSerializer
 from LessonApp.models import LessonModel
-from LessonApp.serializers import LessonListForAPanelSerializer, LessonVideoSerializer, LessonFileListSerializer
+from LessonApp.serializers import LessonAPanelSerializer, LessonAPanelDetailSerializer
 from UserProfileApp.serializers import UserMentorSerializer
 
 
@@ -52,14 +51,12 @@ class ACoursesSubCoursesDetailSerializer(serializers.ModelSerializer):
         exclude = ('is_active',)
 
     def get_lessons(self, instance):
-        return LessonListForAPanelSerializer(many=True, instance=instance.lessons.filter(is_active=True),
+        return LessonAPanelSerializer(many=True, instance=instance.lessons.filter(is_active=True),
                                                       context={'request': self.context['request']}).data
 
 
 class ACoursesLessonDetailSerializer(serializers.ModelSerializer):
-    homework = HomeworkListAnswerSerializer(many=False, read_only=True)
-    video = LessonVideoSerializer(many=False, read_only=True)
-    files = LessonFileListSerializer(many=False, read_only=True)
+    lessons = LessonAPanelDetailSerializer(many=True, read_only=True)
 
     class Meta:
         model = LessonModel
