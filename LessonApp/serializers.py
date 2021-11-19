@@ -22,18 +22,13 @@ class LessonLectureSerializer(serializers.ModelSerializer):
 class LessonTaskABCSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonTaskABCModel
-        fields = ('id', 'name', 'description',)
+        fields = ('id', 'name',)
 
 
 class LessonSerializer(serializers.ModelSerializer):
-    date = serializers.SerializerMethodField(read_only=True, source='get_date')
-
     class Meta:
         model = LessonModel
         fields = ('id', 'date',)
-
-    def get_date(self, instance):
-        return instance.date.strftime('%d.%m.%Y')
 
 
 class LessonDataSerializer(serializers.ModelSerializer):
@@ -41,17 +36,18 @@ class LessonDataSerializer(serializers.ModelSerializer):
     testPOL = TestDataSerializer(read_only=True)
     testCHL = TestDataSerializer(read_only=True)
     taskABC = LessonTaskABCSerializer(read_only=True)
-    date = serializers.SerializerMethodField(read_only=True, source='get_date')
 
     class Meta:
         model = LessonModel
         fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC',)
 
-    def get_date(self, instance):
-        return instance.date.strftime('%d.%m.%Y')
-
 
 # TODO: SERIALIZER LESSON DETAIL
+
+class LessonTaskABCDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LessonTaskABCModel
+        fields = ('id', 'name', 'description',)
 
 class LessonLectureDetailSerializer(serializers.ModelSerializer):
     files = LessonFileSerializer(read_only=True, many=True)
@@ -65,30 +61,22 @@ class LessonDetailSerializer(serializers.ModelSerializer):
     lecture = LessonLectureDetailSerializer(read_only=True)
     testPOL = TestDataSerializer(read_only=True)
     testCHL = TestDataSerializer(read_only=True)
-    taskABC = LessonTaskABCSerializer(read_only=True)
-    date = serializers.SerializerMethodField(read_only=True, source='get_date')
+    taskABC = LessonTaskABCDetailSerializer(read_only=True)
 
     class Meta:
         model = LessonModel
         fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC',)
-
-    def get_date(self, instance):
-        return instance.date.strftime('%d.%m.%Y')
 
 
 class LessonDataDetailSerializer(serializers.ModelSerializer):
     lecture = LessonLectureDetailSerializer(read_only=True)
     testPOL = TestDataDetailSerializer(read_only=True)
     testCHL = TestDataDetailSerializer(read_only=True)
-    taskABC = LessonTaskABCSerializer(read_only=True)
-    date = serializers.SerializerMethodField(read_only=True, source='get_date')
+    taskABC = LessonTaskABCDetailSerializer(read_only=True)
 
     class Meta:
         model = LessonModel
         fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC',)
-
-    def get_date(self, instance):
-        return instance.date.strftime('%d.%m.%Y')
 
 
 # TODO: SERIALIZER LESSON APANEL
@@ -110,14 +98,10 @@ class LessonAPanelSerializer(serializers.ModelSerializer):
     testPOL = TestAPanelSerializer(read_only=True)
     testCHL = TestAPanelSerializer(read_only=True)
     taskABC = LessonTaskABCAPanelSerializer(read_only=True)
-    date = serializers.SerializerMethodField(read_only=True, source='get_date')
 
     class Meta:
         model = LessonModel
         fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen',)
-
-    def get_date(self, instance):
-        return instance.date.strftime('%d.%m.%Y')
 
 
 # TODO: SERIALIZER LESSON APANEL DETAIL
@@ -135,15 +119,11 @@ class LessonAPanelDetailSerializer(serializers.ModelSerializer):
     testPOL = TestAPanelDetailSerializer(read_only=False, required=False)
     testCHL = TestAPanelDetailSerializer(read_only=False, required=False)
     taskABC = LessonTaskABCAPanelSerializer(read_only=False, required=False)
-    date = serializers.SerializerMethodField(read_only=True, source='get_date', required=False)
-    date = serializers.DateField(write_only=True, required=False)
+    date = serializers.DateField(required=False)
 
     class Meta:
         model = LessonModel
         fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen')
-
-    def get_date(self, instance):
-        return instance.date.strftime('%d.%m.%Y')
 
 
 # TODO: SERIALIZER LESSON APANEL EDIT AND ADD
@@ -153,14 +133,10 @@ class LessonAPanelEditSerializer(serializers.ModelSerializer):
     testPOL = TestAPanelDetailSerializer(read_only=False, required=False)
     testCHL = TestAPanelDetailSerializer(read_only=False, required=False)
     taskABC = LessonTaskABCAPanelSerializer(read_only=False, required=False)
-    date = serializers.SerializerMethodField(read_only=False, source='get_date', required=False)
 
     class Meta:
         model = LessonModel
         fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen')
-
-    def get_date(self, instance):
-        return instance.date.strftime('%d.%m.%Y')
 
 
 class LessonAPanelListAddSerializer(serializers.ModelSerializer):
@@ -168,7 +144,7 @@ class LessonAPanelListAddSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'date', )
+        fields = ('id', 'date',)
 
 
 class LessonFileAddSerializer(serializers.ModelSerializer):
@@ -182,3 +158,22 @@ class LessonFileAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonFileModel
         fields = ('id', 'file', 'name',)
+
+# TODO: SERIALIZER LESSON PURCHASE
+
+class LessonPurchaseLectureDetailSerializer(serializers.ModelSerializer):
+    files = LessonFileSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = LessonLectureModel
+        fields = ('id', 'name', 'time', 'description', 'video', 'files',)
+
+class LessonPurchaseDetailSerializer(serializers.ModelSerializer):
+    lecture = LessonPurchaseLectureDetailSerializer(many=False, read_only=True)
+    testPOL = TestDataSerializer(many=False, read_only=True)
+    testCHL = TestDataSerializer(many=False, read_only=True)
+    taskABC = LessonTaskABCDetailSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = LessonModel
+        fields = ('id', 'lecture', 'testPOL', 'testCHL', 'taskABC',)

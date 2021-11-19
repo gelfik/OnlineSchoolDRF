@@ -23,7 +23,7 @@ urlpatterns = [
     # path('<int:purchaseID>/sub/<int:subID>/lesson/<int:lessonID>/homework/<int:homeworkID>/', PurchaseHomeworkDetailAPIView.as_view()),
     path('/purchaseBuy', PurchaseBuyPurchaseAPIView.as_view()),
     path('<int:purchaseID>/homework<int:homeworkID>', PurchaseHomeworkDetailAPIView.as_view()),
-    path('<int:purchaseID>/sub<int:subID>/lesson<int:lessonID>', PurchaseLessonDetailAPIView.as_view()),
+    path('<int:purchaseID>/sub<int:subID>/lesson<int:pk>', PurchaseLessonDetailAPIView.as_view()),
     path('<int:purchaseID>/sub<int:subID>', PurchaseSubDetailAPIView.as_view()),
     path('/list', PurchaseListAPIView.as_view()),
     path('<int:pk>', PurchaseDetailAPIView.as_view()),

@@ -17,7 +17,7 @@ class PurchasePayModel(models.Model):
     promocode = models.ForeignKey(PromocodeListModel, on_delete=models.CASCADE, verbose_name='Промокод',
                                default=None, null=True, blank=True)
     payStatus = models.BooleanField('Статус оплаты', default=False)
-
+    # courseSub = models.ForeignKey(CoursesSubCoursesModel, on_delete=models.CASCADE, verbose_name='Подкурсы')
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:
@@ -70,8 +70,7 @@ class PurchaseUserAnswerModel(models.Model):
 
 class PurchaseUserAnswerListModel(models.Model):
     purchase = models.ForeignKey(PurchaseListModel, on_delete=models.CASCADE, verbose_name='Покупка', default=None)
-    # homework = models.ForeignKey(HomeworkListModel, on_delete=models.CASCADE, verbose_name='Домашка', default=None)
-    test = models.ForeignKey(TestModel, on_delete=models.CASCADE, verbose_name='Домашка', default=None)
+    test = models.ForeignKey(TestModel, on_delete=models.CASCADE, verbose_name='Тест', default=None)
     answerData = models.ManyToManyField(PurchaseUserAnswerModel, verbose_name='Ответы', default=None, blank=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 

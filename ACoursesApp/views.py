@@ -15,9 +15,9 @@ from ACoursesApp.serializers import ACoursesCoursesDetailSerializer, ACoursesSub
 from ACoursesApp.service import CoursesListFilter, CoursesPurchaseFilter
 from CoursesApp.models import CoursesListModel, CoursesPredmetModel, CoursesTypeModel, CoursesExamTypeModel, \
     CoursesSubCoursesModel
-from CoursesApp.serializers import CoursesForApanelListSerializer, CoursesAddCourseSerializer, \
-    CoursesMetadataSerializer, CoursesAddSubCourseSerializer, CoursesEditCourseSerializer, \
-    CoursesEditSubCourseSerializer
+from CoursesApp.serializers import CoursesApanelSerializer, CoursesAddSerializer, \
+    CoursesMetadataSerializer, CoursesSubAddSerializer, CoursesEditSerializer, \
+    CoursesSubEditSerializer
 from LessonApp.models import LessonModel, LessonLectureModel, LessonTaskABCModel
 from LessonApp.serializers import LessonFileAddSerializer, LessonAPanelDetailSerializer, LessonAPanelListAddSerializer
 from OnlineSchoolDRF.service import IsTeacherPermission
@@ -32,7 +32,7 @@ from UserProfileApp.models import User
 class ACoursesCourseListAPIView(ListAPIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
-    serializer_class = CoursesForApanelListSerializer
+    serializer_class = CoursesApanelSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = CoursesListFilter
     pagination_class = None
@@ -45,7 +45,7 @@ class ACoursesCourseListAPIView(ListAPIView):
 
 class ACoursesCourseAddAPIView(APIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
-    serializer_class = CoursesAddCourseSerializer
+    serializer_class = CoursesAddSerializer
     renderer_classes = (JSONRenderer,)
 
     def post(self, request):
@@ -65,7 +65,7 @@ class ACoursesCourseAddAPIView(APIView):
 
 class ACoursesSubCourseAddAPIView(APIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
-    serializer_class = CoursesAddSubCourseSerializer
+    serializer_class = CoursesSubAddSerializer
     renderer_classes = (JSONRenderer,)
 
     def post(self, request, *args, **kwargs):
@@ -113,7 +113,7 @@ class ACoursesLessonListAddAPIView(CreateAPIView):
 class ACoursesCourseEditAPIView(APIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
-    serializer_class = CoursesEditCourseSerializer
+    serializer_class = CoursesEditSerializer
 
     # def get_queryset(self):
     #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
@@ -238,7 +238,7 @@ class ACoursesLessonAskAddAPIView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         testType = serializer.validated_data.pop('testType', None)
-        if testType == 'testPOL' or testType == 'testPOL':
+        if testType == 'testPOL' or testType == 'testCHL':
             answerList = serializer.validated_data.pop('answerList', None)
             serializer.save()
             testAsk = TestAskModel.objects.get(id=serializer.data['id'])
@@ -248,8 +248,8 @@ class ACoursesLessonAskAddAPIView(CreateAPIView):
                 testAsk.save()
             if testType == 'testPOL':
                 lesson.testPOL.askList.add(serializer.data['id'])
-            elif testType == 'testPOL':
-                lesson.testPOL.askList.add(serializer.data['id'])
+            elif testType == 'testCHL':
+                lesson.testCHL.askList.add(serializer.data['id'])
             lesson.save()
             return Response({'status': True, 'detail': 'Вопрос добавлен!'}, status=status.HTTP_201_CREATED)
         else:
@@ -298,7 +298,7 @@ class ACoursesLessonAskDetailAPIView(RetrieveUpdateDestroyAPIView):
 class ACoursesSubCourseEditAPIView(APIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
-    serializer_class = CoursesEditSubCourseSerializer
+    serializer_class = CoursesSubEditSerializer
 
     # def get_queryset(self):
     #     return CoursesListModel.objects.filter(is_active=True, teacher__user=self.request.user)
@@ -543,7 +543,7 @@ class ACoursesMentorListAPIView(ListAPIView):
 class ACoursesCourseMentorAPIView(APIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
-    serializer_class = CoursesEditCourseSerializer
+    serializer_class = CoursesEditSerializer
 
     def post(self, request, *args, **kwargs):
         instance = get_object_or_404(CoursesListModel, is_active=True, teacher__user=self.request.user,
