@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 # Register your models here.
-from LessonApp.models import LessonModel, LessonTaskABCModel, LessonLectureModel, LessonFileModel
+from LessonApp.models import LessonModel, LessonTaskABCModel, LessonLectureModel, LessonFileModel, \
+    LessonTaskAnswerUserModel, LessonResultUserModel
 
 
 @admin.register(LessonModel)
@@ -22,3 +23,13 @@ class LessonLectureAdmin(admin.ModelAdmin):
 @admin.register(LessonFileModel)
 class LessonFileAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'file', 'is_active',)
+
+
+@admin.register(LessonTaskAnswerUserModel)
+class LessonTaskAnswerUserAdmin(admin.ModelAdmin):
+    list_display = ('id', 'task', 'result', 'is_active',)
+
+
+@admin.register(LessonResultUserModel)
+class LessonResultUserAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'testPOL', 'testCHL', 'taskABC', 'isValid', 'is_active',)

@@ -3,24 +3,21 @@ import math
 
 from django.http import JsonResponse, Http404
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.generics import get_object_or_404, RetrieveUpdateAPIView, CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from django_filters.rest_framework import DjangoFilterBackend
 
 from CoursesApp.models import CoursesListModel, CoursesSubCoursesModel
-from CoursesApp.serializers import CoursesSubCoursesDetailSerializer
 from LessonApp.models import LessonModel
-from LessonApp.serializers import LessonDetailSerializer, LessonDataDetailSerializer, LessonDataSerializer, \
-    LessonPurchaseDetailSerializer
+from LessonApp.serializers import LessonPurchaseDetailSerializer
 from PromocodeApp.models import PromocodeListModel
+from TestApp.models import TestAnswerUserListModel, TestAnswerUserModel, TestAskAnswerSelectionModel
 from .serializers import PurchaseListSerializer, PurchaseDetailSerializer, PurchaseCheckBuySerializer, \
-    PurchaseUserAnswerListDetailSerializer, PurchaseSubCoursesDetailSerializer, \
-    PurchaseSubCoursesNotBuySerializer, PurchaseCoursesForCourseSerializer
-from .models import PurchaseListModel, PurchasePayModel, PurchaseUserAnswerListModel, PurchaseUserAnswerModel
+    PurchaseSubCoursesDetailSerializer, PurchaseCoursesForCourseSerializer, PurchaseTestAnswerCreateSerializer
+from .models import PurchaseListModel, PurchasePayModel
 
 from UserProfileApp.models import User
 
@@ -67,6 +64,7 @@ class PurchaseCheckBuyAPIView(APIView):
         else:
             return Response({'status': False}, status=status.HTTP_200_OK)
 
+
 class PurchaseForPurchaseAPIView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
@@ -75,6 +73,7 @@ class PurchaseForPurchaseAPIView(RetrieveAPIView):
 
     def get_queryset(self):
         return PurchaseListModel.objects.filter(is_active=True, user=self.request.user)
+
 
 class PurchaseListAPIView(ListAPIView):
     permission_classes = (IsAuthenticated,)
@@ -93,11 +92,12 @@ class PurchaseDetailAPIView(RetrieveAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        queryset = PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user, course__draft=False)
+        queryset = PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user,
+                                                                   course__draft=False)
         try:
             if queryset.count() > 0:
                 data = queryset[0]
-                if data.course.subCourses.exclude(id__in=data.courseSub.all()).count() == 0:
+                if data.course.subCourses.exclude(id__in=data.pay.values_list('courseSub', flat=True)).count() == 0:
                     data.courseSubAll = True
                     data.save()
                 else:
@@ -109,26 +109,20 @@ class PurchaseDetailAPIView(RetrieveAPIView):
         return queryset
 
 
-class PurchaseSubDetailAPIView(APIView):
+class PurchaseSubDetailAPIView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
     pagination_class = None
+    serializer_class = PurchaseSubCoursesDetailSerializer
 
     def get_queryset(self):
-        return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user, course__draft=False)
-
-    def get(self, request, *args, **kwargs):
-        if 'purchaseID' in kwargs and 'subID' in kwargs:
-            try:
-                purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user,
-                                                                        pk=kwargs['purchaseID'], course__draft=False)
-                serializer = PurchaseSubCoursesDetailSerializer(many=False,
-                                                                instance=purchase.courseSub.get(id=kwargs['subID']))
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except:
-                return Response({'error': 'подкурс не найден'}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            return Response({'error': 'данные не представлены'}, status=status.HTTP_400_BAD_REQUEST)
+        return CoursesSubCoursesModel.objects.filter(id=self.kwargs['pk']) \
+            .filter(is_active=True,
+                    courseslistmodel__purchaselistmodel=self.kwargs['purchaseID'],
+                    courseslistmodel__purchaselistmodel__user=self.request.user,
+                    courseslistmodel__purchaselistmodel__pay__courseSub=self.kwargs['pk'],
+                    courseslistmodel__purchaselistmodel__pay__is_active=True,
+                    courseslistmodel__purchaselistmodel__pay__payStatus=True)
 
 
 class PurchaseLessonDetailAPIView(RetrieveAPIView):
@@ -137,14 +131,92 @@ class PurchaseLessonDetailAPIView(RetrieveAPIView):
     pagination_class = None
     serializer_class = LessonPurchaseDetailSerializer
 
-
     def get_queryset(self):
         return LessonModel.objects.filter(is_active=True,
                                           lessons__courseslistmodel__purchaselistmodel=self.kwargs['purchaseID'],
-                                          lessons__purchaseCourseSub__user=self.request.user,
-                                          id=self.kwargs['pk'])
+                                          lessons__courseslistmodel__purchaselistmodel__user=self.request.user,
+                                          lessons__courseslistmodel__purchaselistmodel__pay__courseSub=self.kwargs[
+                                              'subID'],
+                                          lessons__courseslistmodel__purchaselistmodel__pay__is_active=True,
+                                          lessons__courseslistmodel__purchaselistmodel__pay__payStatus=True)
 
-# class PurchaseLessonDetailAPIView(APIView):
+
+class PurchaseTestAnswerCreateAPIView(CreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    pagination_class = None
+    serializer_class = PurchaseTestAnswerCreateSerializer
+
+    def perform_create(self, serializer):
+        lessonObj = get_object_or_404(LessonModel, is_active=True,
+                                      lessons__courseslistmodel__purchaselistmodel=self.kwargs['purchaseID'],
+                                      lessons__courseslistmodel__purchaselistmodel__user=self.request.user,
+                                      lessons__courseslistmodel__purchaselistmodel__pay__courseSub=self.kwargs[
+                                          'subID'],
+                                      lessons__courseslistmodel__purchaselistmodel__pay__is_active=True,
+                                      lessons__courseslistmodel__purchaselistmodel__pay__payStatus=True,
+                                      id=self.kwargs['pk'])
+
+        testType = serializer.validated_data.pop('testType', None)
+        answerData = serializer.validated_data.pop('answerData', None)
+        if testType == 'testPOL' or testType == 'testCHL':
+            lessonResult, _ = lessonObj.result.get_or_create(user=self.request.user, isValid=True, is_active=True)
+            testObj = getattr(lessonObj, testType)
+            if getattr(lessonResult, testType):
+                return Response({'detail': 'Вы уже ответили на этот тест!', status: False},
+                                status=status.HTTP_400_BAD_REQUEST)
+            else:
+                if not answerData or len(answerData) != testObj.askList.all().count():
+                    return Response({'error': 'Вы не передали результаты теста!', status: False},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    setattr(lessonResult, testType, TestAnswerUserListModel.objects.create(test=testObj))
+                    newTestObj = getattr(lessonResult, testType)
+                    validAskCount = 0
+                    for i, item in enumerate(testObj.askList.all()):
+                        if not str(item.id) in answerData:
+                            return Response(
+                                {'detail': 'Вы не передали результаты теста на один из вопросов!', status: False},
+                                status=status.HTTP_400_BAD_REQUEST)
+                        else:
+                            testAnswerUser = TestAnswerUserModel.objects.create(ask=item)
+                            if item.answerInput and isinstance(answerData[f'{item.id}'], str):
+                                if item.answerInput.lower() == answerData[f'{item.id}'].lower():
+                                    validAskCount += 1
+                                    testAnswerUser.answerInput = answerData[f'{item.id}']
+                                    testAnswerUser.answerValid = True
+                                else:
+                                    testAnswerUser.answerInput = answerData[f'{item.id}']
+                            elif item.answerList and isinstance(answerData[f'{item.id}'], list):
+                                validAskData = item.answerList.all()
+                                if len(answerData[f'{item.id}']) >= validAskData.count():
+                                    testAnswerUser.delete()
+                                    return Response(
+                                        {'detail': 'Вы передали не верный тип ответа на вопрос!', status: False},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                                else:
+                                    for j, jtem in enumerate(validAskData):
+                                        if str(jtem.id) in answerData[f'{item.id}']:
+                                            testAnswerUser.answerList.add(jtem)
+                                    if testAnswerUser.answerList.count() == validAskData.filter(validStatus=True).count():
+                                        validAskCount += 1
+                                        testAnswerUser.answerValid = True
+                            else:
+                                testAnswerUser.delete()
+                                return Response(
+                                    {'detail': 'Вы передали не верный тип ответа на вопрос!', status: False},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                            testAnswerUser.save()
+                            newTestObj.answerData.add(testAnswerUser)
+                            newTestObj.result = round((validAskCount/testObj.askList.count()) * 100)
+                            newTestObj.save()
+            lessonResult.save()
+            return lessonObj
+        else:
+            return Response({'detail': 'Не передан тип теста!', status: False}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class PurchaseHomeworkDetailAPIView(APIView):
 #     permission_classes = (IsAuthenticated,)
 #     renderer_classes = (JSONRenderer,)
 #     pagination_class = None
@@ -152,136 +224,100 @@ class PurchaseLessonDetailAPIView(RetrieveAPIView):
 #     def get_queryset(self):
 #         return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
 #
-#     def get(self, request, *args, **kwargs):
-#         if 'purchaseID' in kwargs and 'subID' in kwargs and 'lessonID' in kwargs:
-#             # try:
-#             purchase = PurchaseListModel.objects.get(is_active=True, user=self.request.user,
-#                                                      pk=kwargs['purchaseID'], course__draft=False)
-#             data = purchase.courseSub.get(id=kwargs['subID']).lessons.get(
-#                 lessonList=kwargs['lessonID'], isOpen=True).lessonList.get(id=kwargs['lessonID'], isOpen=True)
-#             if data.homework:
+#     def post(self, request, *args, **kwargs):
+#         if 'purchaseID' in kwargs and 'homeworkID' in kwargs:
+#             try:
+#                 purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user,
+#                                                                         pk=kwargs['purchaseID'])
+#                 courseSub = purchase.courseSub.get(lessons__lessonList__homework=kwargs['homeworkID'])
+#                 lesson = courseSub.lessons.get(lessonList__homework=kwargs['homeworkID']).lessonList.get(
+#                     homework=kwargs['homeworkID'])
+#                 homework = lesson.homework
 #                 try:
-#                     purchaseUserAnswerListObject = PurchaseUserAnswerListModel.objects.get(purchase=purchase,
-#                                                                                            homework=data.homework)
-#                     serializer = PurchaseLessonDetailSerializer(many=False, instance=data, context={
-#                         'homeworkAnswer': purchaseUserAnswerListObject, 'request': self.request})
+#                     PurchaseUserAnswerListModel.objects.get(purchase=purchase, homework=homework)
+#                     return Response({'error': 'вы уже ответили на эту домашку'}, status=status.HTTP_400_BAD_REQUEST)
 #                 except:
-#                     serializer = PurchaseLessonDetailSerializer(many=False, instance=data,
-#                                                                 context={'request': self.request})
+#                     pass
+#                 askList = homework.askList.all()
 #
-#                 return Response(serializer.data, status=status.HTTP_200_OK)
-#             else:
-#                 serializer = PurchaseLessonDetailSerializer(many=False, instance=data,
-#                                                             context={'request': self.request})
-#                 return Response(serializer.data, status=status.HTTP_200_OK)
-#             # except:
-#             #     return Response({'error': 'урок не найден'}, status=status.HTTP_404_NOT_FOUND)
+#                 serializer_data = {}
+#                 for i, item in enumerate(request.data):
+#                     data = request.data.get(item, None)
+#                     if data is not None:
+#                         serializer_data.update({f'{item}': data})
+#
+#                 if len(askList) == len(serializer_data):
+#                     try:
+#                         for i, item in enumerate(askList):
+#                             localData = serializer_data[f'{item.id}']
+#                     except:
+#                         return Response({'error': 'не на все вопросы получены ответы'},
+#                                         status=status.HTTP_400_BAD_REQUEST)
+#
+#                     purchaseUserAnswerListObject = PurchaseUserAnswerListModel.objects.create(purchase=purchase,
+#                                                                                               homework=homework)
+#                     for i, item in enumerate(askList):
+#                         userAnswer = serializer_data[f'{item.id}']
+#                         if type(userAnswer) == str:
+#                             if item.answerInput.answer.lower() == userAnswer.lower():
+#                                 purchaseUserAnswerObject = PurchaseUserAnswerModel.objects.create(ask=item,
+#                                                                                                   answerInput=userAnswer,
+#                                                                                                   answerValid=True)
+#                                 purchaseUserAnswerListObject.answerData.add(purchaseUserAnswerObject)
+#                             else:
+#                                 purchaseUserAnswerObject = PurchaseUserAnswerModel.objects.create(ask=item,
+#                                                                                                   answerInput=userAnswer)
+#                                 purchaseUserAnswerListObject.answerData.add(purchaseUserAnswerObject)
+#                         else:
+#                             localValid = []
+#                             userAnswerObjects = []
+#                             for j, jtem in enumerate(item.answerList.all()):
+#                                 if str(jtem.id) in userAnswer:
+#                                     if jtem.validStatus:
+#                                         localValid.append(True)
+#                                     else:
+#                                         localValid.append(False)
+#                                     userAnswerObjects.append(jtem)
+#                                 elif jtem.validStatus:
+#                                     localValid.append(False)
+#                             if False in localValid:
+#                                 valid = False
+#                             else:
+#                                 valid = True
+#                             purchaseUserAnswerObject = PurchaseUserAnswerModel.objects.create(ask=item,
+#                                                                                               answerValid=valid)
+#                             purchaseUserAnswerObject.answerList.set(userAnswerObjects)
+#                             purchaseUserAnswerObject.save()
+#                             purchaseUserAnswerListObject.answerData.add(purchaseUserAnswerObject)
+#                     purchaseUserAnswerListObject.save()
+#                     serializer = PurchaseUserAnswerListDetailSerializer(instance=purchaseUserAnswerListObject,
+#                                                                         many=False, context={'request': self.request})
+#                     return Response(serializer.data, status=status.HTTP_200_OK)
+#                 else:
+#                     return Response({'error': 'не на все вопросы получены ответы'}, status=status.HTTP_400_BAD_REQUEST)
+#             except:
+#                 return Response({'error': 'домашняя работа не найдена'}, status=status.HTTP_404_NOT_FOUND)
 #         else:
 #             return Response({'error': 'данные не представлены'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PurchaseHomeworkDetailAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
-    renderer_classes = (JSONRenderer,)
-    pagination_class = None
-
-    def get_queryset(self):
-        return PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user)
-
-    def post(self, request, *args, **kwargs):
-        if 'purchaseID' in kwargs and 'homeworkID' in kwargs:
-            try:
-                purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user,
-                                                                        pk=kwargs['purchaseID'])
-                courseSub = purchase.courseSub.get(lessons__lessonList__homework=kwargs['homeworkID'])
-                lesson = courseSub.lessons.get(lessonList__homework=kwargs['homeworkID']).lessonList.get(
-                    homework=kwargs['homeworkID'])
-                homework = lesson.homework
-                try:
-                    PurchaseUserAnswerListModel.objects.get(purchase=purchase, homework=homework)
-                    return Response({'error': 'вы уже ответили на эту домашку'}, status=status.HTTP_400_BAD_REQUEST)
-                except:
-                    pass
-                askList = homework.askList.all()
-
-                serializer_data = {}
-                for i, item in enumerate(request.data):
-                    data = request.data.get(item, None)
-                    if data is not None:
-                        serializer_data.update({f'{item}': data})
-
-                if len(askList) == len(serializer_data):
-                    try:
-                        for i, item in enumerate(askList):
-                            localData = serializer_data[f'{item.id}']
-                    except:
-                        return Response({'error': 'не на все вопросы получены ответы'},
-                                        status=status.HTTP_400_BAD_REQUEST)
-
-                    purchaseUserAnswerListObject = PurchaseUserAnswerListModel.objects.create(purchase=purchase,
-                                                                                              homework=homework)
-                    for i, item in enumerate(askList):
-                        userAnswer = serializer_data[f'{item.id}']
-                        if type(userAnswer) == str:
-                            if item.answerInput.answer.lower() == userAnswer.lower():
-                                purchaseUserAnswerObject = PurchaseUserAnswerModel.objects.create(ask=item,
-                                                                                                  answerInput=userAnswer,
-                                                                                                  answerValid=True)
-                                purchaseUserAnswerListObject.answerData.add(purchaseUserAnswerObject)
-                            else:
-                                purchaseUserAnswerObject = PurchaseUserAnswerModel.objects.create(ask=item,
-                                                                                                  answerInput=userAnswer)
-                                purchaseUserAnswerListObject.answerData.add(purchaseUserAnswerObject)
-                        else:
-                            localValid = []
-                            userAnswerObjects = []
-                            for j, jtem in enumerate(item.answerList.all()):
-                                if str(jtem.id) in userAnswer:
-                                    if jtem.validStatus:
-                                        localValid.append(True)
-                                    else:
-                                        localValid.append(False)
-                                    userAnswerObjects.append(jtem)
-                                elif jtem.validStatus:
-                                    localValid.append(False)
-                            if False in localValid:
-                                valid = False
-                            else:
-                                valid = True
-                            purchaseUserAnswerObject = PurchaseUserAnswerModel.objects.create(ask=item,
-                                                                                              answerValid=valid)
-                            purchaseUserAnswerObject.answerList.set(userAnswerObjects)
-                            purchaseUserAnswerObject.save()
-                            purchaseUserAnswerListObject.answerData.add(purchaseUserAnswerObject)
-                    purchaseUserAnswerListObject.save()
-                    serializer = PurchaseUserAnswerListDetailSerializer(instance=purchaseUserAnswerListObject,
-                                                                        many=False, context={'request': self.request})
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else:
-                    return Response({'error': 'не на все вопросы получены ответы'}, status=status.HTTP_400_BAD_REQUEST)
-            except:
-                return Response({'error': 'домашняя работа не найдена'}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            return Response({'error': 'данные не представлены'}, status=status.HTTP_400_BAD_REQUEST)
-
-    def get(self, request, *args, **kwargs):
-        if 'purchaseID' in kwargs and 'homeworkID' in kwargs:
-            try:
-                purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user,
-                                                                        pk=kwargs['purchaseID'])
-                courseSub = purchase.courseSub.get(lessons__lessonList__homework=kwargs['homeworkID'])
-                lesson = courseSub.lessons.get(lessonList__homework=kwargs['homeworkID']).lessonList.get(
-                    homework=kwargs['homeworkID'])
-                homework = lesson.homework
-                purchaseUserAnswerListObject = PurchaseUserAnswerListModel.objects.get(purchase=purchase,
-                                                                                       homework=homework)
-                serializer = PurchaseUserAnswerListDetailSerializer(instance=purchaseUserAnswerListObject, many=False,
-                                                                    context={'request': self.request})
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except:
-                return Response({'error': 'домашка не найдена'}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            return Response({'error': 'данные не представлены'}, status=status.HTTP_400_BAD_REQUEST)
+#
+#     def get(self, request, *args, **kwargs):
+#         if 'purchaseID' in kwargs and 'homeworkID' in kwargs:
+#             try:
+#                 purchase = PurchaseListModel.objects.order_by('id').get(is_active=True, user=self.request.user,
+#                                                                         pk=kwargs['purchaseID'])
+#                 courseSub = purchase.courseSub.get(lessons__lessonList__homework=kwargs['homeworkID'])
+#                 lesson = courseSub.lessons.get(lessonList__homework=kwargs['homeworkID']).lessonList.get(
+#                     homework=kwargs['homeworkID'])
+#                 homework = lesson.homework
+#                 purchaseUserAnswerListObject = PurchaseUserAnswerListModel.objects.get(purchase=purchase,
+#                                                                                        homework=homework)
+#                 serializer = PurchaseUserAnswerListDetailSerializer(instance=purchaseUserAnswerListObject, many=False,
+#                                                                     context={'request': self.request})
+#                 return Response(serializer.data, status=status.HTTP_200_OK)
+#             except:
+#                 return Response({'error': 'домашка не найдена'}, status=status.HTTP_404_NOT_FOUND)
+#         else:
+#             return Response({'error': 'данные не представлены'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # class PurchaseDetailAPIView(RetrieveAPIView):

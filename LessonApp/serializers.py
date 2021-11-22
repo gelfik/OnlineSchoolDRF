@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
 from TestApp.serializers import TestDataSerializer, TestDataDetailSerializer, TestSerializer, TestAPanelSerializer, \
-    TestAPanelDetailSerializer
-from .models import LessonTaskABCModel, LessonModel, LessonFileModel, LessonLectureModel
+    TestAPanelDetailSerializer, TestAnswerUserListDetailSerializer
+from .models import LessonTaskABCModel, LessonModel, LessonFileModel, LessonLectureModel, LessonTaskAnswerUserModel, \
+    LessonResultUserModel
 
 
 class LessonFileSerializer(serializers.ModelSerializer):
@@ -31,6 +32,24 @@ class LessonSerializer(serializers.ModelSerializer):
         fields = ('id', 'date',)
 
 
+class LessonTaskAnswerUserSerializer(serializers.ModelSerializer):
+    task = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
+    class Meta:
+        model = LessonTaskAnswerUserModel
+        fields = ('id', 'task', 'file', 'result',)
+
+
+class LessonResultUserSerializer(serializers.ModelSerializer):
+    testPOL = TestAnswerUserListDetailSerializer(many=False, read_only=True)
+    testCHL = TestAnswerUserListDetailSerializer(many=False, read_only=True)
+    taskABC = LessonTaskAnswerUserSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = LessonResultUserModel
+        fields = ('id', 'testPOL', 'testCHL', 'taskABC', 'isValid',)
+
+
 class LessonDataSerializer(serializers.ModelSerializer):
     lecture = LessonLectureSerializer(read_only=True)
     testPOL = TestDataSerializer(read_only=True)
@@ -49,6 +68,7 @@ class LessonTaskABCDetailSerializer(serializers.ModelSerializer):
         model = LessonTaskABCModel
         fields = ('id', 'name', 'description',)
 
+
 class LessonLectureDetailSerializer(serializers.ModelSerializer):
     files = LessonFileSerializer(read_only=True, many=True)
 
@@ -62,10 +82,19 @@ class LessonDetailSerializer(serializers.ModelSerializer):
     testPOL = TestDataSerializer(read_only=True)
     testCHL = TestDataSerializer(read_only=True)
     taskABC = LessonTaskABCDetailSerializer(read_only=True)
+    # result = serializers.SerializerMethodField(read_only=True, source='get_result')
 
     class Meta:
         model = LessonModel
         fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC',)
+
+    # def get_result(self, instance):
+    #     result = instance.result.filter(user=self.context['request'].user, isValid=True).count()
+    #     if result > 0:
+    #         return LessonResultUserSerializer(
+    #             instance=instance.result.get(user=self.context['request'].user, isValid=True), many=False).data
+    #     else:
+    #         return None
 
 
 class LessonDataDetailSerializer(serializers.ModelSerializer):
@@ -159,6 +188,7 @@ class LessonFileAddSerializer(serializers.ModelSerializer):
         model = LessonFileModel
         fields = ('id', 'file', 'name',)
 
+
 # TODO: SERIALIZER LESSON PURCHASE
 
 class LessonPurchaseLectureDetailSerializer(serializers.ModelSerializer):
@@ -168,12 +198,22 @@ class LessonPurchaseLectureDetailSerializer(serializers.ModelSerializer):
         model = LessonLectureModel
         fields = ('id', 'name', 'time', 'description', 'video', 'files',)
 
+
 class LessonPurchaseDetailSerializer(serializers.ModelSerializer):
     lecture = LessonPurchaseLectureDetailSerializer(many=False, read_only=True)
     testPOL = TestDataSerializer(many=False, read_only=True)
     testCHL = TestDataSerializer(many=False, read_only=True)
     taskABC = LessonTaskABCDetailSerializer(many=False, read_only=True)
+    result = serializers.SerializerMethodField(read_only=True, source='get_result')
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'lecture', 'testPOL', 'testCHL', 'taskABC',)
+        fields = ('id', 'lecture', 'testPOL', 'testCHL', 'taskABC','result', )
+
+    def get_result(self, instance):
+        result = instance.result.filter(user=self.context['request'].user, isValid=True).count()
+        if result > 0:
+            return LessonResultUserSerializer(
+                instance=instance.result.get(user=self.context['request'].user, isValid=True), many=False).data
+        else:
+            return None

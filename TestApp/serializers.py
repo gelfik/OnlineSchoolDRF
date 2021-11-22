@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TestAskAnswerSelectionModel, TestAskModel, TestModel
+from .models import TestAskAnswerSelectionModel, TestAskModel, TestModel, TestAnswerUserModel, TestAnswerUserListModel
 
 
 # TODO: SERIALIZER TEST
@@ -35,6 +35,7 @@ class TestSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestModel
         fields = ('id', 'name',)
+
 
 
 class TestDataSerializer(serializers.ModelSerializer):
@@ -91,6 +92,36 @@ class TestDataDetailSerializer(serializers.ModelSerializer):
         else:
             return None
 
+class TestAnswerUserDetailSerializer(serializers.ModelSerializer):
+    ask = TestAskDetailSerializer(many=False, read_only=True)
+    answerInput = serializers.SerializerMethodField(read_only=True, source='get_answerInput')
+    answerList = serializers.SerializerMethodField(read_only=True, source='get_answerList')
+
+    class Meta:
+        model = TestAnswerUserModel
+        fields = ('id', 'ask', 'answerList', 'answerInput', 'answerValid',)
+
+    def get_answerInput(self, instance):
+        if instance.answerInput:
+            return instance.answerInput
+        else:
+            return None
+
+    def get_answerList(self, instance):
+        if instance.answerList.count():
+            data = []
+            for i, item in enumerate(instance.answerList.all()):
+                data.append(item.id)
+            return data
+        else:
+            return None
+
+class TestAnswerUserListDetailSerializer(serializers.ModelSerializer):
+    answerData = TestAnswerUserDetailSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = TestAnswerUserListModel
+        fields = ('id', 'answerData', 'result',)
 
 # TODO: SERIALIZER TEST APANEL
 
@@ -156,6 +187,7 @@ class TestAskAPanelEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestAskModel
         fields = ('id', 'ask', 'askPicture', 'answerList', 'answerInput',)
+
 
 class TestAskAPanelAddSerializer(serializers.ModelSerializer):
     answerList = TestAskAnswerSelectionDetailSerializer(many=True, read_only=False)

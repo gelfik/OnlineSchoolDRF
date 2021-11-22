@@ -5,7 +5,8 @@ import datetime
 from django.utils.timezone import now as django_datetime_now
 
 # Create your models here.
-from TestApp.models import TestModel
+from TestApp.models import TestModel, TestAnswerUserListModel
+from UserProfileApp.models import User
 
 
 class LessonFileModel(models.Model):
@@ -24,6 +25,7 @@ class LessonFileModel(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+
 class LessonLectureModel(models.Model):
     name = models.CharField('Название', default=None, max_length=255)
     description = models.TextField('Описание', default=None, null=True, blank=True)
@@ -41,6 +43,7 @@ class LessonLectureModel(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+
 class LessonTaskABCModel(models.Model):
     name = models.CharField('Название', default=None, max_length=255)
     description = models.TextField('Описание', default=None, null=True, blank=True)
@@ -55,6 +58,47 @@ class LessonTaskABCModel(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+
+class LessonTaskAnswerUserModel(models.Model):
+    def get_file_path(instance, filename):
+        import os
+        return os.path.join('taskFiles', filename)
+
+    task = models.ForeignKey(LessonTaskABCModel, on_delete=models.CASCADE, verbose_name='Тест ABC', default=None)
+    file = models.FileField(upload_to=get_file_path, verbose_name='Файл', default=None, null=True)
+    result = models.IntegerField('Оценка', default=0, blank=True, null=True)
+    is_active = models.BooleanField('Статус удаления', default=True)
+
+    class Meta:
+        verbose_name = 'Ответ на тест ABC'
+        verbose_name_plural = 'Ответы на тесты ABC'
+        db_table = 'LessonTaskAnswerUser'
+
+    def __str__(self):
+        return f'{self.id}'
+
+
+class LessonResultUserModel(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь', default=None, null=True,
+                             blank=True)
+    testPOL = models.ForeignKey(TestAnswerUserListModel, on_delete=models.CASCADE,
+                                verbose_name='Результат тест POL', related_name='testPOL', default=None, blank=True, null=True)
+    testCHL = models.ForeignKey(TestAnswerUserListModel, on_delete=models.CASCADE,
+                                verbose_name='Результат тест CHL', related_name='testCHL', default=None, blank=True, null=True)
+    taskABC = models.ForeignKey(LessonTaskAnswerUserModel, on_delete=models.CASCADE, verbose_name='Результат тест ABC',
+                                related_name='taskABC', default=None, blank=True, null=True)
+    isValid = models.BooleanField('Статус валидности', default=True, blank=True)
+    is_active = models.BooleanField('Статус удаления', default=True)
+
+    class Meta:
+        verbose_name = 'Результат пользовтаеля'
+        verbose_name_plural = 'Результаты пользовтаелей'
+        db_table = 'LessonResultUser'
+
+    def __str__(self):
+        return f'{self.id}'
+
+
 class LessonModel(models.Model):
     date = models.DateField('Дата проведения урока', default=None, null=True)
 
@@ -66,6 +110,7 @@ class LessonModel(models.Model):
                                 null=True, blank=True, related_name='testCHL_set')
     taskABC = models.ForeignKey(LessonTaskABCModel, on_delete=models.CASCADE, verbose_name='Тест ABC', default=None,
                                 null=True, blank=True)
+    result = models.ManyToManyField(LessonResultUserModel, verbose_name='Результаты тестов', default=None, blank=True)
 
     isOpen = models.BooleanField('Статус доступа', default=False)
     is_active = models.BooleanField('Статус удаления', default=True)

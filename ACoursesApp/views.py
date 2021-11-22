@@ -138,7 +138,7 @@ class ACoursesCourseEditAPIView(APIView):
         if 'draft' in serializer_data:
             draft = bool(serializer_data['draft'])
             if draft and instance.draft:
-                print(instance.courseType.durationCount, instance.subCourses.count())
+                # print(instance.courseType.durationCount, instance.subCourses.count())
                 if instance.courseType.durationCount > instance.subCourses.count():
                     return Response({'status': False,
                                      'detail': f'Не хватает {instance.courseType.durationCount - instance.subCourses.count()} подкурсов для публикации курса!'},
