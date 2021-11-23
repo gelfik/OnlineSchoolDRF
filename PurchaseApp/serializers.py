@@ -25,6 +25,12 @@ class PurchaseTestAnswerCreateSerializer(serializers.Serializer):
     class Meta:
         fields = ('answerData', 'testType', )
 
+class PurchaseTaskAnswerCreateSerializer(serializers.Serializer):
+    file = serializers.FileField(write_only=True)
+    testType = serializers.CharField(write_only=True)
+
+    class Meta:
+        fields = ('file', 'testType', )
 
 # TODO PURCHASE
 

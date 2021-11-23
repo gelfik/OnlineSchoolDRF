@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 from TestApp.serializers import TestDataSerializer, TestDataDetailSerializer, TestSerializer, TestAPanelSerializer, \
-    TestAPanelDetailSerializer, TestAnswerUserListDetailSerializer
+    TestAPanelDetailSerializer, TestAnswerUserListDetailSerializer, TestAnswerUserListAPanelSerializer
+from UserProfileApp.serializers import UserForAPanelTaskABCSerializer
 from .models import LessonTaskABCModel, LessonModel, LessonFileModel, LessonLectureModel, LessonTaskAnswerUserModel, \
     LessonResultUserModel
 
@@ -34,10 +35,11 @@ class LessonSerializer(serializers.ModelSerializer):
 
 class LessonTaskAnswerUserSerializer(serializers.ModelSerializer):
     task = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    loadTime = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = LessonTaskAnswerUserModel
-        fields = ('id', 'task', 'file', 'result',)
+        fields = ('id', 'task', 'file', 'loadTime', 'result',)
 
 
 class LessonResultUserSerializer(serializers.ModelSerializer):
@@ -121,6 +123,11 @@ class LessonTaskABCAPanelSerializer(serializers.ModelSerializer):
         model = LessonTaskABCModel
         fields = ('id', 'name', 'description', 'isOpen',)
 
+class LessonTaskABCAnswerUserAPanelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LessonTaskAnswerUserModel
+        fields = ('id', 'file', 'loadTime', 'result',)
+
 
 class LessonAPanelSerializer(serializers.ModelSerializer):
     lecture = LessonLectureAPanelSerializer(read_only=True)
@@ -132,8 +139,19 @@ class LessonAPanelSerializer(serializers.ModelSerializer):
         model = LessonModel
         fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen',)
 
+class LessonResultAPanelDetailSerializer(serializers.ModelSerializer):
+    user = UserForAPanelTaskABCSerializer(read_only=True)
+    testPOL = TestAnswerUserListAPanelSerializer(read_only=True)
+    testCHL = TestAnswerUserListAPanelSerializer(read_only=True)
+    taskABC = LessonTaskABCAnswerUserAPanelSerializer(read_only=True)
+
+    class Meta:
+        model = LessonResultUserModel
+        fields = ('id', 'user', 'testPOL', 'testCHL', 'taskABC', 'isValid',)
+
 
 # TODO: SERIALIZER LESSON APANEL DETAIL
+
 
 class LessonLectureAPanelDetailSerializer(serializers.ModelSerializer):
     files = LessonFileSerializer(read_only=True, many=True)
@@ -152,8 +170,15 @@ class LessonAPanelDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen')
+        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen', )
 
+class LessonAPanelProgressDetailSerializer(serializers.ModelSerializer):
+    result = LessonResultAPanelDetailSerializer(many=True, read_only=True)
+    date = serializers.DateField(required=False)
+
+    class Meta:
+        model = LessonModel
+        fields = ('id', 'date', 'result', )
 
 # TODO: SERIALIZER LESSON APANEL EDIT AND ADD
 

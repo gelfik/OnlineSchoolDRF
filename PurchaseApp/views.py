@@ -9,14 +9,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from CoursesApp.models import CoursesListModel, CoursesSubCoursesModel
-from LessonApp.models import LessonModel
+from LessonApp.models import LessonModel, LessonTaskAnswerUserModel
 from LessonApp.serializers import LessonPurchaseDetailSerializer
 from PromocodeApp.models import PromocodeListModel
 from TestApp.models import TestAnswerUserListModel, TestAnswerUserModel, TestAskAnswerSelectionModel
 from .serializers import PurchaseListSerializer, PurchaseDetailSerializer, PurchaseCheckBuySerializer, \
-    PurchaseSubCoursesDetailSerializer, PurchaseCoursesForCourseSerializer, PurchaseTestAnswerCreateSerializer
+    PurchaseSubCoursesDetailSerializer, PurchaseCoursesForCourseSerializer, PurchaseTestAnswerCreateSerializer, \
+    PurchaseTaskAnswerCreateSerializer
 from .models import PurchaseListModel, PurchasePayModel
 
 from UserProfileApp.models import User
@@ -198,7 +200,8 @@ class PurchaseTestAnswerCreateAPIView(CreateAPIView):
                                     for j, jtem in enumerate(validAskData):
                                         if str(jtem.id) in answerData[f'{item.id}']:
                                             testAnswerUser.answerList.add(jtem)
-                                    if testAnswerUser.answerList.count() == validAskData.filter(validStatus=True).count():
+                                    if testAnswerUser.answerList.count() == validAskData.filter(
+                                            validStatus=True).count():
                                         validAskCount += 1
                                         testAnswerUser.answerValid = True
                             else:
@@ -208,12 +211,96 @@ class PurchaseTestAnswerCreateAPIView(CreateAPIView):
                                     status=status.HTTP_400_BAD_REQUEST)
                             testAnswerUser.save()
                             newTestObj.answerData.add(testAnswerUser)
-                            newTestObj.result = round((validAskCount/testObj.askList.count()) * 100)
+                            newTestObj.result = round((validAskCount / testObj.askList.count()) * 100)
                             newTestObj.save()
             lessonResult.save()
             return lessonObj
         else:
             return Response({'detail': 'Не передан тип теста!', status: False}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PurchaseTaskAnswerCreateAPIView(RetrieveUpdateAPIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    pagination_class = None
+    serializer_class = PurchaseTaskAnswerCreateSerializer
+
+    def get_queryset(self):
+        return LessonModel.objects.filter(is_active=True,
+                                          lessons__courseslistmodel__purchaselistmodel=self.kwargs['purchaseID'],
+                                          lessons__courseslistmodel__purchaselistmodel__user=self.request.user,
+                                          lessons__courseslistmodel__purchaselistmodel__pay__courseSub=self.kwargs[
+                                              'subID'],
+                                          lessons__courseslistmodel__purchaselistmodel__pay__is_active=True,
+                                          lessons__courseslistmodel__purchaselistmodel__pay__payStatus=True,
+                                          id=self.kwargs['pk'])
+
+    def perform_update(self, serializer):
+        testType = serializer.validated_data.pop('testType', None)
+        file = serializer.validated_data.pop('file', None)
+        instance = self.get_object()
+        if testType == 'taskABC' or file:
+            lessonResult, _ = instance.result.get_or_create(user=self.request.user, isValid=True, is_active=True)
+            lessonResult.taskABC = LessonTaskAnswerUserModel.objects.create(task=instance.taskABC, file=file)
+            lessonResult.save()
+            return Response({'detail': 'Файл добавлен успешно!', status: True}, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'Не передан тип теста!', status: False}, status=status.HTTP_400_BAD_REQUEST)
+        # if testType == 'testPOL' or testType == 'testCHL':
+        #     lessonResult, _ = lessonObj.result.get_or_create(user=self.request.user, isValid=True, is_active=True)
+        #     testObj = getattr(lessonObj, testType)
+        #     if getattr(lessonResult, testType):
+        #         return Response({'detail': 'Вы уже ответили на этот тест!', status: False},
+        #                         status=status.HTTP_400_BAD_REQUEST)
+        #     else:
+        #         if not answerData or len(answerData) != testObj.askList.all().count():
+        #             return Response({'error': 'Вы не передали результаты теста!', status: False},
+        #                             status=status.HTTP_400_BAD_REQUEST)
+        #         else:
+        #             setattr(lessonResult, testType, TestAnswerUserListModel.objects.create(test=testObj))
+        #             newTestObj = getattr(lessonResult, testType)
+        #             validAskCount = 0
+        #             for i, item in enumerate(testObj.askList.all()):
+        #                 if not str(item.id) in answerData:
+        #                     return Response(
+        #                         {'detail': 'Вы не передали результаты теста на один из вопросов!', status: False},
+        #                         status=status.HTTP_400_BAD_REQUEST)
+        #                 else:
+        #                     testAnswerUser = TestAnswerUserModel.objects.create(ask=item)
+        #                     if item.answerInput and isinstance(answerData[f'{item.id}'], str):
+        #                         if item.answerInput.lower() == answerData[f'{item.id}'].lower():
+        #                             validAskCount += 1
+        #                             testAnswerUser.answerInput = answerData[f'{item.id}']
+        #                             testAnswerUser.answerValid = True
+        #                         else:
+        #                             testAnswerUser.answerInput = answerData[f'{item.id}']
+        #                     elif item.answerList and isinstance(answerData[f'{item.id}'], list):
+        #                         validAskData = item.answerList.all()
+        #                         if len(answerData[f'{item.id}']) >= validAskData.count():
+        #                             testAnswerUser.delete()
+        #                             return Response(
+        #                                 {'detail': 'Вы передали не верный тип ответа на вопрос!', status: False},
+        #                                 status=status.HTTP_400_BAD_REQUEST)
+        #                         else:
+        #                             for j, jtem in enumerate(validAskData):
+        #                                 if str(jtem.id) in answerData[f'{item.id}']:
+        #                                     testAnswerUser.answerList.add(jtem)
+        #                             if testAnswerUser.answerList.count() == validAskData.filter(validStatus=True).count():
+        #                                 validAskCount += 1
+        #                                 testAnswerUser.answerValid = True
+        #                     else:
+        #                         testAnswerUser.delete()
+        #                         return Response(
+        #                             {'detail': 'Вы передали не верный тип ответа на вопрос!', status: False},
+        #                             status=status.HTTP_400_BAD_REQUEST)
+        #                     testAnswerUser.save()
+        #                     newTestObj.answerData.add(testAnswerUser)
+        #                     newTestObj.result = round((validAskCount/testObj.askList.count()) * 100)
+        #                     newTestObj.save()
+        #     lessonResult.save()
+        #     return lessonObj
+        # else:
+        #     return Response({'detail': 'Не передан тип теста!', status: False}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # class PurchaseHomeworkDetailAPIView(APIView):

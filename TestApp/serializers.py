@@ -145,6 +145,11 @@ class TestAskAPanelSerializer(serializers.ModelSerializer):
         else:
             return None
 
+class TestAnswerUserListAPanelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TestAnswerUserListModel
+        fields = ('id', 'result',)
 
 # TODO: SERIALIZER TEST APANEL DETAIL
 

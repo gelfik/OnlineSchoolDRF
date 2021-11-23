@@ -282,6 +282,11 @@ class UserForAPanelCoursesSerializer(serializers.ModelSerializer):
         fields = ('email', 'username', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone',)
 
 
+class UserForAPanelTaskABCSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'firstName', 'lastName', 'vkLink',)
+
 class UserGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group

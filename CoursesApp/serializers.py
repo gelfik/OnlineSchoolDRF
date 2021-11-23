@@ -6,7 +6,7 @@ from UserProfileApp.serializers import UserMentorSerializer
 from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel, \
     CoursesSubCoursesModel
 from TeachersApp.serializers import TeacherDataForPurchaseSerializer
-from LessonApp.serializers import LessonDataSerializer
+from LessonApp.serializers import LessonDataSerializer, LessonAPanelSerializer
 
 
 class CoursesExamTypeSerializer(serializers.ModelSerializer):
@@ -133,6 +133,45 @@ class CoursesApanelSerializer(serializers.ModelSerializer):
 
     def get_purchaseCount(self, instance):
         return PurchaseListModel.objects.filter(course_id=instance.id).count()
+
+
+class CoursesApanelProgressSerializer(serializers.ModelSerializer):
+    predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
+    class Meta:
+        model = CoursesListModel
+        fields = ('name', 'courseExamType', 'coursePicture', 'courseType', 'predmet', 'id',)
+
+
+# TODO COURSES APANEL DETAIL
+
+class CoursesApanelProgressDetailSerializer(serializers.ModelSerializer):
+    predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    subCourses = serializers.SerializerMethodField(read_only=True, source='get_subCourses')
+
+    class Meta:
+        model = CoursesListModel
+        fields = ('id', 'predmet', 'courseType', 'courseExamType', 'subCourses', 'coursePicture', 'name',)
+
+    def get_subCourses(self, instance):
+        return CoursesSubCoursesSerializer(many=True, instance=instance.subCourses.filter(is_active=True),
+                                           context={'request': self.context['request']}).data
+
+
+class CoursesApanelProgressSubDetailSerializer(serializers.ModelSerializer):
+    lessons = serializers.SerializerMethodField(read_only=True, source='get_lessons')
+
+    class Meta:
+        model = CoursesSubCoursesModel
+        exclude = ('is_active',)
+
+    def get_lessons(self, instance):
+        return LessonAPanelSerializer(many=True, instance=instance.lessons.filter(is_active=True),
+                                      context={'request': self.context['request']}).data
 
 
 # TODO COURSES APANEL ADD AND EDIT

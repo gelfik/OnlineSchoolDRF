@@ -66,7 +66,8 @@ class LessonTaskAnswerUserModel(models.Model):
 
     task = models.ForeignKey(LessonTaskABCModel, on_delete=models.CASCADE, verbose_name='Тест ABC', default=None)
     file = models.FileField(upload_to=get_file_path, verbose_name='Файл', default=None, null=True)
-    result = models.IntegerField('Оценка', default=0, blank=True, null=True)
+    loadTime = models.DateTimeField(auto_now_add=True)
+    result = models.IntegerField('Оценка', default=None, blank=True, null=True)
     is_active = models.BooleanField('Статус удаления', default=True)
 
     class Meta:

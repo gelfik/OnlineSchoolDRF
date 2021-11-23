@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'PurchaseApp',
     'APanelApp',
     'ACoursesApp',
+    'AProgressApp',
     'AUserApp',
 ]
 
