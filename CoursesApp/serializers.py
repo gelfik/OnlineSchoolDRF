@@ -6,7 +6,7 @@ from UserProfileApp.serializers import UserMentorSerializer
 from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel, CoursesListModel, \
     CoursesSubCoursesModel
 from TeachersApp.serializers import TeacherDataForPurchaseSerializer
-from LessonApp.serializers import LessonDataSerializer, LessonAPanelSerializer
+from LessonApp.serializers import LessonDataSerializer, LessonAPanelSerializer, LessonAPanelProgressSerializer
 
 
 class CoursesExamTypeSerializer(serializers.ModelSerializer):
@@ -167,11 +167,11 @@ class CoursesApanelProgressSubDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CoursesSubCoursesModel
-        exclude = ('is_active',)
+        fields = ('id', 'lessons', 'name',)
 
     def get_lessons(self, instance):
-        return LessonAPanelSerializer(many=True, instance=instance.lessons.filter(is_active=True),
-                                      context={'request': self.context['request']}).data
+        return LessonAPanelProgressSerializer(many=True, instance=instance.lessons.filter(is_active=True).exclude(
+            result__user=None), context={'request': self.context['request']}).data
 
 
 # TODO COURSES APANEL ADD AND EDIT

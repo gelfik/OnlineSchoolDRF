@@ -16,6 +16,7 @@ from LessonApp.models import LessonModel, LessonLectureModel, LessonTaskABCModel
 from LessonApp.serializers import LessonAPanelDetailSerializer, LessonAPanelProgressDetailSerializer
 from OnlineSchoolDRF.service import IsTeacherPermission
 
+
 class AProgressCourseListAPIView(ListAPIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
     renderer_classes = (JSONRenderer,)
@@ -25,7 +26,8 @@ class AProgressCourseListAPIView(ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        return CoursesListModel.objects.order_by('id').filter(is_active=True, teacher__user=self.request.user, draft=False)
+        return CoursesListModel.objects.order_by('id').filter(is_active=True, teacher__user=self.request.user,
+                                                              draft=False)
 
 
 class AProgressCourseDetailAPIView(RetrieveAPIView):
@@ -47,7 +49,8 @@ class AProgressSubCourseDetailAPIView(RetrieveAPIView):
     def get_queryset(self):
         return CoursesSubCoursesModel.objects.filter(is_active=True,
                                                      courseslistmodel__teacher__user=self.request.user,
-                                                     courseslistmodel=self.kwargs['courseID'])
+                                                         courseslistmodel=self.kwargs['courseID'])
+
 
 class AProgressLessonDetailAPIView(RetrieveAPIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)

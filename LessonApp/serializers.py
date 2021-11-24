@@ -84,6 +84,7 @@ class LessonDetailSerializer(serializers.ModelSerializer):
     testPOL = TestDataSerializer(read_only=True)
     testCHL = TestDataSerializer(read_only=True)
     taskABC = LessonTaskABCDetailSerializer(read_only=True)
+
     # result = serializers.SerializerMethodField(read_only=True, source='get_result')
 
     class Meta:
@@ -123,6 +124,7 @@ class LessonTaskABCAPanelSerializer(serializers.ModelSerializer):
         model = LessonTaskABCModel
         fields = ('id', 'name', 'description', 'isOpen',)
 
+
 class LessonTaskABCAnswerUserAPanelSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonTaskAnswerUserModel
@@ -138,6 +140,18 @@ class LessonAPanelSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonModel
         fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen',)
+
+
+class LessonAPanelProgressSerializer(serializers.ModelSerializer):
+    # lecture = LessonLectureAPanelSerializer(read_only=True)
+    # testPOL = TestAPanelSerializer(read_only=True)
+    # testCHL = TestAPanelSerializer(read_only=True)
+    # taskABC = LessonTaskABCAPanelSerializer(read_only=True)
+
+    class Meta:
+        model = LessonModel
+        fields = ('id', 'date',)
+
 
 class LessonResultAPanelDetailSerializer(serializers.ModelSerializer):
     user = UserForAPanelTaskABCSerializer(read_only=True)
@@ -170,7 +184,8 @@ class LessonAPanelDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen', )
+        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen',)
+
 
 class LessonAPanelProgressDetailSerializer(serializers.ModelSerializer):
     result = LessonResultAPanelDetailSerializer(many=True, read_only=True)
@@ -178,7 +193,8 @@ class LessonAPanelProgressDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'date', 'result', )
+        fields = ('id', 'date', 'result',)
+
 
 # TODO: SERIALIZER LESSON APANEL EDIT AND ADD
 
@@ -233,12 +249,13 @@ class LessonPurchaseDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'lecture', 'testPOL', 'testCHL', 'taskABC','result', )
+        fields = ('id', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'result',)
 
     def get_result(self, instance):
         result = instance.result.filter(user=self.context['request'].user, isValid=True).count()
         if result > 0:
             return LessonResultUserSerializer(
-                instance=instance.result.get(user=self.context['request'].user, isValid=True), many=False).data
+                instance=instance.result.get(user=self.context['request'].user, isValid=True), many=False,
+                context={'request': self.context['request']}).data
         else:
             return None
