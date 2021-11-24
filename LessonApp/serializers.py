@@ -143,15 +143,18 @@ class LessonAPanelSerializer(serializers.ModelSerializer):
 
 
 class LessonAPanelProgressSerializer(serializers.ModelSerializer):
-    # lecture = LessonLectureAPanelSerializer(read_only=True)
-    # testPOL = TestAPanelSerializer(read_only=True)
-    # testCHL = TestAPanelSerializer(read_only=True)
-    # taskABC = LessonTaskABCAPanelSerializer(read_only=True)
+    resultCount = serializers.SerializerMethodField(read_only=True, source='get_resultCount')
+    resultCheckCount = serializers.SerializerMethodField(read_only=True, source='get_resultCheckCount')
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'date',)
+        fields = ('id', 'date', 'resultCount', 'resultCheckCount', )
 
+    def get_resultCount(self, instance):
+        return instance.result.exclude(taskABC=None).count()
+
+    def get_resultCheckCount(self, instance):
+        return instance.result.exclude(taskABC__result=None).count()
 
 class LessonResultAPanelDetailSerializer(serializers.ModelSerializer):
     user = UserForAPanelTaskABCSerializer(read_only=True)
