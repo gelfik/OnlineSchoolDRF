@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from CoursesApp.models import CoursesSubCoursesModel
+from CoursesApp.models import CoursesSubCoursesModel, CoursesListModel
 from CoursesApp.serializers import CoursesPurchaseDetailSerializer, CoursesSubCoursesSerializer, \
-    CoursesPurchaseSerializer, CoursesPurchaseSerializer
+    CoursesPurchaseSerializer, CoursesPurchaseSerializer, CoursesDetailSerializer, CoursesBuySerializer
 from LessonApp.models import LessonModel
 from LessonApp.serializers import LessonLectureDetailSerializer, LessonTaskABCDetailSerializer, LessonLectureSerializer
 from TestApp.models import TestAskAnswerSelectionModel, TestAskModel, TestModel
@@ -18,19 +18,22 @@ class PurchaseCheckBuySerializer(serializers.ModelSerializer):
         model = PurchaseListModel
         fields = ('status', 'id')
 
+
 class PurchaseTestAnswerCreateSerializer(serializers.Serializer):
     answerData = serializers.JSONField(write_only=True)
     testType = serializers.CharField(write_only=True)
 
     class Meta:
-        fields = ('answerData', 'testType', )
+        fields = ('answerData', 'testType',)
+
 
 class PurchaseTaskAnswerCreateSerializer(serializers.Serializer):
     file = serializers.FileField(write_only=True)
     testType = serializers.CharField(write_only=True)
 
     class Meta:
-        fields = ('file', 'testType', )
+        fields = ('file', 'testType',)
+
 
 # TODO PURCHASE
 
@@ -118,7 +121,7 @@ class PurchaseSubCoursesNotBuySerializer(serializers.ModelSerializer):
 
 
 class PurchaseCoursesForCourseSerializer(serializers.ModelSerializer):
-    course = CoursesPurchaseSerializer(many=False, read_only=True)
+    course = CoursesBuySerializer(many=False, read_only=True)
     courseSub = serializers.SerializerMethodField(read_only=True, source='get_courseSub')
     countDuration = serializers.SerializerMethodField(read_only=True, source='get_countDuration')
 
@@ -127,11 +130,13 @@ class PurchaseCoursesForCourseSerializer(serializers.ModelSerializer):
         fields = ('course', 'courseSub', 'countDuration',)
 
     def get_courseSub(self, instance):
-        subList = CoursesSubCoursesModel.objects.exclude(id__in=instance.pay.values_list('courseSub', flat=True))
+        subList = CoursesSubCoursesModel.objects.filter(
+            courseslistmodel__subCourses__id__in=instance.course.subCourses.values_list('id', flat=True)).exclude(
+            id__in=instance.pay.values_list('courseSub_id', flat=True)).distinct()
         return PurchaseSubCoursesNotBuySerializer(many=True, instance=subList).data
 
     def get_countDuration(self, instance):
-        subList = CoursesSubCoursesModel.objects.filter(id__in=instance.pay.values_list('courseSub', flat=True))
+        subList = CoursesSubCoursesModel.objects.filter(id__in=instance.pay.values_list('courseSub_id', flat=True))
         return instance.course.subCourses.exclude(id__in=subList).count()
 
 
@@ -144,3 +149,29 @@ class PurchaseListForAPanelCoursesSerializer(serializers.ModelSerializer):
         model = PurchaseListModel
         # fields = '__all__'
         fields = ('id', 'user', 'pay', 'courseSub',)
+
+
+class PurchaseBuyAPanelSerializer(serializers.Serializer):
+    courseID = serializers.PrimaryKeyRelatedField(required=True,
+                                                  queryset=CoursesListModel.objects.filter(is_active=True, draft=False))
+    buyAll = serializers.BooleanField(required=False, default=False)
+    promocode = serializers.CharField(required=False)
+
+    class Meta:
+        # model = PurchaseListModel
+        # fields = '__all__'
+        fields = ('courseID', 'buyAll', 'promocode',)
+
+
+class PurchaseBuySubAPanelSerializer(serializers.Serializer):
+    purchaseID = serializers.PrimaryKeyRelatedField(required=True,
+                                                    queryset=PurchaseListModel.objects.filter(is_active=True))
+    subID = serializers.PrimaryKeyRelatedField(required=False,
+                                               queryset=CoursesSubCoursesModel.objects.filter(is_active=True))
+    buyAll = serializers.BooleanField(required=False, default=False)
+    promocode = serializers.CharField(required=False)
+
+    class Meta:
+        # model = PurchaseListModel
+        # fields = '__all__'
+        fields = ('purchaseID', 'subID', 'buyAll', 'promocode',)

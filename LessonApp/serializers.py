@@ -151,10 +151,10 @@ class LessonAPanelProgressSerializer(serializers.ModelSerializer):
         fields = ('id', 'date', 'resultCount', 'resultCheckCount', )
 
     def get_resultCount(self, instance):
-        return instance.result.exclude(taskABC=None).count()
+        return instance.result.exclude(taskABC=None, isValid=True).count()
 
     def get_resultCheckCount(self, instance):
-        return instance.result.exclude(taskABC__result=None).count()
+        return instance.result.exclude(taskABC__result=None, isValid=True).count()
 
 class LessonResultAPanelDetailSerializer(serializers.ModelSerializer):
     user = UserForAPanelTaskABCSerializer(read_only=True)

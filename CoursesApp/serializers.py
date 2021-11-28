@@ -71,6 +71,19 @@ class CoursesSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'predmet', 'courseType', 'courseExamType', 'teacher', 'price',)
 
 
+class CoursesBuySerializer(serializers.ModelSerializer):
+    teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)
+    predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    courseType = CoursesTypeForCourseDetailSerializer(many=False, read_only=True)
+    courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
+    class Meta:
+        model = CoursesListModel
+        fields = (
+            'id', 'name', 'predmet', 'courseType', 'courseExamType', 'teacher', 'price', 'coursePicture',
+            'discountDuration',)
+
+
 class CoursesPurchaseSerializer(serializers.ModelSerializer):
     predmet = serializers.SlugRelatedField(slug_field='name', read_only=True)
     courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
