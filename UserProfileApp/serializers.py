@@ -137,10 +137,12 @@ class LoginSerializer(serializers.Serializer):
             # 'username': user.username,
             'token': user.token,
         }
+
     class Meta:
         model = User
         # Перечислить все поля, которые могут быть включены в запрос
         # или ответ, включая поля, явно указанные выше.
+
 
 class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
     """ Ощуществляет сериализацию и десериализацию объектов User. """
@@ -191,6 +193,7 @@ class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
 class UserDataSerializer(serializers.ModelSerializer):
     """ Ощуществляет сериализацию и десериализацию объектов User. """
     avatar = AvatarSerializer(many=False)
+
     # isMentor = serializers.BooleanField(read_only=True, default=True)
     # isTeaher = serializers.BooleanField(read_only=True, default=True)
 
@@ -198,7 +201,8 @@ class UserDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone', 'isTeacher', 'isMentor', )
+        fields = (
+        'id', 'email', 'username', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone', 'isTeacher', 'isMentor',)
 
     def __init__(self, *args, **kwargs):
         super(UserDataSerializer, self).__init__(*args, **kwargs)
@@ -210,7 +214,6 @@ class UserDataSerializer(serializers.ModelSerializer):
         else:
             self.fields.pop('isTeacher')
             self.fields.pop('isMentor')
-
 
     # def get_avatar(self, User):
     #     data = {}
@@ -256,7 +259,8 @@ class UserTeacherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('firstName', 'lastName', 'avatar', )
+        fields = ('firstName', 'lastName', 'avatar',)
+
 
 class UserMentorSerializer(serializers.ModelSerializer):
     """ Ощуществляет сериализацию и десериализацию объектов User. """
@@ -266,12 +270,13 @@ class UserMentorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'firstName', 'lastName', 'avatar', 'vkLink', )
+        fields = ('id', 'firstName', 'lastName', 'avatar', 'vkLink',)
 
 
 class UserForAPanelCoursesSerializer(serializers.ModelSerializer):
     """ Ощуществляет сериализацию и десериализацию объектов User. """
     avatar = AvatarSerializer(many=False)
+
     # isMentor = serializers.BooleanField(read_only=True, default=True)
     # isTeaher = serializers.BooleanField(read_only=True, default=True)
 
@@ -282,10 +287,19 @@ class UserForAPanelCoursesSerializer(serializers.ModelSerializer):
         fields = ('email', 'username', 'firstName', 'lastName', 'vkLink', 'avatar', 'phone',)
 
 
+class UserForAProgressResultSerializer(serializers.ModelSerializer):
+    avatar = AvatarSerializer(many=False)
+
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'firstName', 'lastName', 'vkLink', 'avatar',)
+
+
 class UserForAPanelTaskABCSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('email', 'username', 'firstName', 'lastName', 'vkLink',)
+
 
 class UserGroupSerializer(serializers.ModelSerializer):
     class Meta:

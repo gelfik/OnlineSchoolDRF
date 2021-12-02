@@ -1,5 +1,8 @@
 from rest_framework import serializers
+from django.db.models import F, Avg
 
+from AProgressApp.serializers import AProgressResultSerializer
+from LessonApp.models import LessonResultUserModel
 from PurchaseApp.models import PurchaseListModel
 from TeachersApp.models import TeachersModel
 from UserProfileApp.serializers import UserMentorSerializer
@@ -7,6 +10,10 @@ from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel,
     CoursesSubCoursesModel
 from TeachersApp.serializers import TeacherDataForPurchaseSerializer
 from LessonApp.serializers import LessonDataSerializer, LessonAPanelSerializer, LessonAPanelProgressSerializer
+
+
+def int_r(num):
+    return int(num + (0.5 if num > 0 else -0.5))
 
 
 class CoursesExamTypeSerializer(serializers.ModelSerializer):
@@ -165,14 +172,32 @@ class CoursesApanelProgressDetailSerializer(serializers.ModelSerializer):
     courseType = serializers.SlugRelatedField(slug_field='name', read_only=True)
     courseExamType = serializers.SlugRelatedField(slug_field='name', read_only=True)
     subCourses = serializers.SerializerMethodField(read_only=True, source='get_subCourses')
+    userProgress = serializers.SerializerMethodField(read_only=True, source='get_userProgress')
 
     class Meta:
         model = CoursesListModel
-        fields = ('id', 'predmet', 'courseType', 'courseExamType', 'subCourses', 'coursePicture', 'name',)
+        fields = (
+            'id', 'predmet', 'courseType', 'courseExamType', 'subCourses', 'coursePicture', 'name', 'userProgress',)
 
     def get_subCourses(self, instance):
         return CoursesSubCoursesSerializer(many=True, instance=instance.subCourses.filter(is_active=True),
                                            context={'request': self.context['request']}).data
+
+    def get_userProgress(self, instance):
+        results = LessonResultUserModel.objects.exclude(testPOL=None, testCHL=None, taskABC=None).filter(
+            lessonmodel__lessons__courseslistmodel=instance.id)
+        users = results.order_by('user_id').values_list('user_id', flat=True).distinct()
+        data = []
+        for user_id in users:
+            localData = results.filter(user_id=user_id)
+            localDataAVG = localData.aggregate(pol=Avg('testPOL__result'), chl=Avg('testCHL__result'),
+                                               abc=Avg('taskABC__result'))
+            localDataAVG.update(pol=int_r(localDataAVG['pol']), chl=int_r(localDataAVG['chl']),
+                                abc=int_r(localDataAVG['abc']))
+            localDataAVG.update(user=localData[0].user,
+                                k=int_r((localDataAVG['pol'] * localDataAVG['chl'] * localDataAVG['abc']) ** (1 / 3)))
+            data.append(localDataAVG)
+        return AProgressResultSerializer(many=True, instance=data, context={'request': self.context['request']}).data
 
 
 class CoursesApanelProgressSubDetailSerializer(serializers.ModelSerializer):
