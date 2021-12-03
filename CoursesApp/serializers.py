@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.db.models import F, Avg
+from django.db.models import F, Avg, Count
 
 from AProgressApp.serializers import AProgressResultSerializer
 from LessonApp.models import LessonResultUserModel
@@ -191,9 +191,9 @@ class CoursesApanelProgressDetailSerializer(serializers.ModelSerializer):
         for user_id in users:
             localData = results.filter(user_id=user_id)
             localDataAVG = localData.aggregate(pol=Avg('testPOL__result'), chl=Avg('testCHL__result'),
-                                               abc=Avg('taskABC__result'))
+                                               abc=Avg('taskABC__result'), countWork=Count('user'))
             localDataAVG.update(pol=int_r(localDataAVG['pol']), chl=int_r(localDataAVG['chl']),
-                                abc=int_r(localDataAVG['abc']))
+                                abc=int_r(localDataAVG['abc']), countWork=int_r(localDataAVG['countWork']))
             localDataAVG.update(user=localData[0].user,
                                 k=int_r((localDataAVG['pol'] * localDataAVG['chl'] * localDataAVG['abc']) ** (1 / 3)))
             data.append(localDataAVG)
