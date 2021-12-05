@@ -172,8 +172,9 @@ class PurchaseTestAnswerCreateAPIView(CreateAPIView):
                                     for j, jtem in enumerate(validAskData):
                                         if str(jtem.id) in answerData[f'{item.id}']:
                                             testAnswerUser.answerList.add(jtem)
-                                    if testAnswerUser.answerList.count() == validAskData.filter(
-                                            validStatus=True).count():
+                                    ids_user_answer = testAnswerUser.answerList.all().values_list('id', flat=True)
+                                    ids_valid_answer = validAskData.filter(validStatus=True).values_list('id', flat=True)
+                                    if set(ids_user_answer) == set(ids_valid_answer):
                                         validAskCount += 1
                                         testAnswerUser.answerValid = True
                             else:
