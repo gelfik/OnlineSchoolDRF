@@ -185,7 +185,7 @@ class CoursesApanelProgressDetailSerializer(serializers.ModelSerializer):
 
     def get_userProgress(self, instance):
         results = LessonResultUserModel.objects.exclude(testPOL=None, testCHL=None, taskABC=None).filter(
-            lessonmodel__lessons__courseslistmodel=instance.id)
+            is_active=True, lessonmodel__lessons__courseslistmodel=instance.id)
         users = results.order_by('user_id').values_list('user_id', flat=True).distinct()
         data = []
         for user_id in users:
@@ -202,14 +202,31 @@ class CoursesApanelProgressDetailSerializer(serializers.ModelSerializer):
 
 class CoursesApanelProgressSubDetailSerializer(serializers.ModelSerializer):
     lessons = serializers.SerializerMethodField(read_only=True, source='get_lessons')
+    userProgress = serializers.SerializerMethodField(read_only=True, source='get_userProgress')
 
     class Meta:
         model = CoursesSubCoursesModel
-        fields = ('id', 'lessons', 'name',)
+        fields = ('id', 'lessons', 'name', 'userProgress',)
 
     def get_lessons(self, instance):
         return LessonAPanelProgressSerializer(many=True, instance=instance.lessons.filter(is_active=True).exclude(
             result__user=None), context={'request': self.context['request']}).data
+
+    def get_userProgress(self, instance):
+        results = LessonResultUserModel.objects.exclude(testPOL=None, testCHL=None, taskABC=None).filter(
+            is_active=True, lessonmodel__lessons__purchasepaymodel__courseSub=instance.id).distinct()
+        users = results.order_by('user_id').values_list('user_id', flat=True).distinct()
+        data = []
+        for user_id in users:
+            localData = results.filter(user_id=user_id)
+            localDataAVG = localData.aggregate(pol=Avg('testPOL__result'), chl=Avg('testCHL__result'),
+                                               abc=Avg('taskABC__result'), countWork=Count('user'))
+            localDataAVG.update(pol=int_r(localDataAVG['pol']), chl=int_r(localDataAVG['chl']),
+                                abc=int_r(localDataAVG['abc']), countWork=int_r(localDataAVG['countWork']))
+            localDataAVG.update(user=localData[0].user,
+                                k=int_r((localDataAVG['pol'] * localDataAVG['chl'] * localDataAVG['abc']) ** (1 / 3)))
+            data.append(localDataAVG)
+        return AProgressResultSerializer(many=True, instance=data, context={'request': self.context['request']}).data
 
 
 # TODO COURSES APANEL ADD AND EDIT

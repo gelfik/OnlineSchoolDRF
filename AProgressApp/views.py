@@ -49,7 +49,7 @@ class AProgressSubCourseDetailAPIView(RetrieveAPIView):
     def get_queryset(self):
         return CoursesSubCoursesModel.objects.filter(is_active=True,
                                                      courseslistmodel__teacher__user=self.request.user,
-                                                         courseslistmodel=self.kwargs['courseID'])
+                                                     courseslistmodel=self.kwargs['courseID'])
 
 
 class AProgressLessonDetailAPIView(RetrieveAPIView):

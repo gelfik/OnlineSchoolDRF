@@ -1,11 +1,15 @@
+from django.db.models import Avg, Count
 from rest_framework import serializers
 
+from AProgressApp.serializers import AProgressResultSerializer
 from TestApp.serializers import TestDataSerializer, TestDataDetailSerializer, TestSerializer, TestAPanelSerializer, \
     TestAPanelDetailSerializer, TestAnswerUserListDetailSerializer, TestAnswerUserListAPanelSerializer
-from UserProfileApp.serializers import UserForAPanelTaskABCSerializer
+from UserProfileApp.serializers import UserForAPanelTaskABCSerializer, UserForAProgressResultSerializer
 from .models import LessonTaskABCModel, LessonModel, LessonFileModel, LessonLectureModel, LessonTaskAnswerUserModel, \
     LessonResultUserModel
 
+def int_r(num):
+    return int(num + (0.5 if num > 0 else -0.5))
 
 class LessonFileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -157,7 +161,7 @@ class LessonAPanelProgressSerializer(serializers.ModelSerializer):
         return instance.result.exclude(taskABC__result=None, isValid=True).count()
 
 class LessonResultAPanelDetailSerializer(serializers.ModelSerializer):
-    user = UserForAPanelTaskABCSerializer(read_only=True)
+    user = UserForAProgressResultSerializer(read_only=True)
     testPOL = TestAnswerUserListAPanelSerializer(read_only=True)
     testCHL = TestAnswerUserListAPanelSerializer(read_only=True)
     taskABC = LessonTaskABCAnswerUserAPanelSerializer(read_only=True)
@@ -191,12 +195,28 @@ class LessonAPanelDetailSerializer(serializers.ModelSerializer):
 
 
 class LessonAPanelProgressDetailSerializer(serializers.ModelSerializer):
-    result = LessonResultAPanelDetailSerializer(many=True, read_only=True)
     date = serializers.DateField(required=False)
+    userProgress = serializers.SerializerMethodField(read_only=True, source='get_userProgress')
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'date', 'result',)
+        fields = ('id', 'date', 'userProgress',)
+
+    def get_userProgress(self, instance):
+        results = instance.result.filter(is_active=True)
+        users = results.order_by('user_id').values_list('user_id', flat=True).distinct()
+        data = []
+        for user_id in users:
+            localData = results.filter(user_id=user_id)
+            localDataAVG = localData.aggregate(pol=Avg('testPOL__result'), chl=Avg('testCHL__result'),
+                                               abc=Avg('taskABC__result'), countWork=Count('user'))
+            localDataAVG.update(pol=int_r(localDataAVG['pol']), chl=int_r(localDataAVG['chl']),
+                                abc=int_r(localDataAVG['abc']))
+            localDataAVG.update(countWork=None)
+            localDataAVG.update(user=localData[0].user,
+                                k=int_r((localDataAVG['pol'] * localDataAVG['chl'] * localDataAVG['abc']) ** (1 / 3)))
+            data.append(localDataAVG)
+        return AProgressResultSerializer(many=True, instance=data, context={'request': self.context['request']}).data
 
 
 # TODO: SERIALIZER LESSON APANEL EDIT AND ADD
