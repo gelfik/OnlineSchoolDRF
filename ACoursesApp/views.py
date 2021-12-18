@@ -18,8 +18,9 @@ from CoursesApp.models import CoursesListModel, CoursesPredmetModel, CoursesType
 from CoursesApp.serializers import CoursesApanelSerializer, CoursesAddSerializer, \
     CoursesMetadataSerializer, CoursesSubAddSerializer, CoursesEditSerializer, \
     CoursesSubEditSerializer
-from LessonApp.models import LessonModel, LessonLectureModel, LessonTaskABCModel
-from LessonApp.serializers import LessonFileAddSerializer, LessonAPanelDetailSerializer, LessonAPanelListAddSerializer
+from LessonApp.models import LessonModel, LessonLectureModel, LessonTaskABCModel, LessonTaskAnswerUserModel
+from LessonApp.serializers import LessonFileAddSerializer, LessonAPanelDetailSerializer, LessonAPanelListAddSerializer, \
+    LessonTaskABCAnswerUserAPanelSerializer
 from OnlineSchoolDRF.service import IsTeacherPermission
 from PurchaseApp.models import PurchaseListModel
 from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer
@@ -186,9 +187,9 @@ class ACoursesLessonFileAddAPIView(APIView):
 
     def put(self, request, *args, **kwargs):
         instance = get_object_or_404(LessonModel, lessons__courseslistmodel__teacher__user=self.request.user,
-                                   lessons__courseslistmodel__id=self.kwargs['courseID'],
-                                   lessons__id=self.kwargs['subCourseID'],
-                                   id=self.kwargs['lessonID'])
+                                     lessons__courseslistmodel__id=self.kwargs['courseID'],
+                                     lessons__id=self.kwargs['subCourseID'],
+                                     id=self.kwargs['lessonID'])
         if instance is None or instance.lecture is None:
             return Response({'status': False, 'detail': 'Занятие не найдено!'},
                             status=status.HTTP_404_NOT_FOUND)
@@ -202,6 +203,7 @@ class ACoursesLessonFileAddAPIView(APIView):
         else:
             return Response({'status': False, 'detail': 'Ошибка при добавлении файла!'},
                             status=status.HTTP_400_BAD_REQUEST)
+
 
 class ACoursesLessonFileDetailAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)
@@ -293,6 +295,15 @@ class ACoursesLessonAskDetailAPIView(RetrieveUpdateDestroyAPIView):
         instance.is_active = False
         instance.save()
         return Response({'status': True, 'detail': 'Вопрос удален!'})
+
+
+class ACoursesLessonResultDetailAPIView(RetrieveUpdateAPIView):
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = LessonTaskABCAnswerUserAPanelSerializer
+
+    def get_queryset(self):
+        return LessonTaskAnswerUserModel.objects.all()
 
 
 class ACoursesSubCourseEditAPIView(APIView):

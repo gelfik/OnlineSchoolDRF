@@ -8,8 +8,10 @@ from UserProfileApp.serializers import UserForAPanelTaskABCSerializer, UserForAP
 from .models import LessonTaskABCModel, LessonModel, LessonFileModel, LessonLectureModel, LessonTaskAnswerUserModel, \
     LessonResultUserModel
 
+
 def int_r(num):
     return int(num + (0.5 if num > 0 else -0.5))
+
 
 class LessonFileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -89,19 +91,9 @@ class LessonDetailSerializer(serializers.ModelSerializer):
     testCHL = TestDataSerializer(read_only=True)
     taskABC = LessonTaskABCDetailSerializer(read_only=True)
 
-    # result = serializers.SerializerMethodField(read_only=True, source='get_result')
-
     class Meta:
         model = LessonModel
         fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC',)
-
-    # def get_result(self, instance):
-    #     result = instance.result.filter(user=self.context['request'].user, isValid=True).count()
-    #     if result > 0:
-    #         return LessonResultUserSerializer(
-    #             instance=instance.result.get(user=self.context['request'].user, isValid=True), many=False).data
-    #     else:
-    #         return None
 
 
 class LessonDataDetailSerializer(serializers.ModelSerializer):
@@ -130,9 +122,15 @@ class LessonTaskABCAPanelSerializer(serializers.ModelSerializer):
 
 
 class LessonTaskABCAnswerUserAPanelSerializer(serializers.ModelSerializer):
+    loadTime = serializers.SerializerMethodField(read_only=True, source='get_loadTime')
+
     class Meta:
         model = LessonTaskAnswerUserModel
         fields = ('id', 'file', 'loadTime', 'result',)
+        read_only_fields = ('id', 'file', 'loadTime',)
+
+    def get_loadTime(self, obj):
+        return obj.loadTime.strftime('%d.%m.%Y %H:%M')
 
 
 class LessonAPanelSerializer(serializers.ModelSerializer):
@@ -152,13 +150,16 @@ class LessonAPanelProgressSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'date', 'resultCount', 'resultCheckCount', )
+        fields = ('id', 'date', 'resultCount', 'resultCheckCount',)
 
     def get_resultCount(self, instance):
         return instance.result.exclude(taskABC=None, isValid=True).count()
 
     def get_resultCheckCount(self, instance):
         return instance.result.exclude(taskABC__result=None, isValid=True).count()
+
+
+# TODO: SERIALIZER LESSON APANEL DETAIL
 
 class LessonResultAPanelDetailSerializer(serializers.ModelSerializer):
     user = UserForAProgressResultSerializer(read_only=True)
@@ -171,7 +172,13 @@ class LessonResultAPanelDetailSerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'testPOL', 'testCHL', 'taskABC', 'isValid',)
 
 
-# TODO: SERIALIZER LESSON APANEL DETAIL
+class LessonResultForCheckAPanelDetailSerializer(serializers.ModelSerializer):
+    user = UserForAProgressResultSerializer(read_only=True)
+    taskABC = LessonTaskABCAnswerUserAPanelSerializer(read_only=True)
+
+    class Meta:
+        model = LessonResultUserModel
+        fields = ('id', 'user', 'taskABC', 'isValid',)
 
 
 class LessonLectureAPanelDetailSerializer(serializers.ModelSerializer):
@@ -187,11 +194,12 @@ class LessonAPanelDetailSerializer(serializers.ModelSerializer):
     testPOL = TestAPanelDetailSerializer(read_only=False, required=False)
     testCHL = TestAPanelDetailSerializer(read_only=False, required=False)
     taskABC = LessonTaskABCAPanelSerializer(read_only=False, required=False)
+    result = LessonResultForCheckAPanelDetailSerializer(read_only=False, required=False, many=True)
     date = serializers.DateField(required=False)
 
     class Meta:
         model = LessonModel
-        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'isOpen',)
+        fields = ('id', 'date', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'result', 'isOpen',)
 
 
 class LessonAPanelProgressDetailSerializer(serializers.ModelSerializer):
