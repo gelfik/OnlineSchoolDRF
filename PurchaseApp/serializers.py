@@ -1,12 +1,13 @@
+from django.db.models import Avg, Count, Q
 from rest_framework import serializers
-
 from CoursesApp.models import CoursesSubCoursesModel, CoursesListModel
-from CoursesApp.serializers import CoursesPurchaseDetailSerializer, CoursesSubCoursesSerializer, \
-    CoursesPurchaseSerializer, CoursesPurchaseSerializer, CoursesDetailSerializer, CoursesBuySerializer
+from CoursesApp.serializers import (CoursesPurchaseDetailSerializer, CoursesSubCoursesSerializer,
+                                    CoursesPurchaseSerializer, CoursesBuySerializer)
 from LessonApp.models import LessonModel
-from LessonApp.serializers import LessonLectureDetailSerializer, LessonTaskABCDetailSerializer, LessonLectureSerializer
-from TestApp.models import TestAskAnswerSelectionModel, TestAskModel, TestModel
-from TestApp.serializers import TestDataDetailSerializer, TestAskAnswerSelectionSerializer, TestAskSerializer
+from LessonApp.serializers import LessonTaskABCDetailSerializer, LessonLectureSerializer, LessonSerializer
+from OnlineSchoolDRF.serializers import UserProgressSerializer
+from OnlineSchoolDRF.service import int_r
+from TestApp.serializers import TestDataDetailSerializer
 from UserProfileApp.serializers import UserForAPanelCoursesSerializer
 from .models import PurchasePayModel, PurchaseListModel
 
@@ -17,6 +18,19 @@ class PurchaseCheckBuySerializer(serializers.ModelSerializer):
     class Meta:
         model = PurchaseListModel
         fields = ('status', 'id')
+
+
+class PurchaseNoBuySerializer(serializers.ModelSerializer):
+    courseSub = serializers.SerializerMethodField(source='get_courseSub', read_only=True)
+
+    class Meta:
+        model = PurchaseListModel
+        fields = ('id', 'courseSub')
+
+    def get_courseSub(self, obj):
+        return CoursesSubCoursesSerializer(
+            instance=CoursesSubCoursesModel.objects.filter(courseslistmodel=obj.course).exclude(
+                id__in=obj.pay.all().values_list('courseSub__id', flat=True)), many=True, read_only=True).data
 
 
 class PurchaseTestAnswerCreateSerializer(serializers.Serializer):
@@ -52,6 +66,43 @@ class PurchasePaySerializer(serializers.ModelSerializer):
         return CoursesSubCoursesSerializer(instance=obj.courseSub, read_only=True).data
 
 
+class PurchaseProgressSerializer(UserProgressSerializer, serializers.ModelSerializer):
+    course = CoursesPurchaseSerializer(many=False, read_only=True)
+    pay = serializers.SerializerMethodField(read_only=True, source='get_pay')
+
+    class Meta:
+        model = PurchaseListModel
+        exclude = ('user', 'is_active',)
+
+    def get_pay(self, instance):
+        return PurchasePaySerializer(instance=instance.pay.filter(is_active=True,
+                                                                  courseSub__lessons__result__user=self.context[
+                                                                      'request'].user).distinct(),
+                                     many=True, read_only=True).data
+
+
+class PurchaseProgressSubSerializer(UserProgressSerializer, serializers.ModelSerializer):
+    lessons = serializers.SerializerMethodField(read_only=True, source='get_lessons')
+
+    class Meta:
+        model = CoursesSubCoursesModel
+        exclude = ('is_active', 'startDate', 'endDate',)
+        ordering = ['startDate', 'endDate', 'id']
+
+    def get_lessons(self, instance):
+        return LessonSerializer(many=True, instance=instance.lessons.filter(isOpen=True, result__user=self.context[
+            'request'].user).exclude(Q(result__taskABC__result=None) | Q(result__testCHL__result=None) | Q(
+            result__testPOL__result=None)).distinct()).data
+
+
+class PurchaseProgressLessonSerializer(UserProgressSerializer, serializers.ModelSerializer):
+    date = serializers.DateField(required=False)
+
+    class Meta:
+        model = LessonModel
+        exclude = ('is_active', 'lecture', 'testPOL', 'testCHL', 'taskABC', 'result', 'isOpen',)
+
+
 # TODO PURCHASE DETAIL
 
 class PurchasePayDetailSerializer(serializers.ModelSerializer):
@@ -77,13 +128,10 @@ class PurchaseListSerializer(serializers.ModelSerializer):
 
 class PurchaseDetailSerializer(serializers.ModelSerializer):
     course = CoursesPurchaseDetailSerializer(many=False, read_only=True)
-    # pay = PurchasePaySerializer(many=True, read_only=True)
     pay = serializers.SerializerMethodField(read_only=True, source='get_pay')
 
     class Meta:
         model = PurchaseListModel
-        # fields = '__all__'
-        # fields = ('predmet', 'courseType', 'courseExamType', 'teacher', 'price', 'leasonList',)
         exclude = ('user', 'is_active',)
 
     def get_pay(self, instance):

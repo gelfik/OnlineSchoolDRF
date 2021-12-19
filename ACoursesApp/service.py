@@ -20,7 +20,7 @@ class CoursesListFilter(filters.FilterSet):
 
 
 class CoursesPurchaseFilter(filters.FilterSet):
-    courseSub = CharFilterInFilter(field_name='courseSub__id', lookup_expr='in')
+    courseSub = CharFilterInFilter(field_name='pay__courseSub__id', lookup_expr='in')
 
     class Meta:
         model = PurchaseListModel

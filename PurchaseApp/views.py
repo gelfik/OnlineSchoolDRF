@@ -14,7 +14,8 @@ from PromocodeApp.service import Promocode
 from TestApp.models import TestAnswerUserListModel, TestAnswerUserModel, TestAskAnswerSelectionModel
 from .serializers import PurchaseListSerializer, PurchaseDetailSerializer, PurchaseCheckBuySerializer, \
     PurchaseSubCoursesDetailSerializer, PurchaseCoursesForCourseSerializer, PurchaseTestAnswerCreateSerializer, \
-    PurchaseTaskAnswerCreateSerializer, PurchaseBuyAPanelSerializer, PurchaseBuySubAPanelSerializer
+    PurchaseTaskAnswerCreateSerializer, PurchaseBuyAPanelSerializer, PurchaseBuySubAPanelSerializer, \
+    PurchaseNoBuySerializer
 from .models import PurchaseListModel, PurchasePayModel
 from .service import PurchasePayData, PurchaseSubPayData
 
@@ -37,6 +38,13 @@ class PurchaseCheckBuyAPIView(APIView):
                 return Response({'status': False}, status=status.HTTP_200_OK)
         else:
             return Response({'status': False}, status=status.HTTP_200_OK)
+
+
+class PurchaseNoBuyAPIView(RetrieveAPIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = PurchaseNoBuySerializer
+    queryset = PurchaseListModel.objects.all()
 
 
 class PurchaseForPurchaseAPIView(RetrieveAPIView):

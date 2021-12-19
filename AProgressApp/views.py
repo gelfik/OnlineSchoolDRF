@@ -1,19 +1,13 @@
-from rest_framework import status, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
-from rest_framework.generics import get_object_or_404, ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django_filters.rest_framework import DjangoFilterBackend
-from django.contrib.auth.models import Group
-from django.db.models import Q
-# Create your views here.
-from ACoursesApp.serializers import ACoursesCoursesDetailSerializer, ACoursesSubCoursesDetailSerializer
-from ACoursesApp.service import CoursesListFilter
 from AProgressApp.service import AProgressCoursesListFilter
 from CoursesApp.models import CoursesListModel, CoursesSubCoursesModel
-from CoursesApp.serializers import CoursesApanelSerializer, CoursesApanelProgressSerializer, \
+from CoursesApp.serializers import CoursesApanelProgressSerializer, \
     CoursesApanelProgressDetailSerializer, CoursesApanelProgressSubDetailSerializer
-from LessonApp.models import LessonModel, LessonLectureModel, LessonTaskABCModel
-from LessonApp.serializers import LessonAPanelDetailSerializer, LessonAPanelProgressDetailSerializer
+from LessonApp.models import LessonModel
+from LessonApp.serializers import LessonAPanelProgressDetailSerializer
 from OnlineSchoolDRF.service import IsTeacherPermission
 
 

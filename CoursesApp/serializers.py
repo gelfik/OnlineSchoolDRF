@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from django.db.models import F, Avg, Count
+from django.db.models import F, Avg, Count, Q
 
 from AProgressApp.serializers import AProgressResultSerializer
 from LessonApp.models import LessonResultUserModel
+from OnlineSchoolDRF.service import int_r
 from PurchaseApp.models import PurchaseListModel
 from TeachersApp.models import TeachersModel
 from UserProfileApp.serializers import UserMentorSerializer
@@ -10,10 +11,6 @@ from .models import CoursesTypeModel, CoursesPredmetModel, CoursesExamTypeModel,
     CoursesSubCoursesModel
 from TeachersApp.serializers import TeacherDataForPurchaseSerializer
 from LessonApp.serializers import LessonDataSerializer, LessonAPanelSerializer, LessonAPanelProgressSerializer
-
-
-def int_r(num):
-    return int(num + (0.5 if num > 0 else -0.5))
 
 
 class CoursesExamTypeSerializer(serializers.ModelSerializer):
@@ -184,7 +181,8 @@ class CoursesApanelProgressDetailSerializer(serializers.ModelSerializer):
                                            context={'request': self.context['request']}).data
 
     def get_userProgress(self, instance):
-        results = LessonResultUserModel.objects.exclude(testPOL=None, testCHL=None, taskABC=None).filter(
+        results = LessonResultUserModel.objects.exclude(
+            Q(taskABC__result=None) | Q(testCHL__result=None) | Q(testPOL__result=None)).filter(
             is_active=True, lessonmodel__lessons__courseslistmodel=instance.id)
         users = results.order_by('user_id').values_list('user_id', flat=True).distinct()
         data = []
@@ -213,7 +211,8 @@ class CoursesApanelProgressSubDetailSerializer(serializers.ModelSerializer):
             result__user=None), context={'request': self.context['request']}).data
 
     def get_userProgress(self, instance):
-        results = LessonResultUserModel.objects.exclude(testPOL=None, testCHL=None, taskABC=None).filter(
+        results = LessonResultUserModel.objects.exclude(
+            Q(taskABC__result=None) | Q(testCHL__result=None) | Q(testPOL__result=None)).filter(
             is_active=True, lessonmodel__lessons__purchasepaymodel__courseSub=instance.id).distinct()
         users = results.order_by('user_id').values_list('user_id', flat=True).distinct()
         data = []

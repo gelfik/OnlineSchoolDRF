@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'TestApp',
     'PromocodeApp',
     'PurchaseApp',
+    'ProgressApp',
     'APanelApp',
     'ACoursesApp',
     'AProgressApp',

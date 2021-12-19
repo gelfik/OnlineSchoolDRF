@@ -1,16 +1,13 @@
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Q
 from rest_framework import serializers
 
 from AProgressApp.serializers import AProgressResultSerializer
+from OnlineSchoolDRF.service import int_r
 from TestApp.serializers import TestDataSerializer, TestDataDetailSerializer, TestSerializer, TestAPanelSerializer, \
     TestAPanelDetailSerializer, TestAnswerUserListDetailSerializer, TestAnswerUserListAPanelSerializer
 from UserProfileApp.serializers import UserForAPanelTaskABCSerializer, UserForAProgressResultSerializer
 from .models import LessonTaskABCModel, LessonModel, LessonFileModel, LessonLectureModel, LessonTaskAnswerUserModel, \
     LessonResultUserModel
-
-
-def int_r(num):
-    return int(num + (0.5 if num > 0 else -0.5))
 
 
 class LessonFileSerializer(serializers.ModelSerializer):
@@ -211,15 +208,17 @@ class LessonAPanelProgressDetailSerializer(serializers.ModelSerializer):
         fields = ('id', 'date', 'userProgress',)
 
     def get_userProgress(self, instance):
-        results = instance.result.filter(is_active=True)
+        results = instance.result.filter(is_active=True).exclude(
+            Q(taskABC__result=None) | Q(testCHL__result=None) | Q(testPOL__result=None))
         users = results.order_by('user_id').values_list('user_id', flat=True).distinct()
         data = []
         for user_id in users:
             localData = results.filter(user_id=user_id)
             localDataAVG = localData.aggregate(pol=Avg('testPOL__result'), chl=Avg('testCHL__result'),
                                                abc=Avg('taskABC__result'), countWork=Count('user'))
-            localDataAVG.update(pol=int_r(localDataAVG['pol']), chl=int_r(localDataAVG['chl']),
-                                abc=int_r(localDataAVG['abc']))
+            localDataAVG.update(pol=int_r(localDataAVG['pol'] if localDataAVG['pol'] else 0),
+                                chl=int_r(localDataAVG['chl'] if localDataAVG['chl'] else 0),
+                                abc=int_r(localDataAVG['abc'] if localDataAVG['abc'] else 0))
             localDataAVG.update(countWork=None)
             localDataAVG.update(user=localData[0].user,
                                 k=int_r((localDataAVG['pol'] * localDataAVG['chl'] * localDataAVG['abc']) ** (1 / 3)))
