@@ -236,3 +236,27 @@ class PurchaseBuySubAPanelSerializer(serializers.Serializer):
         # model = PurchaseListModel
         # fields = '__all__'
         fields = ('purchaseID', 'subID', 'buyAll', 'promocode',)
+
+
+class PurchaseForAPanelAddPaySerializer(serializers.ModelSerializer):
+    sum = serializers.IntegerField(write_only=True, required=True)
+    subCourse = serializers.PrimaryKeyRelatedField(queryset=CoursesSubCoursesModel.objects.all(), required=True,
+                                                   write_only=True)
+    status = serializers.BooleanField(default=False)
+
+    class Meta:
+        model = PurchaseListModel
+        # fields = '__all__'
+        fields = ('id', 'sum', 'subCourse', 'status',)
+
+    def update(self, instance, validated_data):
+        sum = validated_data.get('sum', None)
+        subCourse = validated_data.get('subCourse', None)
+        if instance.pay.filter(courseSub=subCourse).count() > 0:
+            raise serializers.ValidationError("Пользователь уже купил данный подкурс")
+        if subCourse not in instance.course.subCourses.all():
+            raise serializers.ValidationError("Выбранный подкурс не входит в данный курс")
+        instance.pay.add(PurchasePayModel.objects.create(sumPay=sum, sumFull=sum, payStatus=True, courseSub=subCourse))
+        instance.save()
+        instance.status = True
+        return instance

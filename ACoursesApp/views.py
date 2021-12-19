@@ -23,7 +23,7 @@ from LessonApp.serializers import LessonFileAddSerializer, LessonAPanelDetailSer
     LessonTaskABCAnswerUserAPanelSerializer
 from OnlineSchoolDRF.service import IsTeacherPermission
 from PurchaseApp.models import PurchaseListModel
-from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer
+from PurchaseApp.serializers import PurchaseListForAPanelCoursesSerializer, PurchaseForAPanelAddPaySerializer
 from TestApp.models import TestAskModel, TestAskAnswerSelectionModel, TestModel
 from TestApp.serializers import TestAskAPanelEditSerializer, TestAskAPanelAddSerializer
 from UserProfileApp.serializers import UserMentorSerializer
@@ -526,6 +526,15 @@ class ACoursesPurchaseListAPIView(ListAPIView):
 
     def get_queryset(self):
         return PurchaseListModel.objects.filter(course__teacher__user=self.request.user)
+
+class ACoursesPurchaseAddAPIView(RetrieveUpdateAPIView):
+    permission_classes = (IsAuthenticated, IsTeacherPermission)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = PurchaseForAPanelAddPaySerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        return PurchaseListModel.objects.filter(course=self.kwargs['courseID'], course__teacher__user=self.request.user)
 
 
 class ACoursesSubCourseDetailAPIView(RetrieveAPIView):
