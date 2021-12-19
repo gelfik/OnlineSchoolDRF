@@ -199,6 +199,19 @@ class PurchaseListForAPanelCoursesSerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'pay', 'courseSub',)
 
 
+class PurchaseDetailAPanelSerializer(serializers.ModelSerializer):
+    course = CoursesPurchaseDetailSerializer(many=False, read_only=True)
+    pay = serializers.SerializerMethodField(read_only=True, source='get_pay')
+    user = UserForAPanelCoursesSerializer(read_only=True)
+
+    class Meta:
+        model = PurchaseListModel
+        exclude = ('is_active',)
+
+    def get_pay(self, instance):
+        return PurchasePaySerializer(instance=instance.pay.filter(is_active=True), many=True, read_only=True).data
+
+
 class PurchaseBuyAPanelSerializer(serializers.Serializer):
     courseID = serializers.PrimaryKeyRelatedField(required=True,
                                                   queryset=CoursesListModel.objects.filter(is_active=True, draft=False))

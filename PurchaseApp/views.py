@@ -15,7 +15,7 @@ from TestApp.models import TestAnswerUserListModel, TestAnswerUserModel, TestAsk
 from .serializers import PurchaseListSerializer, PurchaseDetailSerializer, PurchaseCheckBuySerializer, \
     PurchaseSubCoursesDetailSerializer, PurchaseCoursesForCourseSerializer, PurchaseTestAnswerCreateSerializer, \
     PurchaseTaskAnswerCreateSerializer, PurchaseBuyAPanelSerializer, PurchaseBuySubAPanelSerializer, \
-    PurchaseNoBuySerializer
+    PurchaseNoBuySerializer, PurchaseDetailAPanelSerializer
 from .models import PurchaseListModel, PurchasePayModel
 from .service import PurchasePayData, PurchaseSubPayData
 
@@ -74,21 +74,30 @@ class PurchaseDetailAPIView(RetrieveAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        queryset = PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user,
-                                                                   course__draft=False)
-        try:
-            if queryset.count() > 0:
-                data = queryset[0]
-                if data.course.subCourses.exclude(id__in=data.pay.values_list('courseSub', flat=True)).count() == 0:
-                    data.courseSubAll = True
-                    data.save()
-                else:
-                    data.courseSubAll = False
-                    data.save()
-        except:
-            pass
-
+        if self.request.user.isTeacher:
+            queryset = PurchaseListModel.objects.order_by('id').filter(is_active=True, course__draft=False,
+                                                                       course__teacher__user=self.request.user)
+        else:
+            queryset = PurchaseListModel.objects.order_by('id').filter(is_active=True, user=self.request.user,
+                                                                       course__draft=False)
+            try:
+                if queryset.count() > 0:
+                    data = queryset[0]
+                    if data.course.subCourses.exclude(id__in=data.pay.values_list('courseSub', flat=True)).count() == 0:
+                        data.courseSubAll = True
+                        data.save()
+                    else:
+                        data.courseSubAll = False
+                        data.save()
+            except:
+                pass
         return queryset
+
+    def get_serializer_class(self):
+        if self.request.user.isTeacher or self.request.user.isMentor:
+            return PurchaseDetailAPanelSerializer
+        else:
+            return PurchaseDetailSerializer
 
 
 class PurchaseSubDetailAPIView(RetrieveAPIView):
@@ -181,7 +190,8 @@ class PurchaseTestAnswerCreateAPIView(CreateAPIView):
                                         if str(jtem.id) in answerData[f'{item.id}']:
                                             testAnswerUser.answerList.add(jtem)
                                     ids_user_answer = testAnswerUser.answerList.all().values_list('id', flat=True)
-                                    ids_valid_answer = validAskData.filter(validStatus=True).values_list('id', flat=True)
+                                    ids_valid_answer = validAskData.filter(validStatus=True).values_list('id',
+                                                                                                         flat=True)
                                     if set(ids_user_answer) == set(ids_valid_answer):
                                         validAskCount += 1
                                         testAnswerUser.answerValid = True
