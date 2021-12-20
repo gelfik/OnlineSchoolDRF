@@ -87,13 +87,13 @@ class UserManager(BaseUserManager):
         new_username = transliterate(firstName[:1] + lastName)
 
         user = self.model(username=new_username, email=self.normalize_email(email))
-
-        groupObj, groupCreatedStatus = Group.objects.get_or_create(name='Пользователь')
-        user.groups.add(groupObj)
+        user.set_password(password)
         user.firstName = firstName
         user.lastName = lastName
         user.vkLink = vkLink
-        user.set_password(password)
+        user.save()
+        groupObj, groupCreatedStatus = Group.objects.get_or_create(name='Пользователь')
+        user.groups.add(groupObj)
         user.save()
 
         return user
@@ -114,7 +114,6 @@ class UserManager(BaseUserManager):
         Group.objects.get_or_create(name='Пользователь')
         Group.objects.get_or_create(name='Наставник')
         groupObj, groupCreatedStatus = Group.objects.get_or_create(name='Преподаватель')
-
         user = self.create_user(email, lastName, firstName, vkLink, password)
         user.groups.add(groupObj)
         user.is_superuser = True
