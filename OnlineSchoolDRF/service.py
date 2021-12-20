@@ -9,4 +9,4 @@ class IsTeacherPermission(permissions.BasePermission):
 
 
 def int_r(num):
-    return round(num, 2)
+    return round(num if num else 0, 2)
