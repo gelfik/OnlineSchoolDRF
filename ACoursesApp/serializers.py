@@ -26,7 +26,8 @@ class ACoursesCoursesDetailSerializer(serializers.ModelSerializer):
 
     def get_subCourses(self, instance):
         return CoursesSubCoursesSerializer(many=True, instance=instance.subCourses.filter(is_active=True),
-                                                      context={'request': self.context['request']}).data
+                                           context={'request': self.context['request']}).data
+
 
 # class APanelCoursesEditSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -34,12 +35,12 @@ class ACoursesCoursesDetailSerializer(serializers.ModelSerializer):
 #         fields = (
 #             'name', 'shortDescription', 'description', 'price', 'discountDuration', 'buyAllSubCourses', 'draft',
 #             'predmet', 'courseType', 'courseExamType',)
-
-    # def update(self, instance, validated_data):
-    #     for key, value in validated_data.items():
-    #         setattr(instance, key, value)
-    #     instance.save()
-    #     return instance
+#
+#     def update(self, instance, validated_data):
+#         for key, value in validated_data.items():
+#             setattr(instance, key, value)
+#         instance.save()
+#         return instance
 
 
 class ACoursesSubCoursesDetailSerializer(serializers.ModelSerializer):
@@ -52,7 +53,7 @@ class ACoursesSubCoursesDetailSerializer(serializers.ModelSerializer):
 
     def get_lessons(self, instance):
         return LessonAPanelSerializer(many=True, instance=instance.lessons.filter(is_active=True),
-                                                      context={'request': self.context['request']}).data
+                                      context={'request': self.context['request']}).data
 
 
 class ACoursesLessonDetailSerializer(serializers.ModelSerializer):
@@ -61,7 +62,6 @@ class ACoursesLessonDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonModel
         exclude = ('is_active',)
-
 
 # class APanelCoursesDetailSerializer(serializers.ModelSerializer):
 #     # teacher = TeacherDataForPurchaseSerializer(many=False, read_only=True)

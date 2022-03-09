@@ -90,9 +90,15 @@ class PurchaseProgressSubSerializer(UserProgressSerializer, serializers.ModelSer
         ordering = ['startDate', 'endDate', 'id']
 
     def get_lessons(self, instance):
-        return LessonSerializer(many=True, instance=instance.lessons.filter(isOpen=True, result__user=self.context[
-            'request'].user).exclude(Q(result__taskABC__result=None) | Q(result__testCHL__result=None) | Q(
-            result__testPOL__result=None)).distinct()).data
+        return LessonSerializer(many=True,
+                                instance=instance.lessons.filter(
+                                    isOpen=True, result__user=self.context['request'].user
+                                ).exclude(
+                                    Q(result__taskABC__result=None) |
+                                    Q(result__testCHL__result=None) |
+                                    Q(result__testPOL__result=None) |
+                                    Q(lecture=None)
+                                ).distinct()).data
 
 
 class PurchaseProgressLessonSerializer(UserProgressSerializer, serializers.ModelSerializer):
@@ -158,7 +164,8 @@ class PurchaseSubCoursesDetailSerializer(serializers.ModelSerializer):
         ordering = ['startDate', 'endDate', 'id']
 
     def get_lessons(self, instance):
-        return PurchaseLessonForListSerializer(many=True, instance=instance.lessons.filter(isOpen=True)).data
+        return PurchaseLessonForListSerializer(many=True,
+                                               instance=instance.lessons.exclude(lecture=None).filter(isOpen=True)).data
 
 
 class PurchaseSubCoursesNotBuySerializer(serializers.ModelSerializer):

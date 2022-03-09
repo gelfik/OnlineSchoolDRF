@@ -107,13 +107,15 @@ class PurchaseSubDetailAPIView(RetrieveAPIView):
     serializer_class = PurchaseSubCoursesDetailSerializer
 
     def get_queryset(self):
-        return CoursesSubCoursesModel.objects.filter(id=self.kwargs['pk']) \
-            .filter(is_active=True,
-                    courseslistmodel__purchaselistmodel=self.kwargs['purchaseID'],
-                    courseslistmodel__purchaselistmodel__user=self.request.user,
-                    courseslistmodel__purchaselistmodel__pay__courseSub=self.kwargs['pk'],
-                    courseslistmodel__purchaselistmodel__pay__is_active=True,
-                    courseslistmodel__purchaselistmodel__pay__payStatus=True)
+        return CoursesSubCoursesModel.objects.filter(
+            id=self.kwargs['pk']
+        ).filter(
+            is_active=True,
+            courseslistmodel__purchaselistmodel=self.kwargs['purchaseID'],
+            courseslistmodel__purchaselistmodel__user=self.request.user,
+            courseslistmodel__purchaselistmodel__pay__courseSub=self.kwargs['pk'],
+            courseslistmodel__purchaselistmodel__pay__is_active=True,
+            courseslistmodel__purchaselistmodel__pay__payStatus=True)
 
 
 class PurchaseLessonDetailAPIView(RetrieveAPIView):

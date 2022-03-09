@@ -67,7 +67,6 @@ class TestCourseDataAPIView(APIView):
             isMentor = True
 
         data = user.coursesUserCourseList.filter(id=1)
-        print(data)
-        serializer = CoursesDetail(data, many=True)
+        serializer = CoursesDetailSerializer(data, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
