@@ -525,7 +525,15 @@ class ACoursesPurchaseListAPIView(ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        return PurchaseListModel.objects.filter(course__teacher__user=self.request.user)
+        purchase_ids_all = PurchaseListModel.objects.filter(
+            course__teacher__user=self.request.user).values('user_id', 'id').distinct()
+        print(purchase_ids_all)
+        purchase_ids = []
+        for item in purchase_ids_all:
+            purchase_ids.append(item['id'])
+        print(purchase_ids)
+        return PurchaseListModel.objects.filter(id__in=purchase_ids)
+
 
 class ACoursesPurchaseAddAPIView(RetrieveUpdateAPIView):
     permission_classes = (IsAuthenticated, IsTeacherPermission)

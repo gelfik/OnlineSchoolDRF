@@ -107,7 +107,7 @@ class PurchasePayData():
                 break
         if not searchCourseSub:
             for item in self.course.subCourses.all():
-                if item not in self.purchase.courseSub.all():
+                if item not in self.purchase.pay.all():
                     self.cource_sub = item
                     break
 

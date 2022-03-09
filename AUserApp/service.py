@@ -11,7 +11,7 @@ from django.contrib.auth.models import Group
 from UserProfileApp.models import User
 
 class PaginationUser(PageNumberPagination):
-    page_size = 1
+    page_size = 6
     max_page_size = 1000
 
     def get_next_link(self):
