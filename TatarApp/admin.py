@@ -11,4 +11,4 @@ class TatarAskAdmin(admin.ModelAdmin):
 
 @admin.register(TatarMultipleAnswerModel)
 class TatarMultipleAnswerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'answer', 'validStatus',)
+    list_display = ('id', 'answer', 'answerPhoto', 'validStatus', 'is_photo', 'is_text',)

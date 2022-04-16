@@ -18,6 +18,7 @@ urlpatterns = [
     path('/purchase', include('PurchaseApp.urls', namespace='PurchaseApp')),
     path('/progress', include('ProgressApp.urls', namespace='ProgressApp')),
     path('/apanel', include('APanelApp.urls', namespace='APanelApp')),
+    path('/tatar', include('TatarApp.urls', namespace='TatarApp')),
     # path('file/', include('fileapp.urls', namespace='fileapp')),
 ]
 

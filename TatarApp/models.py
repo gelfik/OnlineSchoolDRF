@@ -11,8 +11,11 @@ class AskVariant(DjangoChoices):
 
 
 class TatarMultipleAnswerModel(models.Model):
-    answer = models.CharField('Ответ', default=None, max_length=255)
+    answer = models.CharField('Ответ', default=None, max_length=255, null=True, blank=True)
+    answerPhoto = models.FileField('Ответ картинкой', default=None, blank=True, null=True)
     validStatus = models.BooleanField('Верно/не верно', default=True)
+    is_photo = models.BooleanField('Ответ с фото?', default=False)
+    is_text = models.BooleanField('Ответ с текстом?', default=False)
 
     class Meta:
         verbose_name = 'Список ответов с выбором из списка'
