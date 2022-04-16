@@ -7,12 +7,12 @@ from urllib.parse import urlencode
 from rest_framework.permissions import BasePermission
 
 
-def is_valid(*, query: dict, secret: object) -> bool:
+def is_valid(*, query: dict, secret: dict) -> bool:
     """Check VK Apps signature"""
     vk_app_id = query.get('vk_app_id', None)
     if vk_app_id is None:
         return False
-    secret = getattr(secret, vk_app_id, None)
+    secret = secret.get(vk_app_id, None)
     if secret is None:
         return False
     vk_subset = OrderedDict(sorted(x for x in query.items() if x[0][:3] == "vk_"))
@@ -23,5 +23,5 @@ def is_valid(*, query: dict, secret: object) -> bool:
 
 class IsVK(BasePermission):
     def has_permission(self, request, view):
-        return is_valid(query=request.GET, secret={8138635: 'SK4gYHpAfQmNzP1f12No',
-                                                   8138857: 'bY1A871PEjR7khy0bY9E'})
+        return is_valid(query=request.GET, secret={'8138635': 'SK4gYHpAfQmNzP1f12No',
+                                                   '8138857': 'bY1A871PEjR7khy0bY9E'})
