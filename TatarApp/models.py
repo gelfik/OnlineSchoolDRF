@@ -40,8 +40,8 @@ class TatarAskModel(models.Model):
                                          related_name='TatarMultipleAnswer')
 
     class Meta:
-        verbose_name = 'Тип варианта вопроса'
-        verbose_name_plural = 'Типы вариантов вопросов'
+        verbose_name = 'Вопрос'
+        verbose_name_plural = 'Вопросы'
         db_table = 'TatarAsk'
 
     def __str__(self):
