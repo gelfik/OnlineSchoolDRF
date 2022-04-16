@@ -18,7 +18,7 @@ class TatarGenerateTestAPIView(APIView):
         try:
             askList = []
             askList.append(TatarAskModel.objects.all())
-            serializer = self.serializer_class(instance=askList, many=True)
+            serializer = TatarAskSerializer(instance=askList, many=True)
             # return Response({'status': True}, status=status.HTTP_200_OK)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except:
