@@ -15,11 +15,12 @@ class TatarGenerateTestAPIView(APIView):
     serializer_class = TatarAskSerializer
 
     def get(self, request, *args, **kwargs):
-        try:
-            askList = []
-            askList.append(TatarAskModel.objects.all())
+        # try:
+            askList = TatarAskModel.objects.all()
+            # askList = []
+            # askList.append(TatarAskModel.objects.all())
             serializer = TatarAskSerializer(instance=askList, many=True)
             # return Response({'status': True}, status=status.HTTP_200_OK)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except:
-            return Response({'status': False}, status=status.HTTP_400_BAD_REQUEST)
+        # except:
+        #     return Response({'status': False}, status=status.HTTP_400_BAD_REQUEST)
