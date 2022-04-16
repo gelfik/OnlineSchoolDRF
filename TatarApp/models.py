@@ -36,8 +36,9 @@ class TatarAskModel(models.Model):
 
     answer = models.CharField('Ответ(вопрос без множественного выбора)', max_length=255, default=None, blank=True,
                               null=True)
-    answer_list = models.ManyToManyField(TatarMultipleAnswerModel, verbose_name='Ответы(вопрос с множественным выбором)',
-                                         related_name='TatarMultipleAnswer')
+    answer_list = models.ManyToManyField(TatarMultipleAnswerModel,
+                                         verbose_name='Ответы(вопрос с множественным выбором)',
+                                         related_name='TatarMultipleAnswer', null=True, blank=True, default=None)
 
     class Meta:
         verbose_name = 'Вопрос'
