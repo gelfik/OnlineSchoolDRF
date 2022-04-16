@@ -24,4 +24,5 @@ def is_valid(*, query: dict, secret: dict) -> bool:
 class IsVK(BasePermission):
     def has_permission(self, request, view):
         return is_valid(query=request.GET, secret={'8138635': 'SK4gYHpAfQmNzP1f12No',
-                                                   '8138857': 'bY1A871PEjR7khy0bY9E'})
+                                                   '8138857': 'bY1A871PEjR7khy0bY9E',
+                                                   '8136707': 'BJ1w17njB5BiFUmXpkoH'})
