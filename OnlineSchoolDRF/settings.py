@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     'ACoursesApp',
     'AProgressApp',
     'AUserApp',
+    # TatarApp
+    'TatarApp',
 ]
 
 MIDDLEWARE = [
