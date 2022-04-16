@@ -6,7 +6,7 @@ from TatarApp.models import TatarMultipleAnswerModel, TatarAskModel
 class TatarMultipleAnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = TatarMultipleAnswerModel
-        fields = ('answer', 'validStatus')
+        fields = ('answer', 'answerPhoto', 'validStatus', 'is_text', 'is_photo')
 
 
 class TatarAskSerializer(serializers.ModelSerializer):
