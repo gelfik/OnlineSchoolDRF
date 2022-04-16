@@ -14,8 +14,8 @@ class TatarMultipleAnswerModel(models.Model):
     answer = models.CharField('Ответ', default=None, max_length=255, null=True, blank=True)
     answerPhoto = models.FileField('Ответ картинкой', default=None, blank=True, null=True)
     validStatus = models.BooleanField('Верно/не верно', default=True)
+    is_text = models.BooleanField('Ответ с текстом?', default=True)
     is_photo = models.BooleanField('Ответ с фото?', default=False)
-    is_text = models.BooleanField('Ответ с текстом?', default=False)
 
     class Meta:
         verbose_name = 'Список ответов с выбором из списка'
@@ -42,6 +42,8 @@ class TatarAskModel(models.Model):
     answer_list = models.ManyToManyField(TatarMultipleAnswerModel,
                                          verbose_name='Ответы(вопрос с множественным выбором)',
                                          related_name='TatarMultipleAnswer', null=True, blank=True, default=None)
+
+    description = models.TextField('Описание ответа', default=None, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Вопрос'
