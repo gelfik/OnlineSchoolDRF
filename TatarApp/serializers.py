@@ -23,7 +23,9 @@ class TatarAskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TatarAskModel
-        fields = ('ask_variant', 'ask', 'audio', 'photo', 'is_selected', 'is_multiple', 'answer', 'answer_list')
+        fields = (
+            'ask_variant', 'ask', 'audio', 'photo', 'is_selected', 'is_multiple', 'answer', 'answer_list',
+            'description')
 
     def get_photo(self, instance):
         if instance.photo != '':
