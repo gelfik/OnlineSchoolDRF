@@ -54,7 +54,7 @@ class AvatarSerializer(serializers.ModelSerializer):
 class RegistrationSerializer(serializers.ModelSerializer):
     """ Сериализация регистрации пользователя и создания нового. """
 
-    # Убедитесь, что пароль содержит не менее 8 символов, не более 128,
+    # Убеждаемся, что пароль содержит не менее 8 символов, не более 128,
     # и так же что он не может быть прочитан клиентской стороной
     password = serializers.CharField(
         max_length=128,
@@ -72,12 +72,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = User
         # Перечислить все поля, которые могут быть включены в запрос
         # или ответ, включая поля, явно указанные выше.
-        fields = ['email', 'token', 'username', 'is_active', 'password', 'lastName', 'firstName', 'vkLink', 'avatar',
-                  'phone', ]
+        fields = ['email', 'token', 'username', 'is_active', 'password',
+                  'lastName', 'firstName', 'vkLink', 'avatar', 'phone', ]
 
     def create(self, validated_data):
-        # Использовать метод create_user, который мы
-        # написали ранее, для создания нового пользователя.
         user = User.objects.create_user(**validated_data)
         update_last_login(None, user)
         return user

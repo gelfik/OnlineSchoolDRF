@@ -11,22 +11,16 @@ from .serializers import (LoginSerializer, RegistrationSerializer, UserRetrieveU
 
 
 class RegistrationAPIView(APIView):
-    """
-    Разрешить всем пользователям (аутентифицированным и нет) доступ к данному эндпоинту.
-    """
     permission_classes = (AllowAny,)
     serializer_class = RegistrationSerializer
     renderer_classes = (UserJSONRenderer,)
 
     def post(self, request):
-        # user = request.data.get('user', {})
         serializer_data = {}
         for i, item in enumerate(request.data):
             data = request.data.get(item, None)
             if data is not None:
                 serializer_data.update({f'{item}': data})
-        # Паттерн создания сериализатора, валидации и сохранения - довольно
-        # стандартный, и его можно часто увидеть в реальных проектах.
         serializer = self.serializer_class(data=serializer_data, context={'request': self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -40,13 +34,9 @@ class LoginAPIView(APIView):
     serializer_class = LoginSerializer
 
     def post(self, request):
-        # user = request.data.get('user', {})
         email = request.data.get('email', None)
         password = request.data.get('password', None)
         user = {'email': email, 'password': password}
-        # Обратите внимание, что мы не вызываем метод save() сериализатора, как
-        # делали это для регистрации. Дело в том, что в данном случае нам
-        # нечего сохранять. Вместо этого, метод validate() делает все нужное.
         serializer = self.serializer_class(data=user, context={'request': self.request})
         serializer.is_valid(raise_exception=True)
 
