@@ -90,8 +90,6 @@ class PurchasePayData():
             self.message = 'у вас уже куплен весь курс'
 
     def get_course_sum_all(self):
-        # course_buy_count = self.purchase.course.subCourses.count() - self.purchase.pay.filter(is_active=True,
-        #                                                                                       payStatus=True).count()
         course_buy_count = self.purchase.course.subCourses.count()
         self.sum_pay = self.sum_full = self.course.price
         if course_buy_count > 1:

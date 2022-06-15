@@ -124,42 +124,14 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    # Каждому пользователю нужен понятный человеку уникальный идентификатор,
-    # который мы можем использовать для предоставления User в пользовательском
-    # интерфейсе. Мы так же проиндексируем этот столбец в базе данных для
-    # повышения скорости поиска в дальнейшем.
     username = models.CharField(db_index=True, max_length=255, unique=True)
-
-    # Так же мы нуждаемся в поле, с помощью которого будем иметь возможность
-    # связаться с пользователем и идентифицировать его при входе в систему.
-    # Поскольку адрес почты нам нужен в любом случае, мы также будем
-    # использовать его для входы в систему, так как это наиболее
-    # распространенная форма учетных данных на данный момент (ну еще телефон).
     email = models.EmailField(db_index=True, unique=True)
-
-    # Когда пользователь более не желает пользоваться нашей системой, он может
-    # захотеть удалить свой аккаунт. Для нас это проблема, так как собираемые
-    # нами данные очень ценны, и мы не хотим их удалять :) Мы просто предложим
-    # пользователям способ деактивировать учетку вместо ее полного удаления.
-    # Таким образом, они не будут отображаться на сайте, но мы все еще сможем
-    # далее анализировать информацию.
     is_active = models.BooleanField(default=True)
-
-    # Этот флаг определяет, кто может войти в административную часть нашего
-    # сайта. Для большинства пользователей это флаг будет ложным.
     is_staff = models.BooleanField(default=False)
-
-    # Временная метка создания объекта.
     created_at = models.DateTimeField('Дата регистрации', auto_now_add=True)
-
-    # Временная метка показывающая время последнего обновления объекта.
     updated_at = models.DateTimeField('Дата последнего изменения', auto_now=True)
-
-    # Дополнительный поля, необходимые Django
-    # при указании кастомной модели пользователя.
     lastName = models.CharField('Фамилия', max_length=255, default=None)
     firstName = models.CharField('Имя', max_length=255, default=None)
-    # patronymic = models.CharField('Отчество', max_length=255, default=None)
     phone = models.CharField('Телефон', max_length=255, default=None, null=True)
     vkLink = models.CharField('Ссылка на вк', max_length=255, default=None, null=True)
     avatar = models.ForeignKey(UserAvatar, on_delete=models.CASCADE, verbose_name='Аватар', default=0, null=True,
@@ -173,22 +145,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     # должен управлять объектами этого типа.
     objects = UserManager()
 
-    # @property
-    # def avatar(self):
-    #     data = {}
-    #     data.update(id=self.avatar.id)
-    #     data.update(link=self.avatar.link)
-    #     data.update(file=self.avatar.file_link)
-    #     data.update(name=self.avatar.name)
-    #     return data
-
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
         db_table = 'Users'
 
     def __str__(self):
-        """ Строковое представление модели (отображается в консоли) """
         return f'{self.firstName} {self.lastName}'
 
     @property

@@ -270,17 +270,17 @@ class PurchaseBuyPurchaseAPIView(APIView):
         if promocode.send_status and not promocode.status:
             return Response({'message': promocode.message, 'result': 'error'}, status=status.HTTP_200_OK)
         if not buyAll and not sub:
-            return Response({'message': 'подкурс не выбран или не найден', 'result': 'error'},
+            return Response({'message': 'раздел не выбран или не найден', 'result': 'error'},
                             status=status.HTTP_200_OK)
         if sub and sub.id in purchase.pay.values_list('courseSub_id', flat=True):
-            return Response({'message': 'у вас уже куплен данный подкурс', 'result': 'error'},
+            return Response({'message': 'у вас уже куплен данный раздел', 'result': 'error'},
                             status=status.HTTP_200_OK)
         if purchase.course.price == 0:
             buyAll = True
 
         purchaseSub = PurchaseSubPayData(request.user, purchase, sub, promocode, buyAll)
         purchaseSub.buy_course()
-        return Response({'message': purchaseSub.message, 'result': 'succes'}, status=status.HTTP_200_OK)
+        return Response({'message': purchaseSub.message, 'result': 'success'}, status=status.HTTP_200_OK)
 
 
 class PurchaseBuyCourseAPIView(APIView):
@@ -309,6 +309,6 @@ class PurchaseBuyCourseAPIView(APIView):
         purchase = PurchasePayData(request.user, course, promocode, buyAll)
         purchase.get_purchase()
         if not purchase.status:
-            return Response({'message': purchase.message, 'result': 'succes'}, status=status.HTTP_200_OK)
+            return Response({'message': purchase.message, 'result': 'success'}, status=status.HTTP_200_OK)
         purchase.buy_course()
-        return Response({'message': purchase.message, 'result': 'succes'}, status=status.HTTP_200_OK)
+        return Response({'message': purchase.message, 'result': 'success'}, status=status.HTTP_200_OK)
